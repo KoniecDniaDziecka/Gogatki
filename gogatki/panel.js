@@ -37,7 +37,7 @@ const GogatkiRuntime = (() => {
         input{width:14px;height:14px;accent-color:#21bd69;cursor:pointer}.error{color:#ffbd89}
         footer{padding:7px 8px;border-top:1px solid #66829855;font-size:11px;color:#12c9bd}.apply{display:block;width:100%;margin-top:7px;padding:5px;background:#38566c;border:1px solid #6d879a;border-radius:3px}
         :focus-visible{outline:2px solid #12c9bd;outline-offset:2px}
-    </style><button class="move" aria-label="Przesuń Gogatki" title="Przeciągnij, aby zmienić pozycję. Strzałki przesuwają o 10 px.">⠿</button><button class="launcher" aria-expanded="false" aria-controls="panel">G · Gogatki</button>
+    </style><button class="move" aria-label="Przesuń Gogatki" title="Przeciągnij, aby zmienić pozycję. Strzałki przesuwają o 10 px.">⠿</button><button class="launcher" aria-expanded="false" aria-controls="panel">Gogatki</button>
     <section id="panel" hidden aria-label="Panel dodatków"><header><div><h2>Gogatki</h2><small>Twoje dodatki w jednym miejscu</small></div><button aria-label="Zamknij">×</button></header><div class="list"></div><footer><span role="status"></span><button class="apply" hidden>Zastosuj i odśwież grę</button></footer></section>`;
     document.body.appendChild(host);
     const panel = root.querySelector('section');
