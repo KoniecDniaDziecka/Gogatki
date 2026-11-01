@@ -1,4 +1,4 @@
-GogatkiRuntime.register({id:"wolacz",name:"Wo\u0142acz",description:"Wo\u0142anie na globalny wed\u0142ug mapy i grupy \u00b7 1.3.9",start() {
+GogatkiRuntime.register({id:"wolacz",name:"Wo\u0142acz",description:"Wo\u0142anie na globalny wed\u0142ug mapy i grupy \u00b7 1.4.0",start() {
     const window = unsafeWindow;
 (() => {
     'use strict';
@@ -26,33 +26,38 @@ GogatkiRuntime.register({id:"wolacz",name:"Wo\u0142acz",description:"Wo\u0142ani
     panel.id = 'wolacz-global-panel';
     Object.assign(panel.style, {
         position: 'fixed', top: '20px', left: '20px', zIndex: '10000',
-        display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
-        gap: '4px', maxWidth: '260px', font: '12px sans-serif',
+        display: 'flex', flexDirection: 'column', alignItems: 'stretch',
+        gap: '0', maxWidth: '260px', font: '12px/1.3 Arial',
+        background: '#171719ed', color: '#eee', border: '1px solid #668298',
+        borderRadius: '4px', boxShadow: '0 6px 22px #0009', overflow: 'hidden',
     });
 
     const button = document.createElement('button');
     button.type = 'button';
     Object.assign(button.style, {
-        padding: '8px 12px', border: '1px solid #777', borderRadius: '4px',
-        background: '#333', color: '#fff', font: '12px sans-serif',
+        padding: '3px 8px', border: '1px solid #6d879a', borderRadius: '3px',
+        background: '#38566c', color: '#12c9bd', font: '12px/18px Arial',
+        minHeight: '24px', flex: '1', whiteSpace: 'normal',
     });
     const status = document.createElement('div');
     status.setAttribute('role', 'status');
     Object.assign(status.style, {
-        color: '#fff', background: '#222', padding: '4px 6px',
-        borderRadius: '3px', display: 'none',
+        color: '#12c9bd', padding: '5px 8px', fontSize: '11px',
+        borderTop: '1px solid #66829855', overflowWrap: 'anywhere', display: 'none',
     });
     const controls = document.createElement('div');
     Object.assign(controls.style, {
         display: 'flex', alignItems: 'center', gap: '4px',
+        padding: '3px 5px', background: '#25272a',
     });
     const handle = document.createElement('div');
     handle.textContent = '⠿';
     handle.title = 'Przeciągnij, aby zmienić pozycję. Pozycja zapisuje się automatycznie.';
     handle.setAttribute('aria-label', 'Uchwyt do przesuwania przycisku');
     Object.assign(handle.style, {
-        padding: '6px', background: '#333', color: '#fff', borderRadius: '4px',
-        cursor: 'grab', userSelect: 'none', touchAction: 'none', fontSize: '18px',
+        padding: '0 3px', color: '#aaa', flexShrink: '0',
+        cursor: 'grab', userSelect: 'none', touchAction: 'none',
+        font: '18px/24px Arial',
     });
     controls.append(handle, button);
     panel.append(controls, status);
