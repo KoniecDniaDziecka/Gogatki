@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Gogatki — panel dodatków
 // @namespace    gogatek.local
-// @version      0.4.1
+// @version      0.4.2
 // @description  Wspólny panel i przełączniki dodatków do Margonem.
 // @match        https://*.margonem.pl/*
 // @match        https://*.margonem.com/*
@@ -41,10 +41,10 @@
     host.id = 'gogatek-panel';
     const root = host.attachShadow({mode: 'open'});
     root.innerHTML = `<style>
-        :host{all:initial;position:fixed;right:18px;top:40px;z-index:2147483647;font:12px/1.3 Arial;color:#eee}
+        :host{all:initial;display:flex;align-items:flex-start;width:max-content;position:fixed;right:18px;top:40px;z-index:2147483647;font:12px/1.3 Arial;color:#eee}
         *{box-sizing:border-box}button,input{font:inherit}button{cursor:pointer;color:inherit}
         .move{background:#25272a;color:#aaa;border:1px solid #668298;border-radius:4px;padding:5px;cursor:move;touch-action:none;user-select:none;margin-right:3px}header{cursor:move;touch-action:none;user-select:none}.launcher{background:#25272a;border:1px solid #668298;border-radius:4px;padding:5px 9px;font-weight:bold;box-shadow:0 6px 22px #0009}
-        section{margin-top:5px;width:280px;max-width:calc(100vw - 36px);background:#171719ed;border:1px solid #668298;border-radius:4px;box-shadow:0 6px 22px #0009;overflow:hidden}
+        section{position:absolute;top:calc(100% + 5px);right:0;width:280px;max-width:calc(100vw - 16px);overflow-y:auto;background:#171719ed;border:1px solid #668298;border-radius:4px;box-shadow:0 6px 22px #0009;overflow-x:hidden}
         [hidden]{display:none!important}header{padding:5px 8px;background:#25272a;display:flex;align-items:center;justify-content:space-between}
         h2{margin:0;font-size:13px}small{font-size:10px;color:#aaa}header button{border:0;background:none;font-size:18px}
         .list{padding:0 8px}.row{display:flex;gap:10px;padding:11px 0;align-items:center;border-bottom:1px solid #ffffff12}.row:last-child{border:0}.info{flex:1}strong{display:block;margin-bottom:3px}p{font-size:11px;line-height:1.4;color:#aaa;margin:0}
@@ -56,7 +56,25 @@
     document.body.appendChild(host);
     const panel = root.querySelector('section');
     const launcher = root.querySelector('.launcher');
-    function open(value) { panel.hidden = !value; launcher.setAttribute('aria-expanded', String(value)); position(positionState); }
+    function open(value) {
+        panel.hidden = !value;
+        launcher.setAttribute('aria-expanded', String(value));
+        placeList();
+    }
+    function placeList() {
+        if (panel.hidden) return;
+        const anchor = host.getBoundingClientRect();
+        const margin = 8, gap = 5;
+        const left = Math.max(margin, Math.min(anchor.right - panel.offsetWidth, window.innerWidth - panel.offsetWidth - margin));
+        panel.style.left = (left - anchor.left) + 'px';
+        panel.style.right = 'auto';
+        const below = Math.max(0, window.innerHeight - anchor.bottom - gap - margin);
+        const above = Math.max(0, anchor.top - gap - margin);
+        const upwards = above > below && panel.scrollHeight > below;
+        panel.style.maxHeight = (upwards ? above : below) + 'px';
+        panel.style.top = upwards ? 'auto' : (anchor.height + gap) + 'px';
+        panel.style.bottom = upwards ? (anchor.height + gap) + 'px' : 'auto';
+    }
     const positionKey = 'gogatki:position:v1';
     let positionState = {right:18, top:40};
     try {
@@ -70,6 +88,7 @@
         };
         host.style.right = positionState.right + 'px';
         host.style.top = positionState.top + 'px';
+        placeList();
     }
     function savePosition() {
         try { GM_setValue(positionKey, positionState); }
@@ -143,6 +162,7 @@
         const pending = modules.some(mod => active.has(mod.id) && preferences[mod.id] !== true);
         root.querySelector('[role=status]').textContent = pending ? 'Wyłączenie dodatków wymaga odświeżenia gry.' : loading.size ? 'Pobieranie włączonych dodatków…' : `Włączone: ${active.size}/${modules.length}`;
         root.querySelector('.apply').hidden = !pending;
+        placeList();
     }
     function fetchSource(url) {
         return new Promise((resolve, reject) => {
