@@ -1,38 +1,45 @@
 # Gogatki
 
-Jeden dodatek do Tampermonkey z panelem do włączania Ulepy, Lootfiltera i Wołacza na czat globalny. Skrypt instalacyjny ma 23 wiersze; panel i moduły są pobierane osobno przez `@require`.
+Panel dodatków zainstalowany bezpośrednio w Tampermonkey. Ulepa, Lootfilter i Wołacz są pobierane z tego repozytorium dopiero po włączeniu ich przełączników. Wersja 0.4.0 nie używa `@require` i nie pobiera osobnego pliku panelu.
 
 ## Instalacja
 
-1. Zainstaluj rozszerzenie Tampermonkey.
-2. Otwórz [Gogatki — instalacja](https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/gogatki.user.js) i zatwierdź instalację w Tampermonkey. Jeśli przeglądarka pokazuje sam tekst, skopiuj cały plik do nowego skryptu w Tampermonkey i zapisz.
-3. Wyłącz wcześniejsze Gogatki oraz osobne skrypty Ulepy, Lootfiltera i Wołacza, jeśli są zainstalowane. Przy aktualizacji tej samej instalacji zachowaj jej zapisane ustawienia.
-4. Odśwież grę. Otwórz „G · Gogatki”, zaznacz wybrane moduły i kliknij „Zastosuj i odśwież grę”.
+1. Otwórz [Gogatki — instalacja lub aktualizacja](https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/gogatki.user.js) i zatwierdź w Tampermonkey. Jeśli widzisz tekst, podmień nim cały kod obecnego skryptu Gogatków i zapisz.
+2. Wyłącz osobne instalacje Ulepy, Lootfiltera i Wołacza oraz dodatkowe kopie Gogatków.
+3. Odśwież grę i kliknij „Gogatki”. Zaznacz wybrane dodatki — ich kod zostanie pobrany i uruchomiony od razu.
 
-Moduły są domyślnie wyłączone. Każdy zachowuje własny panel ustawień. Ulepa po włączeniu uruchamia automatykę przetwarzania nowego łupu zgodnie z jej filtrami i wybranym celem; przycisk STOP jest w ustawieniach Ulepy.
+Aktualizacja wymaga uprawnienia do pobierania modułów z `raw.githubusercontent.com`. Skrypt nie działa na głównej stronie `www.margonem.pl` ani `margonem.pl`.
 
-Panel Gogatków przesuwasz uchwytem ⠿ lub nagłówkiem otwartego panelu. Pozycja zapisuje się automatycznie; uchwyt obsługuje też strzałki klawiatury.
+## Jak działają przełączniki
+
+- Żaden dodatek zaznaczony: działa wyłącznie lokalny panel, bez żądań pobierania modułów.
+- Zaznaczenie dodatku: pobranie jego pliku i uruchomienie; inne wyłączone dodatki nie są pobierane.
+- Odświeżenie gry: automatyczne pobranie i uruchomienie tylko zapamiętanych włączonych dodatków.
+- Odznaczenie już uruchomionego dodatku: zapis wyboru; kliknij „Zastosuj i odśwież grę”, aby odłączyć jego timery i przechwytywanie odpowiedzi gry.
+- Odznaczenie podczas pobierania: odpowiedź nie uruchomi dodatku.
+- Błąd pobierania: panel pokazuje błąd oraz przycisk ponowienia pobierania.
+
+Ulepa po uruchomieniu włącza automatykę nowego łupu zgodnie ze swoimi filtrami i wybranym celem. STOP znajduje się w jej ustawieniach.
+
+## Pozycja i ustawienia
+
+Przesuwaj panel uchwytem ⠿ albo jego nagłówkiem; pozycja zapisuje się automatycznie. Uchwyt obsługuje również strzałki klawiatury. Zachowano zapisane przełączniki, pozycję i ustawienia z poprzednich wersji Gogatków.
+
+Przełączniki, pozycja panelu i konfiguracja Lootfiltera zapisują się w pamięci Tampermonkey wspólnej dla obsługiwanych światów. Ulepa zachowuje zapis osobno dla postaci w localStorage. Ustawienia GM z osobno zainstalowanego Lootfiltera nie przenoszą się automatycznie.
 
 ## Pliki
 
 | Plik | Zawartość |
 | --- | --- |
-| `gogatki/gogatki.user.js` | Instalacja, adresy zależności i uruchomienie panelu |
-| `gogatki/panel.js` | Panel, rejestr modułów, przełączniki i pozycja |
+| `gogatki/gogatki.user.js` | Kompletny panel, ustawienia i pobieranie wybranych modułów |
 | `gogatki/modules/ulepa.js` | Ulepa 1.2.3 |
 | `gogatki/modules/lootfilter.js` | Lootfilter 1.0.6 |
-| `gogatki/modules/wolacz.js` | Wołacz 1.3.9 — wiadomość według mapy i grupy |
+| `gogatki/modules/wolacz.js` | Wołacz 1.3.9 na globalny według mapy i grupy |
 
-Wołacz obsługuje skonfigurowane mapy; m.in. mapa `4266` wysyła `244 Zapraszam!` bez grupy. To Wołacz na globalny, nie skrypt „Wołacz + ide” przez Lootlog.
+`gogatki/panel.js` pozostał dla zgodności ze starymi instalacjami 0.3.x. Wersja 0.4.0 go nie używa.
 
-## Ustawienia i aktualizacje
+Moduły rejestrują funkcję `start` przez `GogatkiRuntime.register({id, name, description, start() {...}})`. Panel pobiera i wykonuje kod z tego repozytorium w kontekście skryptu Tampermonkey, przekazując wymagane funkcje GM. Dodanie kolejnego dodatku wymaga pliku modułu i wpisu w katalogu modułów panelu. Skrypt ma ustawione `@updateURL` i `@downloadURL`.
 
-Przełączniki i pozycja Gogatków oraz konfiguracja Lootfiltera zapisują się w pamięci Tampermonkey wspólnej dla obsługiwanych światów. Ulepa zachowuje dotychczasowy zapis postaci w localStorage. Ustawienia GM z osobno zainstalowanego Lootfiltera nie przenoszą się automatycznie do Gogatków.
+## Weryfikacja 0.4.0
 
-Tampermonkey pobiera pliki `@require` do swojej pamięci. Samo odświeżenie gry nie gwarantuje pobrania zmian opublikowanych w repozytorium. Kolejne wydania powinny podnosić wersję skryptu instalacyjnego i aktualizować adresy zmienionych zależności (np. przez parametr wersji), aby umożliwić ich odświeżenie. Skrypt ma skonfigurowane `@updateURL` i `@downloadURL`.
-
-Dodanie nowego modułu wymaga pliku rejestrującego go przez `GogatkiRuntime.register({id, name, description, start() {...}})` i dodatkowego `@require` w skrypcie instalacyjnym. Pobranie modułu rejestruje go, a panel uruchamia jego funkcję `start` tylko po zapisaniu włączonego przełącznika.
-
-## Weryfikacja wydania 0.3.1
-
-Sprawdzone lokalnie: składnia, 12 testów filtrów łupu, ochrona przedmiotów i partie Ulepy oraz test Chromium z atrapą API gry obejmujący współpracę trzech modułów, Wołacza, zapis przełączników i przeciąganie panelu. Testy nie obejmują operacji na prawdziwym serwerze gry.
+Test Chromium z atrapą API gry obejmuje brak pobierania wyłączonych modułów, pobranie wyłącznie zaznaczonego modułu i jego natychmiastowe uruchomienie, zapamiętane wybory, współpracę trzech modułów, wyłączenie po odświeżeniu, zapis pozycji, odznaczenie podczas pobierania oraz błąd HTTP i ponowienie. Sprawdzono składnię. Działanie na prawdziwym serwerze gry i w samym rozszerzeniu Tampermonkey wymaga sprawdzenia w grze.
