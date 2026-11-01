@@ -1,12 +1,14 @@
 // ==UserScript==
 // @name         Gogatki — panel dodatków
 // @namespace    gogatek.local
-// @version      0.3.1
+// @version      0.3.2
 // @description  Wspólny panel i przełączniki dodatków do Margonem.
 // @match        https://*.margonem.pl/*
 // @match        https://*.margonem.com/*
 // @match        http://*.margonem.pl/*
 // @match        http://*.margonem.com/*
+// @exclude      *://www.margonem.pl/*
+// @exclude      *://margonem.pl/*
 // @grant        GM_getValue
 // @grant        GM_setValue
 // @grant        unsafeWindow
