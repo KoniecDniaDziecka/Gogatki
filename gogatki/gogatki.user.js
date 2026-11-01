@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Gogatki — panel dodatków
 // @namespace    gogatek.local
-// @version      0.4.0
+// @version      0.4.1
 // @description  Wspólny panel i przełączniki dodatków do Margonem.
 // @match        https://*.margonem.pl/*
 // @match        https://*.margonem.com/*
@@ -199,5 +199,5 @@
 
     register({"id": "ulepa", "name": "Ulepa", "description": "Ulepszanie i rozbijanie przedmiotów · 1.2.3", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/ulepa.js?v=0.4.0"});
 register({"id": "lootfilter", "name": "Lootfilter", "description": "Filtry łupu po walce · 1.0.6", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/lootfilter.js?v=0.4.0"});
-register({"id": "wolacz", "name": "Wołacz", "description": "Wołanie na globalny według mapy i grupy · 1.3.9", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/wolacz.js?v=0.4.0"});
+register({"id": "wolacz", "name": "Wołacz", "description": "Wołanie na globalny według mapy i grupy · 1.4.0", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/wolacz.js?v=1.4.0"});
 })();
