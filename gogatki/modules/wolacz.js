@@ -1,0 +1,206 @@
+GogatkiRuntime.register({id:"wolacz",name:"Wo\u0142acz",description:"Wo\u0142anie na globalny wed\u0142ug mapy i grupy \u00b7 1.3.9",start() {
+    const window = unsafeWindow;
+(() => {
+    'use strict';
+
+    const MAPY = {
+        3361: '36',
+        3883: '63',
+        4046: '83',
+        7353: '114',
+        4161: '144',
+        4066: '167',
+        4196: '190',
+        4206: '213',
+        4266: '244',
+        4268: '279',
+    };
+    const LIMIT_GRUPY = 10;
+    const PRZERWA_MS = 3000;
+    const KANAL = 'global';
+    const POSITION_KEY = 'wolaczGlobalPosition';
+
+    if (document.getElementById('wolacz-global-panel')) return;
+
+    const panel = document.createElement('div');
+    panel.id = 'wolacz-global-panel';
+    Object.assign(panel.style, {
+        position: 'fixed', top: '20px', left: '20px', zIndex: '10000',
+        display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
+        gap: '4px', maxWidth: '260px', font: '12px sans-serif',
+    });
+
+    const button = document.createElement('button');
+    button.type = 'button';
+    Object.assign(button.style, {
+        padding: '8px 12px', border: '1px solid #777', borderRadius: '4px',
+        background: '#333', color: '#fff', font: '12px sans-serif',
+    });
+    const status = document.createElement('div');
+    status.setAttribute('role', 'status');
+    Object.assign(status.style, {
+        color: '#fff', background: '#222', padding: '4px 6px',
+        borderRadius: '3px', display: 'none',
+    });
+    const controls = document.createElement('div');
+    Object.assign(controls.style, {
+        display: 'flex', alignItems: 'center', gap: '4px',
+    });
+    const handle = document.createElement('div');
+    handle.textContent = '⠿';
+    handle.title = 'Przeciągnij, aby zmienić pozycję. Pozycja zapisuje się automatycznie.';
+    handle.setAttribute('aria-label', 'Uchwyt do przesuwania przycisku');
+    Object.assign(handle.style, {
+        padding: '6px', background: '#333', color: '#fff', borderRadius: '4px',
+        cursor: 'grab', userSelect: 'none', touchAction: 'none', fontSize: '18px',
+    });
+    controls.append(handle, button);
+    panel.append(controls, status);
+    document.body.appendChild(panel);
+
+    let lastAttempt = -Infinity;
+    let notificationTimer = null;
+    let drag = null;
+
+    function setPosition(left, top) {
+        const maxLeft = Math.max(0, window.innerWidth - panel.offsetWidth);
+        const maxTop = Math.max(0, window.innerHeight - panel.offsetHeight);
+        panel.style.left = `${Math.min(maxLeft, Math.max(0, left))}px`;
+        panel.style.top = `${Math.min(maxTop, Math.max(0, top))}px`;
+    }
+
+    function savePosition() {
+        try {
+            localStorage.setItem(POSITION_KEY, JSON.stringify({
+                left: parseFloat(panel.style.left), top: parseFloat(panel.style.top),
+            }));
+        } catch (error) {
+            notify('Przeglądarka nie pozwala zapisać pozycji.');
+            console.warn('[Wołacz GLOBAL] Zapis pozycji:', error);
+        }
+    }
+
+    function restorePosition() {
+        let left = 20;
+        let top = 20;
+        try {
+            const saved = JSON.parse(localStorage.getItem(POSITION_KEY));
+            if (Number.isFinite(saved?.left) && Number.isFinite(saved?.top)) {
+                ({ left, top } = saved);
+            }
+        } catch (error) {
+            console.warn('[Wołacz GLOBAL] Odczyt pozycji:', error);
+        }
+        setPosition(left, top);
+    }
+
+    handle.addEventListener('pointerdown', event => {
+        if (event.button !== 0 || drag) return;
+        event.preventDefault();
+        event.stopPropagation();
+        const rect = panel.getBoundingClientRect();
+        drag = {
+            id: event.pointerId, offsetX: event.clientX - rect.left,
+            offsetY: event.clientY - rect.top, left: rect.left, top: rect.top,
+        };
+        handle.setPointerCapture(event.pointerId);
+        handle.style.cursor = 'grabbing';
+    });
+    handle.addEventListener('pointermove', event => {
+        if (!drag || drag.id !== event.pointerId) return;
+        event.preventDefault();
+        event.stopPropagation();
+        setPosition(event.clientX - drag.offsetX, event.clientY - drag.offsetY);
+    });
+    function finishDrag(event) {
+        if (!drag || drag.id !== event.pointerId) return;
+        event.stopPropagation();
+        if (event.type === 'pointercancel') setPosition(drag.left, drag.top);
+        else savePosition();
+        drag = null;
+        handle.style.cursor = 'grab';
+        if (handle.hasPointerCapture(event.pointerId)) {
+            handle.releasePointerCapture(event.pointerId);
+        }
+    }
+    handle.addEventListener('pointerup', finishDrag);
+    handle.addEventListener('pointercancel', finishDrag);
+    handle.addEventListener('lostpointercapture', () => {
+        drag = null;
+        handle.style.cursor = 'grab';
+    });
+    handle.addEventListener('click', event => event.stopPropagation());
+    window.addEventListener('resize', () => {
+        setPosition(parseFloat(panel.style.left), parseFloat(panel.style.top));
+        savePosition();
+    });
+
+    function prepare() {
+        const engine = window.Engine || null;
+        const mapId = engine?.map?.d?.id ?? engine?.map?.id ?? window.map?.id;
+        if (mapId == null) throw new Error('Oczekiwanie na dane mapy.');
+        if (!Object.hasOwn(MAPY, String(mapId))) {
+            throw new Error(`Brak wołania dla mapy ${mapId}.`);
+        }
+
+        const members = engine?.party?.getMembers?.();
+        const count = members == null ? 0 : members.size;
+        if (!Number.isInteger(count) || count < 0 || count > LIMIT_GRUPY) {
+            throw new Error('Brak poprawnych danych grupy.');
+        }
+        if (typeof window._g !== 'function') {
+            throw new Error('Oczekiwanie na czat gry.');
+        }
+        const groupText = count <= 1 ? 'Zapraszam!' : `${count}/${LIMIT_GRUPY}`;
+        return { message: `${MAPY[mapId]} ${groupText}` };
+    }
+
+    function update() {
+        try {
+            const { message } = prepare();
+            button.textContent = `Wołaj: ${message}`;
+            button.title = `Wyślij tę wiadomość na kanał ${KANAL.toUpperCase()}`;
+            button.disabled = Date.now() - lastAttempt < PRZERWA_MS;
+        } catch (error) {
+            button.textContent = 'Wołacz niedostępny';
+            button.title = error.message;
+            button.disabled = true;
+        }
+        button.style.opacity = button.disabled ? '0.55' : '1';
+        button.style.cursor = button.disabled ? 'default' : 'pointer';
+    }
+
+    function notify(text, duration = 0) {
+        clearTimeout(notificationTimer);
+        notificationTimer = null;
+        status.textContent = text;
+        status.style.display = text ? 'block' : 'none';
+        if (text && duration > 0) {
+            notificationTimer = setTimeout(() => {
+                status.textContent = '';
+                status.style.display = 'none';
+                notificationTimer = null;
+            }, duration);
+        }
+    }
+
+    button.addEventListener('click', () => {
+        if (Date.now() - lastAttempt < PRZERWA_MS) return;
+        try {
+            const { message } = prepare();
+            lastAttempt = Date.now();
+            window._g(`chat&channel=${KANAL}`, null, { c: message });
+            notify('Wysłano.', 5000);
+        } catch (error) {
+            notify(error.message);
+            console.warn('[Wołacz GLOBAL]', error);
+        }
+        update();
+    });
+
+    update();
+    restorePosition();
+    setInterval(update, 500);
+})();
+
+}});
