@@ -1,4 +1,4 @@
-GogatkiRuntime.register({id:"wolacz",name:"Wo\u0142acz Kolosy",description:"Wo\u0142anie na globalny wed\u0142ug mapy i grupy \u00b7 1.4.1",start() {
+GogatkiRuntime.register({id:"wolacz",name:"Wo\u0142acz Kolosy",description:"Wo\u0142anie na globalny wed\u0142ug mapy i grupy \u00b7 1.4.2",start() {
     const window = unsafeWindow;
 (() => {
     'use strict';
@@ -66,6 +66,26 @@ GogatkiRuntime.register({id:"wolacz",name:"Wo\u0142acz Kolosy",description:"Wo\u
     let lastAttempt = -Infinity;
     let notificationTimer = null;
     let drag = null;
+    const COMPACT_KEY = 'wolaczGlobalCompact';
+    let compact = false;
+    try { compact = localStorage.getItem(COMPACT_KEY) === 'true'; } catch {}
+
+    function applyCompact() {
+        button.style.display = compact ? 'none' : '';
+        status.style.display = !compact && status.textContent ? 'block' : 'none';
+        controls.style.gap = compact ? '0' : '4px';
+        handle.title = 'Przeciągnij, aby zmienić pozycję. PPM: ' + (compact ? 'rozwiń Wołacza.' : 'zwiń Wołacza.');
+        handle.setAttribute('aria-expanded', String(!compact));
+        setPosition(parseFloat(panel.style.left), parseFloat(panel.style.top));
+    }
+    handle.addEventListener('contextmenu', event => {
+        event.preventDefault();
+        event.stopPropagation();
+        compact = !compact;
+        applyCompact();
+        try { localStorage.setItem(COMPACT_KEY, String(compact)); }
+        catch { notify('Przeglądarka nie pozwala zapisać zwinięcia.'); }
+    });
 
     function setPosition(left, top) {
         const maxLeft = Math.max(0, window.innerWidth - panel.offsetWidth);
@@ -180,7 +200,7 @@ GogatkiRuntime.register({id:"wolacz",name:"Wo\u0142acz Kolosy",description:"Wo\u
         clearTimeout(notificationTimer);
         notificationTimer = null;
         status.textContent = text;
-        status.style.display = text ? 'block' : 'none';
+        status.style.display = text && !compact ? 'block' : 'none';
         if (text && duration > 0) {
             notificationTimer = setTimeout(() => {
                 status.textContent = '';
@@ -205,6 +225,7 @@ GogatkiRuntime.register({id:"wolacz",name:"Wo\u0142acz Kolosy",description:"Wo\u
     });
 
     update();
+    applyCompact();
     restorePosition();
     setInterval(update, 500);
 })();
