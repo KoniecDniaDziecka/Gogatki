@@ -1,4 +1,4 @@
-GogatkiRuntime.register({id:"wolacz",name:"Wo\u0142acz",description:"Wo\u0142anie na globalny wed\u0142ug mapy i grupy \u00b7 1.4.0",start() {
+GogatkiRuntime.register({id:"wolacz",name:"Wo\u0142acz Kolosy",description:"Wo\u0142anie na globalny wed\u0142ug mapy i grupy \u00b7 1.4.1",start() {
     const window = unsafeWindow;
 (() => {
     'use strict';
@@ -156,7 +156,8 @@ GogatkiRuntime.register({id:"wolacz",name:"Wo\u0142acz",description:"Wo\u0142ani
         if (typeof window._g !== 'function') {
             throw new Error('Oczekiwanie na czat gry.');
         }
-        const groupText = count <= 1 ? 'Zapraszam!' : `${count}/${LIMIT_GRUPY}`;
+        const displayedCount = count >= 2 && count <= 5 ? count + 2 : count;
+        const groupText = count <= 1 ? 'Zapraszam!' : `${displayedCount}/${LIMIT_GRUPY}`;
         return { message: `${MAPY[mapId]} ${groupText}` };
     }
 
