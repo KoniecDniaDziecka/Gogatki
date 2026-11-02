@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Gogatki — panel dodatków
 // @namespace    gogatek.local
-// @version      0.4.2
+// @version      0.5.0
 // @description  Wspólny panel i przełączniki dodatków do Margonem.
 // @match        https://*.margonem.pl/*
 // @match        https://*.margonem.com/*
@@ -36,6 +36,9 @@
     const errors = new Map();
     const loading = new Set();
     const loaded = new Map();
+    let catalogueLoading = false;
+    let catalogueMessage = '';
+    const catalogueCacheKey = 'gogatki:catalogue:v1';
 
     const host = document.createElement('div');
     host.id = 'gogatek-panel';
@@ -52,7 +55,7 @@
         footer{padding:7px 8px;border-top:1px solid #66829855;font-size:11px;color:#12c9bd}.apply{display:block;width:100%;margin-top:7px;padding:5px;background:#38566c;border:1px solid #6d879a;border-radius:3px}
         :focus-visible{outline:2px solid #12c9bd;outline-offset:2px}
     </style><button class="move" aria-label="Przesuń Gogatki" title="Przeciągnij, aby zmienić pozycję. Strzałki przesuwają o 10 px.">⠿</button><button class="launcher" aria-expanded="false" aria-controls="panel">Gogatki</button>
-    <section id="panel" hidden aria-label="Panel dodatków"><header><div><h2>Gogatki</h2><small>Twoje dodatki w jednym miejscu</small></div><button aria-label="Zamknij">×</button></header><div class="list"></div><footer><span role="status"></span><button class="apply" hidden>Zastosuj i odśwież grę</button></footer></section>`;
+    <section id="panel" hidden aria-label="Panel dodatków"><header><div><h2>Gogatki</h2><small>Twoje dodatki w jednym miejscu</small></div><button aria-label="Zamknij">×</button></header><div class="list"></div><footer><span role="status"></span><p class="catalogue-message"></p><button class="refresh-list">Odśwież listę</button><button class="apply" hidden>Zastosuj i odśwież grę</button></footer></section>`;
     document.body.appendChild(host);
     const panel = root.querySelector('section');
     const launcher = root.querySelector('.launcher');
@@ -130,6 +133,7 @@
     launcher.addEventListener('click', () => open(panel.hidden));
     root.querySelector('header button').addEventListener('click', () => { open(false); launcher.focus(); });
     root.addEventListener('keydown', event => { if (event.key === 'Escape') { open(false); launcher.focus(); } });
+    root.querySelector('.refresh-list').addEventListener('click', () => updateCatalogue());
     root.querySelector('.apply').addEventListener('click', () => window.location.reload());
     function render() {
         const list = root.querySelector('.list');
@@ -162,6 +166,8 @@
         const pending = modules.some(mod => active.has(mod.id) && preferences[mod.id] !== true);
         root.querySelector('[role=status]').textContent = pending ? 'Wyłączenie dodatków wymaga odświeżenia gry.' : loading.size ? 'Pobieranie włączonych dodatków…' : `Włączone: ${active.size}/${modules.length}`;
         root.querySelector('.apply').hidden = !pending;
+        root.querySelector('.catalogue-message').textContent = catalogueLoading ? 'Pobieranie listy dodatków…' : catalogueMessage;
+        root.querySelector('.refresh-list').disabled = catalogueLoading;
         placeList();
     }
     function fetchSource(url) {
@@ -210,14 +216,46 @@
             loading.delete(mod.id); render();
         }
     }
-    function register(mod) {
-        if (modules.some(item => item.id === mod.id)) throw new Error('Powtórzony identyfikator modułu');
-        modules.push(mod);
-        if (preferences[mod.id] === true) start(mod);
+    function validateCatalogue(data) {
+        if (data?.schemaVersion !== 1 || !Array.isArray(data.modules)) throw new Error('Nieprawidłowy format listy.');
+        const ids = new Set();
+        const base = new URL('./modules/', catalogueUrl);
+        return data.modules.map(item => {
+            if (!item || typeof item.id !== 'string' || !/^[a-z][a-z0-9-]{0,63}$/.test(item.id) || ids.has(item.id) ||
+                typeof item.name !== 'string' || !item.name.trim() || typeof item.url !== 'string' ||
+                (item.description !== undefined && typeof item.description !== 'string')) throw new Error('Nieprawidłowy wpis listy.');
+            const url = new URL(item.url, catalogueUrl);
+            if (url.origin !== base.origin || !url.pathname.startsWith(base.pathname) || url.username || url.password) {
+                throw new Error('Nieprawidłowy adres modułu.');
+            }
+            ids.add(item.id);
+            return {id:item.id, name:item.name, description:item.description || '', url:url.href};
+        });
+    }
+    async function updateCatalogue() {
+        if (catalogueLoading) return;
+        catalogueLoading = true; catalogueMessage = ''; render();
+        let catalogue;
+        try {
+            const url = new URL(catalogueUrl);
+            url.searchParams.set('t', String(Date.now()));
+            catalogue = validateCatalogue(JSON.parse(await fetchSource(url.href)));
+            try { GM_setValue(catalogueCacheKey, {schemaVersion:1, modules:catalogue}); } catch {}
+        } catch (error) {
+            catalogueMessage = 'Nie udało się odświeżyć listy. Używam ostatniej dostępnej listy.';
+            try { catalogue = validateCatalogue(GM_getValue(catalogueCacheKey, null)); }
+            catch { catalogue = validateCatalogue(fallbackCatalogue); }
+        }
+        // Keep already running modules visible until the user disables them/reloads.
+        const removed = modules.filter(mod => active.has(mod.id) && !catalogue.some(item => item.id === mod.id));
+        modules.splice(0, modules.length, ...catalogue, ...removed);
+        catalogueLoading = false;
+        host.dataset.catalogueReady = 'true';
         render();
+        for (const mod of catalogue) if (preferences[mod.id] === true) start(mod);
     }
 
-    register({"id": "ulepa", "name": "Ulepa", "description": "Ulepszanie i rozbijanie przedmiotów · 1.2.3", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/ulepa.js?v=0.4.0"});
-register({"id": "lootfilter", "name": "Lootfilter", "description": "Filtry łupu po walce · 1.0.6", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/lootfilter.js?v=0.4.0"});
-register({"id": "wolacz", "name": "Wołacz", "description": "Wołanie na globalny według mapy i grupy · 1.4.0", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/wolacz.js?v=1.4.0"});
+    const catalogueUrl = "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/catalogue.json";
+const fallbackCatalogue = {"schemaVersion": 1, "modules": [{"id": "ulepa", "name": "Ulepa", "description": "Ulepszanie i rozbijanie przedmiotów · 1.2.3", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/ulepa.js?v=0.4.0"}, {"id": "lootfilter", "name": "Lootfilter", "description": "Filtry łupu po walce · 1.0.6", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/lootfilter.js?v=0.4.0"}, {"id": "wolacz", "name": "Wołacz", "description": "Wołanie na globalny według mapy i grupy · 1.4.0", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/wolacz.js?v=1.4.0"}]};
+    updateCatalogue();
 })();
