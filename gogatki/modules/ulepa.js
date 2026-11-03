@@ -5,6 +5,15 @@ GogatkiRuntime.register({id:"ulepa",name:"Ulepa",description:"Ulepszanie i rozbi
     const tileStyle = document.createElement('style');
     tileStyle.textContent = ":root #standalone-fullmetal[data-compact=\"true\"]{box-sizing:border-box;width:__TILE_HEIGHT__!important;height:__TILE_HEIGHT__!important;min-height:0}:root #standalone-fullmetal[data-compact=\"true\"] header{box-sizing:border-box;height:calc(__TILE_HEIGHT__ - 2px);padding:0;min-height:0}:root #standalone-fullmetal[data-compact=\"true\"] header button{box-sizing:border-box;width:calc(__TILE_HEIGHT__ - 2px);height:calc(__TILE_HEIGHT__ - 2px);min-height:0;padding:0;line-height:1;font-size:16px}".replaceAll('__TILE_HEIGHT__', tileHeight + 'px');
     document.head.appendChild(tileStyle);
+    // Centre the existing panel grip without replacing its button or event handlers.
+    const panelGrip = document.querySelector('#gogatek-panel')?.shadowRoot?.querySelector('.move');
+    if (panelGrip && !panelGrip.dataset.gogatkiCentered) {
+        const width = panelGrip.getBoundingClientRect().width;
+        panelGrip.innerHTML = "<svg viewBox=\"0 0 12 18\" width=\"10\" height=\"16\" aria-hidden=\"true\" focusable=\"false\" style=\"display:block;pointer-events:none;flex-shrink:0;fill:currentColor\"><circle cx=\"4\" cy=\"4\" r=\"1\"/><circle cx=\"8\" cy=\"4\" r=\"1\"/><circle cx=\"4\" cy=\"9\" r=\"1\"/><circle cx=\"8\" cy=\"9\" r=\"1\"/><circle cx=\"4\" cy=\"14\" r=\"1\"/><circle cx=\"8\" cy=\"14\" r=\"1\"/></svg>";
+        Object.assign(panelGrip.style, {display:'flex', alignItems:'center', justifyContent:'center',
+            width:width + 'px', height:tileHeight + 'px', padding:'0', boxSizing:'border-box'});
+        panelGrip.dataset.gogatkiCentered = 'true';
+    }
 (() => {
     'use strict';
 
