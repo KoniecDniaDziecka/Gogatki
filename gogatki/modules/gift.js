@@ -3,8 +3,17 @@ GogatkiRuntime.register({id:"gift",name:"Gift",description:"Odbieranie darmowych
     const tile = document.querySelector('#gogatek-panel')?.shadowRoot?.querySelector('.launcher');
     const tileHeight = tile?.getBoundingClientRect().height || 28;
     const tileStyle = document.createElement('style');
-    tileStyle.textContent = ":root #standalone-free-gift{box-sizing:border-box;height:__TILE_HEIGHT__;width:__TILE_HEIGHT__}:root #standalone-free-gift header{box-sizing:border-box;display:flex;align-items:center;justify-content:center;height:calc(__TILE_HEIGHT__ - 2px);padding:2px}:root #standalone-free-gift button{box-sizing:border-box;height:100%;min-height:0;padding:0 2px;font-size:16px;line-height:1}".replaceAll('__TILE_HEIGHT__', tileHeight + 'px');
+    tileStyle.textContent = ":root #standalone-free-gift{box-sizing:border-box;height:__TILE_HEIGHT__;width:__TILE_HEIGHT__}:root #standalone-free-gift header{box-sizing:border-box;display:flex;align-items:center;justify-content:center;height:calc(__TILE_HEIGHT__ - 2px);padding:0}:root #standalone-free-gift button{box-sizing:border-box;display:flex;align-items:center;justify-content:center;width:100%;height:100%;min-height:0;padding:0;border:0;background:transparent;color:#12c9bd;line-height:1}:root #standalone-free-gift button svg{width:18px;height:18px;flex-shrink:0}".replaceAll('__TILE_HEIGHT__', tileHeight + 'px');
     document.head.appendChild(tileStyle);
+    // Centre the existing panel grip without replacing its button or event handlers.
+    const panelGrip = document.querySelector('#gogatek-panel')?.shadowRoot?.querySelector('.move');
+    if (panelGrip && !panelGrip.dataset.gogatkiCentered) {
+        const width = panelGrip.getBoundingClientRect().width;
+        panelGrip.innerHTML = "<svg viewBox=\"0 0 12 18\" width=\"10\" height=\"16\" aria-hidden=\"true\" focusable=\"false\" style=\"display:block;pointer-events:none;flex-shrink:0;fill:currentColor\"><circle cx=\"4\" cy=\"4\" r=\"1\"/><circle cx=\"8\" cy=\"4\" r=\"1\"/><circle cx=\"4\" cy=\"9\" r=\"1\"/><circle cx=\"8\" cy=\"9\" r=\"1\"/><circle cx=\"4\" cy=\"14\" r=\"1\"/><circle cx=\"8\" cy=\"14\" r=\"1\"/></svg>";
+        Object.assign(panelGrip.style, {display:'flex', alignItems:'center', justifyContent:'center',
+            width:width + 'px', height:tileHeight + 'px', padding:'0', boxSizing:'border-box'});
+        panelGrip.dataset.gogatkiCentered = 'true';
+    }
 (() => {
     'use strict';
     // Compare Warsaw calendar dates rather than elapsed hours (daylight saving time).
@@ -166,9 +175,9 @@ GogatkiRuntime.register({id:"gift",name:"Gift",description:"Odbieranie darmowych
     }
     function mount() {
         const style = document.createElement('style');
-        style.textContent = '#standalone-free-gift{position:fixed;right:24px;top:240px;z-index:99999;background:#171719ed;border:1px solid #668298;border-radius:4px;box-shadow:0 6px 22px #0009}#standalone-free-gift header{padding:3px;background:#25272a;cursor:move;touch-action:none;user-select:none}#standalone-free-gift button{display:block;background:#38566c;color:#eee;border:1px solid #6d879a;border-radius:3px;cursor:pointer;padding:3px 7px;margin:0;font:18px/1.4 Arial}#standalone-free-gift button:disabled{opacity:.35;filter:grayscale(1);pointer-events:none}';
+        style.textContent = '#standalone-free-gift{position:fixed;right:24px;top:240px;z-index:99999;background:#171719ed;border:1px solid #668298;border-radius:4px;box-shadow:0 6px 22px #0009}#standalone-free-gift header{padding:3px;background:#25272a;cursor:move;touch-action:none;user-select:none}#standalone-free-gift button{display:block;background:#38566c;color:#eee;border:1px solid #6d879a;border-radius:3px;cursor:pointer;padding:3px 7px;margin:0;font:18px/1.4 Arial}#standalone-free-gift button:disabled{opacity:.55;filter:none;pointer-events:none}';
         panel = document.createElement('section'); panel.id = 'standalone-free-gift';
-        panel.innerHTML = '<header><button type="button" data-check disabled title="Gift" aria-label="Gift">🎁</button></header>';
+        panel.innerHTML = '<header><button type="button" data-check disabled title="Gift" aria-label="Gift"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false" style="display:block;pointer-events:none;flex-shrink:0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M5 12v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-8M12 8v13M12 8H7.5A2.5 2.5 0 1 1 10 5.5L12 8Zm0 0h4.5A2.5 2.5 0 1 0 14 5.5L12 8Z"/></svg></button></header>';
         document.head.append(style); document.body.append(panel);
         const positionKey = 'gift-panel-position-v1';
         let position = { right: 24, top: 240 };
