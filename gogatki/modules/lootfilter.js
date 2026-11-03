@@ -1,5 +1,10 @@
-GogatkiRuntime.register({id:"lootfilter",name:"Lootfilter",description:"Filtry \u0142upu po walce \u00b7 1.0.6",start() {
+GogatkiRuntime.register({id:"lootfilter",name:"Lootfilter",description:"Filtry \u0142upu po walce",start() {
     const window = unsafeWindow;
+    const tile = document.querySelector('#gogatek-panel')?.shadowRoot?.querySelector('.launcher');
+    const tileHeight = tile?.getBoundingClientRect().height || 28;
+    const tileStyle = document.createElement('style');
+    tileStyle.textContent = ":root #standalone-loot-filter[data-compact=\"true\"]{box-sizing:border-box;height:__TILE_HEIGHT__;min-height:0}:root #standalone-loot-filter[data-compact=\"true\"] header{box-sizing:border-box;height:calc(__TILE_HEIGHT__ - 2px);min-height:0;align-items:center}:root #standalone-loot-filter[data-compact=\"true\"] header button{min-height:0}".replaceAll('__TILE_HEIGHT__', tileHeight + 'px');
+    document.head.appendChild(tileStyle);
 (function () {
     'use strict';
     const defaults = () => ({ enabled: true, autoAccept: 'off', common: true, unique: true,
