@@ -1,5 +1,10 @@
-GogatkiRuntime.register({id:"gift",name:"Gift",description:"Darmowe przedmioty z Aktualno\u015bci i kalendarza \u00b7 1.0.5",start() {
+GogatkiRuntime.register({id:"gift",name:"Gift",description:"Odbieranie darmowych nagr\u00f3d z aktualno\u015bci i kalendarza.",start() {
     const window = unsafeWindow;
+    const tile = document.querySelector('#gogatek-panel')?.shadowRoot?.querySelector('.launcher');
+    const tileHeight = tile?.getBoundingClientRect().height || 28;
+    const tileStyle = document.createElement('style');
+    tileStyle.textContent = ":root #standalone-free-gift{box-sizing:border-box;height:__TILE_HEIGHT__;width:__TILE_HEIGHT__}:root #standalone-free-gift header{box-sizing:border-box;display:flex;align-items:center;justify-content:center;height:calc(__TILE_HEIGHT__ - 2px);padding:2px}:root #standalone-free-gift button{box-sizing:border-box;height:100%;min-height:0;padding:0 2px;font-size:16px;line-height:1}".replaceAll('__TILE_HEIGHT__', tileHeight + 'px');
+    document.head.appendChild(tileStyle);
 (() => {
     'use strict';
     // Compare Warsaw calendar dates rather than elapsed hours (daylight saving time).
