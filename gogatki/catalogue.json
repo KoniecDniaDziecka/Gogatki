@@ -5,13 +5,13 @@
       "id": "ulepa",
       "name": "Ulepa",
       "description": "Ulepszanie i rozbijanie przedmiotów",
-      "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/ulepa.js?v=1.2.5"
+      "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/ulepa.js?v=1.2.6"
     },
     {
       "id": "lootfilter",
       "name": "Lootfilter",
       "description": "Filtry łupu po walce",
-      "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/lootfilter.js?v=1.0.10"
+      "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/lootfilter.js?v=1.0.11"
     },
     {
       "id": "wolacz",
@@ -29,7 +29,7 @@
       "id": "wolacz-ide",
       "name": "Wołacz + idę",
       "description": "Wołanie na E2 i wiadomość „Ide” przez Lootlog klanowy Death Sentence.",
-      "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/wolacz-ide.js?v=2026.11.03.4"
+      "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/wolacz-ide.js?v=2026.11.03.5"
     }
   ]
 }
