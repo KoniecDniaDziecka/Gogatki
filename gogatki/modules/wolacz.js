@@ -16,6 +16,23 @@ GogatkiRuntime.register({id:"wolacz",name:"Wo\u0142acz Kolosy",description:"Wo\u
     }
 (() => {
     'use strict';
+    const domain = window.location.hostname.toLowerCase();
+    const world = /^([a-z0-9-]+)\.margonem\.(pl|com)$/.exec(domain)?.[1];
+    if (window.top !== window.self || !world || ['www', 'forum', 'commons', 'new'].includes(world)) return;
+    function isGameReady() {
+        return typeof window._g === 'function' && !!(
+            window.Engine?.hero && window.Engine?.map || window.hero?.id && window.g
+        );
+    }
+    function mountWhenReady() {
+        if (!isGameReady()) return false;
+        if (window.__gogatkiWolaczKolosyLoaded) return true;
+        window.__gogatkiWolaczKolosyLoaded = true;
+        mount();
+        return true;
+    }
+    function mount() {
+
 
     const MAPY = {
         3361: '36',
@@ -244,6 +261,14 @@ GogatkiRuntime.register({id:"wolacz",name:"Wo\u0142acz Kolosy",description:"Wo\u
     applyCompact();
     restorePosition();
     setInterval(update, 500);
+    }
+    if (!mountWhenReady()) {
+        let attempts = 0;
+        const wait = setInterval(() => {
+            if (mountWhenReady() || ++attempts >= 600) clearInterval(wait);
+        }, 100);
+        window.addEventListener('pagehide', () => clearInterval(wait), {once:true});
+    }
 })();
 
 }});
