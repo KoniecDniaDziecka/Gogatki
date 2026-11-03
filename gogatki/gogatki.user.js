@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Gogatki — panel dodatków
 // @namespace    gogatek.local
-// @version      0.5.0
+// @version      0.5.1
 // @description  Wspólny panel i przełączniki dodatków do Margonem.
 // @match        https://*.margonem.pl/*
 // @match        https://*.margonem.com/*
@@ -54,6 +54,13 @@
         input{width:14px;height:14px;accent-color:#21bd69;cursor:pointer}.error{color:#ffbd89}
         footer{padding:7px 8px;border-top:1px solid #66829855;font-size:11px;color:#12c9bd}.apply{display:block;width:100%;margin-top:7px;padding:5px;background:#38566c;border:1px solid #6d879a;border-radius:3px}
         :focus-visible{outline:2px solid #12c9bd;outline-offset:2px}
+        input[type="checkbox"]{appearance:none!important;box-sizing:border-box;width:14px!important;height:14px!important;min-width:14px;min-height:14px;flex-shrink:0;padding:0!important;margin:0;vertical-align:middle;border:1px solid #668298!important;border-radius:3px;background:#171719!important;background-image:none!important;cursor:pointer;box-shadow:none}
+input[type="checkbox"]:checked{border-color:#12c9bd!important;background-color:#173838!important;background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20stroke%3D%22%2312c9bd%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22m3.5%208%203%203%206-6%22%2F%3E%3C%2Fsvg%3E")!important;background-position:center!important;background-repeat:no-repeat!important;background-size:12px 12px!important}
+input[type="checkbox"]:hover:not(:disabled){border-color:#12c9bd!important}
+input[type="checkbox"]:focus-visible{outline:2px solid #12c9bd;outline-offset:2px}
+input[type="checkbox"]:disabled{opacity:.45;cursor:not-allowed}
+@media(forced-colors:active){input[type="checkbox"]{appearance:auto!important;background:none!important}}
+
     </style><button class="move" aria-label="Przesuń Gogatki" title="Przeciągnij, aby zmienić pozycję. Strzałki przesuwają o 10 px.">⠿</button><button class="launcher" aria-expanded="false" aria-controls="panel">Gogatki</button>
     <section id="panel" hidden aria-label="Panel dodatków"><header><div><h2>Gogatki</h2><small>Twoje dodatki w jednym miejscu</small></div><button aria-label="Zamknij">×</button></header><div class="list"></div><footer><span role="status"></span><p class="catalogue-message"></p><button class="refresh-list">Odśwież listę</button><button class="apply" hidden>Zastosuj i odśwież grę</button></footer></section>`;
     document.body.appendChild(host);
@@ -256,6 +263,6 @@
     }
 
     const catalogueUrl = "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/catalogue.json";
-const fallbackCatalogue = {"schemaVersion": 1, "modules": [{"id": "ulepa", "name": "Ulepa", "description": "Ulepszanie i rozbijanie przedmiotów · 1.2.3", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/ulepa.js?v=0.4.0"}, {"id": "lootfilter", "name": "Lootfilter", "description": "Filtry łupu po walce · 1.0.6", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/lootfilter.js?v=0.4.0"}, {"id": "wolacz", "name": "Wołacz", "description": "Wołanie na globalny według mapy i grupy · 1.4.0", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/wolacz.js?v=1.4.0"}]};
+const fallbackCatalogue = {"schemaVersion": 1, "modules": [{"id": "ulepa", "name": "Ulepa", "description": "Ulepszanie i rozbijanie przedmiotów", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/ulepa.js?v=1.2.6"}, {"id": "lootfilter", "name": "Lootfilter", "description": "Filtry łupu po walce", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/lootfilter.js?v=1.0.11"}, {"id": "wolacz", "name": "Wołacz Kolosy", "description": "Wołanie na globalny według mapy i grupy", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/wolacz.js?v=1.4.5"}, {"id": "gift", "name": "Gift", "description": "Odbieranie darmowych nagród z aktualności i kalendarza.", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/gift.js?v=1.0.7"}, {"id": "wolacz-ide", "name": "Wołacz + idę", "description": "Wołanie na E2 i wiadomość „Ide” przez Lootlog klanowy Death Sentence.", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/wolacz-ide.js?v=2026.11.03.5"}]};
     updateCatalogue();
 })();
