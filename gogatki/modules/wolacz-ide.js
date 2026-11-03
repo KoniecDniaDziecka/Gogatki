@@ -5,6 +5,15 @@ GogatkiRuntime.register({id:"wolacz-ide",name:"Wo\u0142acz + id\u0119",descripti
     const tileStyle = document.createElement('style');
     tileStyle.textContent = ":root #e2-caller-panel[data-compact=\"true\"]{box-sizing:border-box;height:__TILE_HEIGHT__;min-height:0}:root #e2-caller-panel[data-compact=\"true\"] .e2-handle{box-sizing:border-box;height:100%;min-height:0;font-size:16px;line-height:calc(__TILE_HEIGHT__ - 8px)}:root #e2-caller-panel[data-compact=\"true\"] .e2-ide{box-sizing:border-box;height:100%;min-height:0;padding:0 8px;line-height:1}".replaceAll('__TILE_HEIGHT__', tileHeight + 'px');
     document.head.appendChild(tileStyle);
+    // Centre the existing panel grip without replacing its button or event handlers.
+    const panelGrip = document.querySelector('#gogatek-panel')?.shadowRoot?.querySelector('.move');
+    if (panelGrip && !panelGrip.dataset.gogatkiCentered) {
+        const width = panelGrip.getBoundingClientRect().width;
+        panelGrip.innerHTML = "<svg viewBox=\"0 0 12 18\" width=\"10\" height=\"16\" aria-hidden=\"true\" focusable=\"false\" style=\"display:block;pointer-events:none;flex-shrink:0;fill:currentColor\"><circle cx=\"4\" cy=\"4\" r=\"1\"/><circle cx=\"8\" cy=\"4\" r=\"1\"/><circle cx=\"4\" cy=\"9\" r=\"1\"/><circle cx=\"8\" cy=\"9\" r=\"1\"/><circle cx=\"4\" cy=\"14\" r=\"1\"/><circle cx=\"8\" cy=\"14\" r=\"1\"/></svg>";
+        Object.assign(panelGrip.style, {display:'flex', alignItems:'center', justifyContent:'center',
+            width:width + 'px', height:tileHeight + 'px', padding:'0', boxSizing:'border-box'});
+        panelGrip.dataset.gogatkiCentered = 'true';
+    }
 (function() {
     'use strict';
     if (window.__gogatkiWolaczIde || document.getElementById('e2-caller-panel')) return;
@@ -238,7 +247,8 @@ GogatkiRuntime.register({id:"wolacz-ide",name:"Wo\u0142acz + id\u0119",descripti
                 outline:2px solid #12c9bd; outline-offset:2px; }
             #e2-caller-panel button[data-enabled="false"] { opacity:.55; cursor:default; }
             #e2-caller-panel .e2-handle { padding:0 3px; color:#aaa; flex-shrink:0;
-                cursor:grab; user-select:none; font:18px/24px Arial; }
+                cursor:grab; user-select:none; font:18px/24px Arial;
+                display:flex; align-items:center; justify-content:center; min-height:24px; }
             #e2-caller-panel .e2-auto { display:flex; align-items:center; gap:4px;
                 padding:0 6px; color:#aaa; cursor:pointer; font:10px/18px Arial; }
             #e2-caller-panel .e2-auto:has(input:checked) { color:#12c9bd; }
@@ -274,7 +284,7 @@ GogatkiRuntime.register({id:"wolacz-ide",name:"Wo\u0142acz + id\u0119",descripti
 
         const handle = document.createElement('div');
         handle.className = 'e2-handle';
-        handle.textContent = '⠿';
+        handle.innerHTML = "<svg viewBox=\"0 0 12 18\" width=\"10\" height=\"16\" aria-hidden=\"true\" focusable=\"false\" style=\"display:block;pointer-events:none;flex-shrink:0;fill:currentColor\"><circle cx=\"4\" cy=\"4\" r=\"1\"/><circle cx=\"8\" cy=\"4\" r=\"1\"/><circle cx=\"4\" cy=\"9\" r=\"1\"/><circle cx=\"8\" cy=\"9\" r=\"1\"/><circle cx=\"4\" cy=\"14\" r=\"1\"/><circle cx=\"8\" cy=\"14\" r=\"1\"/></svg>";
         handle.title = 'Przeciągnij, aby zmienić pozycję';
         handle.setAttribute('aria-label', 'Uchwyt do przesuwania panelu');
         container.appendChild(handle);
