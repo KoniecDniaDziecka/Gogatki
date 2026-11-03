@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Gogatki — panel dodatków
 // @namespace    gogatek.local
-// @version      0.5.1
+// @version      0.5.2
 // @description  Wspólny panel i przełączniki dodatków do Margonem.
 // @match        https://*.margonem.pl/*
 // @match        https://*.margonem.com/*
@@ -9,6 +9,14 @@
 // @match        http://*.margonem.com/*
 // @exclude      *://www.margonem.pl/*
 // @exclude      *://margonem.pl/*
+// @exclude      *://www.margonem.com/*
+// @exclude      *://margonem.com/*
+// @exclude      *://forum.margonem.pl/*
+// @exclude      *://forum.margonem.com/*
+// @exclude      *://commons.margonem.pl/*
+// @exclude      *://commons.margonem.com/*
+// @exclude      *://new.margonem.pl/*
+// @exclude      *://new.margonem.com/*
 // @grant        GM_getValue
 // @grant        GM_setValue
 // @grant        unsafeWindow
@@ -24,9 +32,22 @@
 (() => {
     'use strict';
     const window = unsafeWindow;
-    if (['www.margonem.pl', 'margonem.pl'].includes(window.location.hostname)) return;
-    if (window.__gogatekLoaded) return;
-    window.__gogatekLoaded = true;
+    const domain = window.location.hostname.toLowerCase();
+    const world = /^([a-z0-9-]+)\.margonem\.(pl|com)$/.exec(domain)?.[1];
+    if (window.top !== window.self || !world || ['www', 'forum', 'commons', 'new'].includes(world)) return;
+    function isGameReady() {
+        return typeof window._g === 'function' && !!(
+            window.Engine?.hero && window.Engine?.map || window.hero?.id && window.g
+        );
+    }
+    function mountWhenReady() {
+        if (!isGameReady()) return false;
+        if (window.__gogatekLoaded) return true;
+        window.__gogatekLoaded = true;
+        mount();
+        return true;
+    }
+    function mount() {
     const key = 'gogatek:modules:v1';
     let preferences;
     try { preferences = GM_getValue(key, {}); } catch { preferences = {}; }
@@ -263,6 +284,14 @@ input[type="checkbox"]:disabled{opacity:.45;cursor:not-allowed}
     }
 
     const catalogueUrl = "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/catalogue.json";
-const fallbackCatalogue = {"schemaVersion": 1, "modules": [{"id": "ulepa", "name": "Ulepa", "description": "Ulepszanie i rozbijanie przedmiotów", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/ulepa.js?v=1.2.6"}, {"id": "lootfilter", "name": "Lootfilter", "description": "Filtry łupu po walce", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/lootfilter.js?v=1.0.11"}, {"id": "wolacz", "name": "Wołacz Kolosy", "description": "Wołanie na globalny według mapy i grupy", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/wolacz.js?v=1.4.5"}, {"id": "gift", "name": "Gift", "description": "Odbieranie darmowych nagród z aktualności i kalendarza.", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/gift.js?v=1.0.7"}, {"id": "wolacz-ide", "name": "Wołacz + idę", "description": "Wołanie na E2 i wiadomość „Ide” przez Lootlog klanowy Death Sentence.", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/wolacz-ide.js?v=2026.11.03.5"}]};
+const fallbackCatalogue = {"schemaVersion": 1, "modules": [{"id": "ulepa", "name": "Ulepa", "description": "Ulepszanie i rozbijanie przedmiotów", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/ulepa.js?v=1.2.6"}, {"id": "lootfilter", "name": "Lootfilter", "description": "Filtry łupu po walce", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/lootfilter.js?v=1.0.11"}, {"id": "wolacz", "name": "Wołacz Kolosy", "description": "Wołanie na globalny według mapy i grupy", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/wolacz.js?v=1.4.6"}, {"id": "gift", "name": "Gift", "description": "Odbieranie darmowych nagród z aktualności i kalendarza.", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/gift.js?v=1.0.7"}, {"id": "wolacz-ide", "name": "Wołacz + idę", "description": "Wołanie na E2 i wiadomość „Ide” przez Lootlog klanowy Death Sentence.", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/wolacz-ide.js?v=2026.11.03.5"}]};
     updateCatalogue();
+    }
+    if (!mountWhenReady()) {
+        let attempts = 0;
+        const wait = setInterval(() => {
+            if (mountWhenReady() || ++attempts >= 600) clearInterval(wait);
+        }, 100);
+        window.addEventListener('pagehide', () => clearInterval(wait), {once:true});
+    }
 })();
