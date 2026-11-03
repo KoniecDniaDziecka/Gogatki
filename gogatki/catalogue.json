@@ -18,6 +18,12 @@
       "name": "Wołacz Kolosy",
       "description": "Wołanie na globalny według mapy i grupy · 1.4.3",
       "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/wolacz.js?v=1.4.3"
+    },
+    {
+      "id": "gift",
+      "name": "Gift",
+      "description": "Darmowe przedmioty z Aktualności i kalendarza · 1.0.5",
+      "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/gift.js?v=1.0.5"
     }
   ]
 }
