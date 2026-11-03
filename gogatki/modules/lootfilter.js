@@ -149,7 +149,7 @@ GogatkiRuntime.register({id:"lootfilter",name:"Lootfilter",description:"Filtry \
         for (const list of ['whiteList', 'blackList']) if (!Array.isArray(config[list])) config[list] = [];
         save();
         panel = document.createElement('section'); panel.id = 'standalone-loot-filter';
-        panel.innerHTML = `<header><label><input type="checkbox" data-enabled> <span data-name>LootFilter</span></label><button type="button" data-settings title="Ustawienia">⚙</button></header>
+        panel.innerHTML = `<header><label><input type="checkbox" data-enabled> <span data-name title="Lootfilter">LootFilter</span></label><button type="button" data-settings title="Ustawienia">⚙</button></header>
             <main hidden><div data-filters></div><div data-modes></div>
             <label>Minimalna cena <input type="number" min="0" data-minPrice placeholder="Bez progu"></label>
             <label>Minimalne leczenie <input type="number" min="0" data-minHealing placeholder="Bez progu"></label>
@@ -163,7 +163,7 @@ GogatkiRuntime.register({id:"lootfilter",name:"Lootfilter",description:"Filtry \
         style.textContent = `#standalone-loot-filter{position:fixed;width:260px;max-width:95vw;z-index:99999;background:#171719ed;color:#eee;border:1px solid #668298;border-radius:4px;font:12px/1.3 Arial;box-shadow:0 6px 22px #0009}#standalone-loot-filter *{box-sizing:border-box}#standalone-loot-filter header{display:flex;justify-content:space-between;align-items:center;padding:4px 8px;background:#25272a;cursor:move;touch-action:none}#standalone-loot-filter label{display:block;margin:5px 0}#standalone-loot-filter main{padding:8px;max-height:70vh;overflow:auto}#standalone-loot-filter [hidden]{display:none!important}#standalone-loot-filter input[type=number],#standalone-loot-filter select,#standalone-loot-filter textarea{width:100%;background:#0e1821;color:#eee;border:1px solid #60788b;padding:4px}#standalone-loot-filter button{background:#38566c;color:white;border:1px solid #6d879a;border-radius:3px;cursor:pointer}#standalone-loot-filter [data-filters]{display:grid;grid-template-columns:1fr 1fr}#standalone-loot-filter small{display:block;color:#aaa}#standalone-loot-filter footer{padding:5px 8px;color:#12c9bd}#standalone-loot-filter pre{white-space:pre-wrap;overflow-wrap:anywhere}`;
         style.textContent += `#standalone-loot-filter[data-compact="true"]{width:70px;box-sizing:border-box}#standalone-loot-filter[data-compact="true"] header{display:grid;grid-template-columns:17px 1fr 17px;height:22px;padding:1px 3px;gap:2px;border-radius:4px}#standalone-loot-filter[data-compact="true"] header label{display:contents}#standalone-loot-filter[data-compact="true"] header input{margin:0;width:12px;height:12px;justify-self:center}#standalone-loot-filter[data-compact="true"] header button{width:17px;height:18px;padding:0;font-size:12px}#standalone-loot-filter[data-compact="true"] footer{display:none}`;
         style.textContent += `#standalone-loot-filter input[type=checkbox]{accent-color:#21bd69}#standalone-loot-filter header button{background:none;border:0;color:#eee}`;
-        style.textContent += `#standalone-loot-filter[data-compact="true"] [data-name]{text-align:center;line-height:18px;font-size:11px;white-space:nowrap}`;
+        style.textContent += `#standalone-loot-filter[data-compact="true"] [data-name]{text-align:center;line-height:18px;font-size:16px;white-space:nowrap}`;
         document.head.append(style); document.body.append(panel);
         status = panel.querySelector('[data-status]');
         const filters = [['common','Zwykłe'],['unique','Unikatowe'],['neutral','Neutralne'],['rune','Runy'],['gold','Złoto'],['teleport','Teleporty'],['talisman','Talizmany'],['key','Klucze'],['bag','Torby'],['groupLegendary','Tylko legenda w grupie'],['negation','Odwróć filtry']];
@@ -199,7 +199,7 @@ GogatkiRuntime.register({id:"lootfilter",name:"Lootfilter",description:"Filtry \
         const settingsButton = panel.querySelector('[data-settings]');
         function settingsVisibility() {
             main.hidden = !config.settingsOpen;
-            panel.querySelector('[data-name]').textContent = config.settingsOpen ? 'LootFilter' : 'LF';
+            panel.querySelector('[data-name]').textContent = config.settingsOpen ? 'LootFilter' : '💰';
             panel.dataset.compact = String(!config.settingsOpen);
             settingsButton.title = config.settingsOpen ? 'Schowaj ustawienia' : 'Pokaż ustawienia';
             settingsButton.setAttribute('aria-expanded', String(config.settingsOpen));
