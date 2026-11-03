@@ -24,6 +24,12 @@
       "name": "Gift",
       "description": "Odbieranie darmowych nagród z aktualności i kalendarza.",
       "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/gift.js?v=1.0.5"
+    },
+    {
+      "id": "wolacz-ide",
+      "name": "Wołacz + idę",
+      "description": "Wołanie na E2 i wiadomość „Ide” przez Lootlog klanowy Death Sentence.",
+      "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/wolacz-ide.js?v=1.0.0"
     }
   ]
 }
