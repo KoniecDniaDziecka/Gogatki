@@ -1,5 +1,10 @@
-GogatkiRuntime.register({id:"wolacz",name:"Wo\u0142acz Kolosy",description:"Wo\u0142anie na globalny wed\u0142ug mapy i grupy \u00b7 1.4.3",start() {
+GogatkiRuntime.register({id:"wolacz",name:"Wo\u0142acz Kolosy",description:"Wo\u0142anie na globalny wed\u0142ug mapy i grupy",start() {
     const window = unsafeWindow;
+    const tile = document.querySelector('#gogatek-panel')?.shadowRoot?.querySelector('.launcher');
+    const tileHeight = tile?.getBoundingClientRect().height || 28;
+    const tileStyle = document.createElement('style');
+    tileStyle.textContent = ":root #wolacz-global-panel[data-compact=\"true\"]{box-sizing:border-box;height:__TILE_HEIGHT__;min-height:0}:root #wolacz-global-panel[data-compact=\"true\"] > div:first-child{box-sizing:border-box;height:100%;min-height:0;padding:0 5px!important}:root #wolacz-global-panel[data-compact=\"true\"] > div:first-child > div{box-sizing:border-box;height:100%;line-height:calc(__TILE_HEIGHT__ - 2px)!important;font-size:16px!important}".replaceAll('__TILE_HEIGHT__', tileHeight + 'px');
+    document.head.appendChild(tileStyle);
 (() => {
     'use strict';
 
@@ -71,6 +76,7 @@ GogatkiRuntime.register({id:"wolacz",name:"Wo\u0142acz Kolosy",description:"Wo\u
     try { compact = localStorage.getItem(COMPACT_KEY) === 'true'; } catch {}
 
     function applyCompact() {
+        panel.dataset.compact = String(compact);
         button.style.display = compact ? 'none' : '';
         status.style.display = !compact && status.textContent ? 'block' : 'none';
         controls.style.gap = compact ? '0' : '4px';
