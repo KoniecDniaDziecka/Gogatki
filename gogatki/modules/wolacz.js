@@ -5,6 +5,15 @@ GogatkiRuntime.register({id:"wolacz",name:"Wo\u0142acz Kolosy",description:"Wo\u
     const tileStyle = document.createElement('style');
     tileStyle.textContent = ":root #wolacz-global-panel[data-compact=\"true\"]{box-sizing:border-box;height:__TILE_HEIGHT__;min-height:0}:root #wolacz-global-panel[data-compact=\"true\"] > div:first-child{box-sizing:border-box;height:100%;min-height:0;padding:0 5px!important}:root #wolacz-global-panel[data-compact=\"true\"] > div:first-child > div{box-sizing:border-box;height:100%;line-height:calc(__TILE_HEIGHT__ - 2px)!important;font-size:16px!important}".replaceAll('__TILE_HEIGHT__', tileHeight + 'px');
     document.head.appendChild(tileStyle);
+    // Centre the existing panel grip without replacing its button or event handlers.
+    const panelGrip = document.querySelector('#gogatek-panel')?.shadowRoot?.querySelector('.move');
+    if (panelGrip && !panelGrip.dataset.gogatkiCentered) {
+        const width = panelGrip.getBoundingClientRect().width;
+        panelGrip.innerHTML = "<svg viewBox=\"0 0 12 18\" width=\"10\" height=\"16\" aria-hidden=\"true\" focusable=\"false\" style=\"display:block;pointer-events:none;flex-shrink:0;fill:currentColor\"><circle cx=\"4\" cy=\"4\" r=\"1\"/><circle cx=\"8\" cy=\"4\" r=\"1\"/><circle cx=\"4\" cy=\"9\" r=\"1\"/><circle cx=\"8\" cy=\"9\" r=\"1\"/><circle cx=\"4\" cy=\"14\" r=\"1\"/><circle cx=\"8\" cy=\"14\" r=\"1\"/></svg>";
+        Object.assign(panelGrip.style, {display:'flex', alignItems:'center', justifyContent:'center',
+            width:width + 'px', height:tileHeight + 'px', padding:'0', boxSizing:'border-box'});
+        panelGrip.dataset.gogatkiCentered = 'true';
+    }
 (() => {
     'use strict';
 
@@ -56,11 +65,12 @@ GogatkiRuntime.register({id:"wolacz",name:"Wo\u0142acz Kolosy",description:"Wo\u
         padding: '3px 5px', background: '#25272a',
     });
     const handle = document.createElement('div');
-    handle.textContent = '⠿';
+    handle.innerHTML = "<svg viewBox=\"0 0 12 18\" width=\"10\" height=\"16\" aria-hidden=\"true\" focusable=\"false\" style=\"display:block;pointer-events:none;flex-shrink:0;fill:currentColor\"><circle cx=\"4\" cy=\"4\" r=\"1\"/><circle cx=\"8\" cy=\"4\" r=\"1\"/><circle cx=\"4\" cy=\"9\" r=\"1\"/><circle cx=\"8\" cy=\"9\" r=\"1\"/><circle cx=\"4\" cy=\"14\" r=\"1\"/><circle cx=\"8\" cy=\"14\" r=\"1\"/></svg>";
     handle.title = 'Przeciągnij, aby zmienić pozycję. Pozycja zapisuje się automatycznie.';
     handle.setAttribute('aria-label', 'Uchwyt do przesuwania przycisku');
     Object.assign(handle.style, {
         padding: '0 3px', color: '#aaa', flexShrink: '0',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
         cursor: 'grab', userSelect: 'none', touchAction: 'none',
         font: '18px/24px Arial',
     });
