@@ -1,5 +1,10 @@
 GogatkiRuntime.register({id:"wolacz-ide",name:"Wo\u0142acz + id\u0119",description:"Wo\u0142anie na E2 i wiadomo\u015b\u0107 \u201eIde\u201d przez Lootlog klanowy Death Sentence.",start() {
     const window = unsafeWindow;
+    const tile = document.querySelector('#gogatek-panel')?.shadowRoot?.querySelector('.launcher');
+    const tileHeight = tile?.getBoundingClientRect().height || 28;
+    const tileStyle = document.createElement('style');
+    tileStyle.textContent = ":root #e2-caller-panel[data-compact=\"true\"]{box-sizing:border-box;height:__TILE_HEIGHT__;min-height:0}:root #e2-caller-panel[data-compact=\"true\"] .e2-handle{box-sizing:border-box;height:100%;min-height:0;font-size:16px;line-height:calc(__TILE_HEIGHT__ - 8px)}:root #e2-caller-panel[data-compact=\"true\"] .e2-ide{box-sizing:border-box;height:100%;min-height:0;padding:0 8px;line-height:1}".replaceAll('__TILE_HEIGHT__', tileHeight + 'px');
+    document.head.appendChild(tileStyle);
 (function() {
     'use strict';
     if (window.__gogatkiWolaczIde || document.getElementById('e2-caller-panel')) return;
