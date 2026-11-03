@@ -1,5 +1,10 @@
-GogatkiRuntime.register({id:"ulepa",name:"Ulepa",description:"Ulepszanie i rozbijanie przedmiot\u00f3w \u00b7 1.2.3",start() {
+GogatkiRuntime.register({id:"ulepa",name:"Ulepa",description:"Ulepszanie i rozbijanie przedmiot\u00f3w",start() {
     const window = unsafeWindow;
+    const tile = document.querySelector('#gogatek-panel')?.shadowRoot?.querySelector('.launcher');
+    const tileHeight = tile?.getBoundingClientRect().height || 28;
+    const tileStyle = document.createElement('style');
+    tileStyle.textContent = ":root #standalone-fullmetal[data-compact=\"true\"]{box-sizing:border-box;width:__TILE_HEIGHT__!important;height:__TILE_HEIGHT__!important;min-height:0}:root #standalone-fullmetal[data-compact=\"true\"] header{box-sizing:border-box;height:calc(__TILE_HEIGHT__ - 2px);padding:0;min-height:0}:root #standalone-fullmetal[data-compact=\"true\"] header button{box-sizing:border-box;width:calc(__TILE_HEIGHT__ - 2px);height:calc(__TILE_HEIGHT__ - 2px);min-height:0;padding:0;line-height:1;font-size:16px}".replaceAll('__TILE_HEIGHT__', tileHeight + 'px');
+    document.head.appendChild(tileStyle);
 (() => {
     'use strict';
 
