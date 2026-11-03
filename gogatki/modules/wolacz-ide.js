@@ -2,7 +2,7 @@ GogatkiRuntime.register({id:"wolacz-ide",name:"Wo\u0142acz + id\u0119",descripti
     const window = unsafeWindow;
 (function() {
     'use strict';
-    if (window.__gogatkiWolaczIde) return;
+    if (window.__gogatkiWolaczIde || document.getElementById('e2-caller-panel')) return;
     window.__gogatkiWolaczIde = true;
 
     // ================================
@@ -182,15 +182,10 @@ GogatkiRuntime.register({id:"wolacz-ide",name:"Wo\u0142acz + id\u0119",descripti
             quickBtn.dataset.enabled = 'true';
             textSpan.textContent = 'Zawołaj na E2';
             quickBtn.title = 'Znaleziono ' + filteredNames.length + ' Elita II';
-            quickBtn.style.backgroundColor = '#333';
-            quickBtn.style.color = '#fff';
-            quickBtn.style.cursor = 'pointer';
         } else {
             quickBtn.dataset.enabled = 'false';
             textSpan.textContent = 'Brak Elity II';
-            quickBtn.style.backgroundColor = '#777';
-            quickBtn.style.color = '#ccc';
-            quickBtn.style.cursor = 'default';
+            quickBtn.title = 'Brak widocznej Elity II';
         }
     }
 
@@ -217,122 +212,101 @@ GogatkiRuntime.register({id:"wolacz-ide",name:"Wo\u0142acz + id\u0119",descripti
     }
 
     function createQuickEliteIISendButton() {
+        if (document.getElementById('e2-caller-panel')) return;
+        const style = document.createElement('style');
+        style.textContent = `
+            #e2-caller-panel { position:fixed; z-index:10000; display:flex; align-items:center;
+                gap:4px; padding:3px 5px; background:#25272a; color:#eee;
+                border:1px solid #668298; border-radius:4px; box-shadow:0 6px 22px #0009;
+                font:12px/1.3 Arial; box-sizing:border-box; max-width:100vw;
+                max-height:100vh; overflow:auto; }
+            #e2-caller-panel[data-compact="true"] > :not(.e2-handle):not(.e2-ide) { display:none; }
+            #e2-caller-panel[data-compact="true"] { gap:0; }
+            #e2-caller-panel * { box-sizing:border-box; }
+            #e2-caller-panel button { appearance:none; margin:0; padding:3px 8px;
+                border:1px solid #6d879a; border-radius:3px; background:#38566c;
+                color:#12c9bd; font:12px/18px Arial; min-height:24px;
+                display:flex; align-items:center; justify-content:center; cursor:pointer;
+                text-shadow:none; box-shadow:none; transition:background .15s; }
+            #e2-caller-panel button:hover { background:#43677f; }
+            #e2-caller-panel button:focus-visible, #e2-caller-panel input:focus-visible {
+                outline:2px solid #12c9bd; outline-offset:2px; }
+            #e2-caller-panel button[data-enabled="false"] { opacity:.55; cursor:default; }
+            #e2-caller-panel .e2-handle { padding:0 3px; color:#aaa; flex-shrink:0;
+                cursor:grab; user-select:none; font:18px/24px Arial; }
+            #e2-caller-panel .e2-auto { display:flex; align-items:center; gap:4px;
+                padding:0 6px; color:#aaa; cursor:pointer; font:10px/18px Arial; }
+            #e2-caller-panel .e2-auto:has(input:checked) { color:#12c9bd; }
+            #e2-caller-panel input { appearance:auto; accent-color:#12c9bd;
+                width:13px; height:13px; margin:0; cursor:pointer; }
+        `;
+        document.head.appendChild(style);
         container = document.createElement('div');
-        container.id = 'gogatki-wolacz-ide';
-        container.style.position = 'fixed';
-        container.style.zIndex = '10000';
-        container.style.display = 'flex';
-        container.style.alignItems = 'center';
+        container.id = 'e2-caller-panel';
 
-        // Pozycja z localStorage
-        const savedPosition = localStorage.getItem('e2ButtonPos');
-        if (savedPosition) {
-            try {
-                const pos = JSON.parse(savedPosition);
-                container.style.top = pos.top + 'px';
-                container.style.left = pos.left + 'px';
-            } catch {
-                container.style.top = '20px';
-                container.style.left = '20px';
-            }
-        } else {
-            container.style.top = '20px';
-            container.style.left = '20px';
+        function setPosition(left, top) {
+            const maxLeft = Math.max(0, window.innerWidth - container.offsetWidth);
+            const maxTop = Math.max(0, window.innerHeight - container.offsetHeight);
+            container.style.left = Math.min(maxLeft, Math.max(0, Number.isFinite(left) ? left : 20)) + 'px';
+            container.style.top = Math.min(maxTop, Math.max(0, Number.isFinite(top) ? top : 20)) + 'px';
         }
+        function keepOnScreen() {
+            setPosition(parseFloat(container.style.left), parseFloat(container.style.top));
+        }
+        function savePosition() {
+            try {
+                localStorage.setItem('e2ButtonPos', JSON.stringify({
+                    left: parseFloat(container.style.left), top: parseFloat(container.style.top)
+                }));
+            } catch (error) { console.warn('[Wołacz E2] Zapis pozycji:', error); }
+        }
+        let savedPosition = null;
+        let compact = false;
+        try {
+            savedPosition = JSON.parse(localStorage.getItem('e2ButtonPos'));
+            compact = localStorage.getItem('e2ButtonCompact') === 'true';
+        } catch (error) { console.warn('[Wołacz E2] Odczyt ustawień:', error); }
 
-        // Uchwyt "kółeczko"
         const handle = document.createElement('div');
-        Object.assign(handle.style, {
-            position: 'absolute',
-            top: '0px',
-            left: '0px',
-            transform: 'translate(-50%, -50%)',
-            width: '12px',
-            height: '12px',
-            backgroundColor: '#444',
-            borderRadius: '50%',
-            cursor: 'move',
-            zIndex: '10001',
-            userSelect: 'none'
-        });
+        handle.className = 'e2-handle';
+        handle.textContent = '⠿';
+        handle.title = 'Przeciągnij, aby zmienić pozycję';
+        handle.setAttribute('aria-label', 'Uchwyt do przesuwania panelu');
         container.appendChild(handle);
 
-        // Przycisk główny
         quickBtn = document.createElement('button');
-        quickBtn.style.padding = '8px 12px';
-        quickBtn.style.backgroundColor = '#777';
-        quickBtn.style.color = '#ccc';
-        quickBtn.style.border = 'none';
-        quickBtn.style.borderRadius = '4px';
-        quickBtn.style.fontSize = '12px';
-        quickBtn.style.opacity = '0.8';
-        quickBtn.style.display = 'flex';
-        quickBtn.style.alignItems = 'center';
-        quickBtn.style.position = 'relative';
+        quickBtn.type = 'button';
         quickBtn.dataset.enabled = 'false';
-        quickBtn.style.height = '34px';
-        quickBtn.style.lineHeight = 'normal';
-
         const textSpan = document.createElement('span');
         textSpan.textContent = 'Brak Elity II';
-        textSpan.style.marginRight = '8px';
         quickBtn.appendChild(textSpan);
 
+        const autoLabel = document.createElement('label');
+        autoLabel.className = 'e2-auto';
+        autoLabel.title = 'Automatycznie wołaj po pojawieniu się Elity II';
         autoCheckbox = document.createElement('input');
         autoCheckbox.type = 'checkbox';
         autoCheckbox.id = 'e2-auto-send';
-        autoCheckbox.setAttribute('aria-label', 'Automatyczne wołanie E2');
-        Object.assign(autoCheckbox.style, {
-            width: '14px',
-            height: '14px',
-            backgroundColor: '#777',
-            border: 'none',
-            borderRadius: '2px',
-            cursor: 'pointer',
-            outline: 'none',
-            margin: '0 0 0 4px',
-            verticalAlign: 'middle'
-        });
+        autoCheckbox.setAttribute('aria-label', 'Automatyczne wołanie na E2');
+        autoLabel.append(autoCheckbox, document.createTextNode('AUTO'));
 
         autoCheckbox.addEventListener('click', e => e.stopPropagation());
 
         const savedState = localStorage.getItem('e2AutoSend');
         const isChecked = savedState === 'true';
         autoCheckbox.checked = isChecked;
-        autoCheckbox.style.backgroundColor = isChecked ? 'green' : '#777';
 
         autoCheckbox.addEventListener('change', () => {
             const checked = autoCheckbox.checked;
             localStorage.setItem('e2AutoSend', checked ? 'true' : 'false');
-            autoCheckbox.style.backgroundColor = checked ? 'green' : '#777';
             lastHasElite = false;
         });
 
-        quickBtn.appendChild(autoCheckbox);
-
-        // Przycisk "Ide" jako emotka 🚶‍♂️
         btnIde = document.createElement('button');
-        btnIde.innerHTML = '🚶‍♂️';
-        btnIde.setAttribute('aria-label', 'Idę');
-        btnIde.title = 'Wyślij „Ide” przez Lootlog';
-        btnIde.style.padding = '8px 12px';
-        btnIde.style.backgroundColor = '#298d3a';
-        btnIde.style.color = '#fff';
-        btnIde.style.border = 'none';
-        btnIde.style.borderRadius = '4px';
-        btnIde.style.fontSize = '16px';
-        btnIde.style.marginLeft = '6px';
-        btnIde.style.opacity = '0.8';
-        btnIde.style.cursor = 'pointer';
-        btnIde.style.display = 'flex';
-        btnIde.style.alignItems = 'center';
-        btnIde.style.justifyContent = 'center';
-        btnIde.style.height = '34px';
-        btnIde.style.width = '34px';
-        btnIde.style.lineHeight = 'normal';
-
-        btnIde.addEventListener('mouseenter', () => btnIde.style.opacity = '1');
-        btnIde.addEventListener('mouseleave', () => btnIde.style.opacity = '0.8');
+        btnIde.type = 'button';
+        btnIde.className = 'e2-ide';
+        btnIde.textContent = 'Idę';
+        btnIde.title = 'Wyślij wiadomość „Ide”';
 
         btnIde.addEventListener('click', () => {
             ensureMessageModal(() => {
@@ -342,11 +316,39 @@ GogatkiRuntime.register({id:"wolacz-ide",name:"Wo\u0142acz + id\u0119",descripti
         });
 
         container.appendChild(quickBtn);
+        container.appendChild(autoLabel);
         container.appendChild(btnIde);
         document.body.appendChild(container);
 
+        function applyCompact() {
+            container.dataset.compact = String(compact);
+            handle.title = 'Przeciągnij, aby zmienić pozycję. PPM: ' +
+                (compact ? 'rozwiń Wołacza.' : 'zwiń Wołacza.');
+            handle.setAttribute('aria-expanded', String(!compact));
+            keepOnScreen();
+        }
+        handle.addEventListener('contextmenu', event => {
+            event.preventDefault();
+            event.stopPropagation();
+            compact = !compact;
+            applyCompact();
+            savePosition();
+            try { localStorage.setItem('e2ButtonCompact', String(compact)); }
+            catch (error) { console.warn('[Wołacz E2] Zapis zwinięcia:', error); }
+        });
+        applyCompact();
+        setPosition(savedPosition?.left, savedPosition?.top);
+        savePosition();
+        window.addEventListener('resize', () => {
+            keepOnScreen();
+            savePosition();
+        });
+        new ResizeObserver(keepOnScreen).observe(container);
+
         // Drag’n’drop obsługiwane przez handle
         handle.addEventListener('mousedown', e => {
+            if (e.button !== 0) return;
+            e.preventDefault();
             isDragging = true;
             const rect = container.getBoundingClientRect();
             dragOffsetX = e.clientX - rect.left;
@@ -356,8 +358,7 @@ GogatkiRuntime.register({id:"wolacz-ide",name:"Wo\u0142acz + id\u0119",descripti
 
         document.addEventListener('mousemove', e => {
             if (!isDragging) return;
-            container.style.left = (e.clientX - dragOffsetX) + 'px';
-            container.style.top = (e.clientY - dragOffsetY) + 'px';
+            setPosition(e.clientX - dragOffsetX, e.clientY - dragOffsetY);
         });
 
         document.addEventListener('mouseup', () => {
@@ -365,14 +366,11 @@ GogatkiRuntime.register({id:"wolacz-ide",name:"Wo\u0142acz + id\u0119",descripti
                 isDragging = false;
                 document.body.style.userSelect = '';
                 dropTimestamp = Date.now();
-                const top = parseInt(container.style.top, 10);
-                const left = parseInt(container.style.left, 10);
-                localStorage.setItem('e2ButtonPos', JSON.stringify({ top, left }));
+                keepOnScreen();
+                savePosition();
             }
         });
 
-        quickBtn.addEventListener('mouseenter', () => quickBtn.style.opacity = '1');
-        quickBtn.addEventListener('mouseleave', () => quickBtn.style.opacity = '0.8');
 
         quickBtn.addEventListener('click', () => {
             if (quickBtn.dataset.enabled !== 'true') return;
@@ -410,5 +408,4 @@ GogatkiRuntime.register({id:"wolacz-ide",name:"Wo\u0142acz + id\u0119",descripti
         launcherObserver.observe(document.body, { childList: true, subtree: true });
     }
 })();
-
 }});
