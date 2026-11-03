@@ -64,6 +64,7 @@ Przełączniki, pozycja panelu, ostatnia lista i konfiguracja Lootfiltera zapisu
 | `gogatki/modules/lootfilter.js` | Lootfilter 1.0.6 |
 | `gogatki/modules/wolacz.js` | Wołacz 1.4.0 |
 | `gogatki/modules/gift.js` | Gift 1.0.5 — darmowe nagrody z Aktualności i kalendarza |
+| `gogatki/modules/wolacz-ide.js` | Wołacz + idę — E2 i „Ide” przez Lootlog klanu Death Sentence |
 
 `gogatki/panel.js` jest pozostawiony dla zgodności ze starymi instalacjami 0.3.x. Obecny panel go nie pobiera.
 
