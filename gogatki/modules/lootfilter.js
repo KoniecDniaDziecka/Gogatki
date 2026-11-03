@@ -172,7 +172,7 @@ GogatkiRuntime.register({id:"lootfilter",name:"Lootfilter",description:"Filtry \
         style.textContent = `#standalone-loot-filter{position:fixed;width:260px;max-width:95vw;z-index:99999;background:#171719ed;color:#eee;border:1px solid #668298;border-radius:4px;font:12px/1.3 Arial;box-shadow:0 6px 22px #0009}#standalone-loot-filter *{box-sizing:border-box}#standalone-loot-filter header{display:flex;justify-content:space-between;align-items:center;padding:4px 8px;background:#25272a;cursor:move;touch-action:none}#standalone-loot-filter label{display:block;margin:5px 0}#standalone-loot-filter main{padding:8px;max-height:70vh;overflow:auto}#standalone-loot-filter [hidden]{display:none!important}#standalone-loot-filter input[type=number],#standalone-loot-filter select,#standalone-loot-filter textarea{width:100%;background:#0e1821;color:#eee;border:1px solid #60788b;padding:4px}#standalone-loot-filter button{background:#38566c;color:white;border:1px solid #6d879a;border-radius:3px;cursor:pointer}#standalone-loot-filter [data-filters]{display:grid;grid-template-columns:1fr 1fr}#standalone-loot-filter small{display:block;color:#aaa}#standalone-loot-filter footer{padding:5px 8px;color:#12c9bd}#standalone-loot-filter pre{white-space:pre-wrap;overflow-wrap:anywhere}`;
         style.textContent += `#standalone-loot-filter[data-compact="true"]{width:70px;box-sizing:border-box}#standalone-loot-filter[data-compact="true"] header{display:grid;grid-template-columns:17px 1fr 17px;height:22px;padding:1px 3px;gap:2px;border-radius:4px}#standalone-loot-filter[data-compact="true"] header label{display:contents}#standalone-loot-filter[data-compact="true"] header input{margin:0;width:12px;height:12px;justify-self:center}#standalone-loot-filter[data-compact="true"] header button{width:17px;height:18px;padding:0;font-size:12px}#standalone-loot-filter[data-compact="true"] footer{display:none}`;
         style.textContent += `#standalone-loot-filter input[type=checkbox]{accent-color:#21bd69}#standalone-loot-filter header button{background:none;border:0;color:#eee}`;
-        style.textContent += `#standalone-loot-filter[data-compact="true"] [data-name]{text-align:center;line-height:18px;font-size:16px;white-space:nowrap}`;
+        style.textContent += `#standalone-loot-filter[data-compact="true"] [data-name]{display:flex;align-items:center;justify-content:center;text-align:center;line-height:18px;font-size:16px;color:#12c9bd;white-space:nowrap}`;
         document.head.append(style); document.body.append(panel);
         status = panel.querySelector('[data-status]');
         const filters = [['common','Zwykłe'],['unique','Unikatowe'],['neutral','Neutralne'],['rune','Runy'],['gold','Złoto'],['teleport','Teleporty'],['talisman','Talizmany'],['key','Klucze'],['bag','Torby'],['groupLegendary','Tylko legenda w grupie'],['negation','Odwróć filtry']];
@@ -208,7 +208,14 @@ GogatkiRuntime.register({id:"lootfilter",name:"Lootfilter",description:"Filtry \
         const settingsButton = panel.querySelector('[data-settings]');
         function settingsVisibility() {
             main.hidden = !config.settingsOpen;
-            panel.querySelector('[data-name]').textContent = config.settingsOpen ? 'LootFilter' : '💰';
+            const name = panel.querySelector('[data-name]');
+            if (config.settingsOpen) {
+                name.textContent = 'LootFilter';
+                name.removeAttribute('role'); name.removeAttribute('aria-label');
+            } else {
+                name.innerHTML = "<svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" aria-hidden=\"true\" focusable=\"false\" style=\"display:block;pointer-events:none;flex-shrink:0\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m8 3 2 4h4l2-4H8ZM8 8h8M9 8c-2 3-5 5-5 9a4 4 0 0 0 4 4h8a4 4 0 0 0 4-4c0-4-3-6-5-9\"/><circle cx=\"12\" cy=\"15.5\" r=\"2.5\"/></svg>";
+                name.setAttribute('role', 'img'); name.setAttribute('aria-label', 'Lootfilter');
+            }
             panel.dataset.compact = String(!config.settingsOpen);
             settingsButton.title = config.settingsOpen ? 'Schowaj ustawienia' : 'Pokaż ustawienia';
             settingsButton.setAttribute('aria-expanded', String(config.settingsOpen));
