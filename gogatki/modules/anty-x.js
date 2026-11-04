@@ -88,7 +88,7 @@ GogatkiRuntime.register({id:"anty-x",name:"Anty X",description:"Filtr ataków Pv
     host.style.cssText = 'position:fixed;z-index:2147483646;';
     document.body.append(host);
     const root = host.attachShadow({ mode: 'open' });
-    const gear = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/></svg>';
+    const gear = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m5.6 5.6 12.8 12.8"/></svg>';
     root.innerHTML = `<style>
         :host{all:initial;color:#c7d0d9;font:12px Arial,sans-serif;--tile:28px}
         *{box-sizing:border-box} .panel{width:280px;max-width:100vw;background:#171b20;border:1px solid #668298;border-radius:4px;overflow:hidden}
@@ -111,7 +111,7 @@ GogatkiRuntime.register({id:"anty-x",name:"Anty X",description:"Filtr ataków Pv
     <div class="grid"><label class="field">Minimalny poziom<input type="number" min="1" data-key="minLevel"></label><label class="field">Maksymalny poziom<input type="number" min="1" data-key="maxLevel"></label></div>
     <label class="field">Nie atakuj graczy — nick w osobnym wierszu<textarea data-key="players"></textarea></label>
     <label class="field">Wyłącz filtr na mapach — nazwa w osobnym wierszu<textarea data-key="maps"></textarea></label>
-    <label class="field">Skrót ataku — kod klawisza, np. KeyX<input data-key="hotkey" placeholder="Brak"></label><p>Skrót działa poza polami tekstowymi, bez Ctrl, Alt i Meta. PPM na serduszku zwija panel.</p></div></section>`;
+    <label class="field">Skrót ataku — kod klawisza, np. KeyX<input data-key="hotkey" placeholder="Brak"></label><p>Skrót działa poza polami tekstowymi, bez Ctrl, Alt i Meta. PPM na znaku zakazu zwija panel.</p></div></section>`;
     const panel = root.querySelector('.panel'), header = root.querySelector('header');
     const settings = root.querySelector('.settings'), gearButton = root.querySelector('.gear');
     const status = root.querySelector('#status');
