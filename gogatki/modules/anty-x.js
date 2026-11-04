@@ -14,14 +14,21 @@ GogatkiRuntime.register({id:"anty-x",name:"Anty X",description:"Filtr ataków Pv
     'use strict';
     if (window.top !== window.self || window.__antyX) return;
     window.__antyX = true;
-    const KEY = 'anty-x:v1';
+    const KEY = 'anty-x:global:v1';
+    const LEGACY_KEY = 'anty-x:v1';
     const defaults = { enabled: true, showMessages: true, minLevel: '', maxLevel: '',
         attack: { clan: false, friend: false, clanFriend: false, other: true, enemy: true, clanEnemy: true },
         players: [], maps: [], hotkey: '', collapsed: false, settings: false, x: 20, y: 100 };
-    let saved = {};
-    try { saved = JSON.parse(window.localStorage.getItem(KEY)) || {}; } catch {}
+    // Userscript storage is shared across characters and world domains.
+    let saved = GM_getValue(KEY, null);
+    if (saved === null) {
+        // Migrate once from the first world opened after this update.
+        try { saved = JSON.parse(window.localStorage.getItem(LEGACY_KEY)) || {}; } catch { saved = {}; }
+    }
+    if (!saved || typeof saved !== 'object' || Array.isArray(saved)) saved = {};
     const config = { ...defaults, ...saved, attack: { ...defaults.attack, ...saved.attack } };
-    const save = () => { try { window.localStorage.setItem(KEY, JSON.stringify(config)); } catch {} };
+    const save = () => GM_setValue(KEY, JSON.parse(JSON.stringify(config)));
+    save();
     const engine = () => window.Engine;
     const hero = () => engine()?.hero?.d || window.hero || {};
     const mapName = () => engine()?.map?.d?.name ?? window.map?.name ?? window.g?.town?.name;
