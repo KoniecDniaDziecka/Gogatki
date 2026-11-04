@@ -36,6 +36,12 @@
       "name": "PVP Info",
       "description": "Powiadomienia o walkach PvP i ich wynikach na czacie klanowym.",
       "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/pvp-info.js?v=1.0.6"
+    },
+    {
+      "id": "anty-x",
+      "name": "Anty X",
+      "description": "Filtr ataków PvP według relacji, poziomów i listy chronionych graczy.",
+      "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/anty-x.js?v=1.0.1"
     }
   ]
 }
