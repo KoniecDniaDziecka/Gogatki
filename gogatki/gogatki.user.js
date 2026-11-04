@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Gogatki — panel dodatków
 // @namespace    gogatek.local
-// @version      0.5.5
+// @version      0.5.6
 // @description  Wspólny panel i przełączniki dodatków do Margonem.
 // @match        https://*.margonem.pl/*
 // @match        https://*.margonem.com/*
@@ -67,7 +67,7 @@
     root.innerHTML = `<style>
         :host{all:initial;display:flex;align-items:flex-start;width:max-content;position:fixed;right:18px;top:40px;z-index:2147483647;font:12px/1.3 Arial;color:#dce6ee;opacity:1!important;filter:none!important;mix-blend-mode:normal!important;isolation:isolate;font-family:Arial,sans-serif!important;font-size:12px!important;font-weight:400!important;font-style:normal!important;line-height:1.3!important;background:transparent!important;border:0!important;padding:0!important;margin:0!important;text-shadow:none!important;-webkit-text-stroke:0!important;-webkit-text-fill-color:currentColor!important}
         *{box-sizing:border-box;font-family:Arial,sans-serif!important;text-shadow:none!important;-webkit-text-stroke:0!important;-webkit-text-fill-color:currentColor!important;letter-spacing:normal!important}button,input{font:inherit}button{cursor:pointer;color:inherit}
-        .move{display:flex;align-items:center;justify-content:center;background:#252b31;color:#9aadb9;border:1px solid #668298;border-radius:4px;padding:5px;cursor:move;touch-action:none;user-select:none;margin-right:3px}header{cursor:move;touch-action:none;user-select:none}.launcher{background:#252b31;border:1px solid #668298;border-radius:4px;padding:5px 9px;font-weight:bold;box-shadow:0 6px 22px #0009}
+        .move{display:flex;align-items:center;justify-content:center;background:#252b31;color:#9aadb9;border:1px solid #668298;border-radius:4px;padding:5px;cursor:move;touch-action:none;user-select:none;margin-right:3px}header{cursor:move;touch-action:none;user-select:none}.launcher{color:#12c9bd;background:#252b31;border:1px solid #668298;border-radius:4px;padding:5px 9px;font-weight:bold;box-shadow:0 6px 22px #0009}
         section{position:absolute;top:calc(100% + 5px);right:0;width:280px;max-width:calc(100vw - 16px);overflow-y:auto;background:#171b20!important;border:1px solid #668298;border-radius:4px;box-shadow:0 6px 22px #0009;overflow-x:hidden}
         [hidden]{display:none!important}header{padding:5px 8px;background:#252b31;display:flex;align-items:center;justify-content:space-between}
         h2{margin:0;font-size:14px;font-weight:600;color:#edf3f7}small{font-size:11px;color:#b1c0cb;line-height:1.4}header button{display:flex;align-items:center;justify-content:center;border:0;background:none;color:#12c9bd;padding:3px}
