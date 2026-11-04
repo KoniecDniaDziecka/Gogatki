@@ -187,6 +187,13 @@ GogatkiRuntime.register({id:"gift",name:"Gift",description:"Odbieranie darmowych
         style.textContent = '#standalone-free-gift{position:fixed;right:24px;top:240px;z-index:99999;background:#171719ed;border:1px solid #668298;border-radius:4px;overflow:hidden;box-shadow:0 6px 22px #0009}#standalone-free-gift header{padding:3px;background:#25272a;cursor:move;touch-action:none;user-select:none}#standalone-free-gift button{display:block;background:#38566c;color:#eee;border:1px solid #6d879a;border-radius:3px;cursor:pointer;padding:3px 7px;margin:0;font:18px/1.4 Arial}#standalone-free-gift button:disabled{opacity:.55;filter:none;pointer-events:none}';
         panel = document.createElement('section'); panel.id = 'standalone-free-gift';
         panel.innerHTML = '<header><button type="button" data-check disabled title="Gift" aria-label="Gift"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false" style="display:block;pointer-events:none;flex-shrink:0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M5 12v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-8M12 8v13M12 8H7.5A2.5 2.5 0 1 1 10 5.5L12 8Zm0 0h4.5A2.5 2.5 0 1 0 14 5.5L12 8Z"/></svg></button></header>';
+        style.textContent += `
+            :root #standalone-free-gift[data-reward="true"]{width:${Math.round(tileHeight * 1.5)}px;height:${Math.round(tileHeight * 1.5)}px}
+            :root #standalone-free-gift[data-reward="true"] header{height:100%}
+            :root #standalone-free-gift[data-reward="true"] button svg{width:24px;height:24px;transform-origin:center;animation:gogatki-gift-pulse 1.4s ease-in-out infinite}
+            @keyframes gogatki-gift-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.14)}}
+            @media(prefers-reduced-motion:reduce){:root #standalone-free-gift[data-reward="true"] button svg{animation:none}}
+        `;
         document.head.append(style); document.body.append(panel);
         const positionKey = 'gift-panel-position-v1';
         let position = { right: 24, top: 240 };
@@ -271,6 +278,9 @@ GogatkiRuntime.register({id:"gift",name:"Gift",description:"Odbieranie darmowych
         }
         window.addEventListener('pagehide', () => { clearTimeout(noticeTimer); document.getElementById('gogatki-gift-notice')?.remove(); }, {once:true});
         function updateButton() {
+            panel.dataset.reward = String(rewards.size > 0);
+            button.title = rewards.size > 0 ? 'Gift — odbierz nagrody' : 'Gift';
+            button.setAttribute('aria-label', button.title);
             button.disabled = busy || rewards.size === 0;
             button.setAttribute('aria-busy', String(busy));
         }
