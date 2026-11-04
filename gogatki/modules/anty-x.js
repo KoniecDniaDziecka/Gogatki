@@ -1,5 +1,14 @@
 // Anty X 1.0.1 — adaptacja Peacekeeper (Maddonz, Barlag), moduł Gogatki.
 GogatkiRuntime.register({id:"anty-x",name:"Anty X",description:"Filtr ataków PvP według relacji, poziomów i listy chronionych graczy.",start() {
+    // Keep checkbox styling consistent in already installed Gogatki panels.
+    const gogatkiRoot = document.querySelector('#gogatek-panel')?.shadowRoot;
+    if (gogatkiRoot && !gogatkiRoot.getElementById('gogatki-anty-x-checkboxes')) {
+        const checkboxStyle = document.createElement('style');
+        checkboxStyle.id = 'gogatki-anty-x-checkboxes';
+        checkboxStyle.textContent = "input[type=\"checkbox\"]{-webkit-appearance:none!important;appearance:none!important;box-sizing:border-box!important;position:relative!important;transform:none!important;filter:none!important;display:grid!important;place-content:center!important;width:14px!important;height:14px!important;min-width:14px!important;min-height:14px!important;flex:none!important;padding:0!important;margin:0!important;border:1px solid #668298!important;border-radius:3px!important;background:#252b31!important;background-image:none!important;box-shadow:none!important;cursor:pointer;font:12px Arial,sans-serif!important;text-shadow:none!important;-webkit-text-stroke:0!important}\ninput[type=\"checkbox\"]:checked{border-color:#668298!important;background:#252b31!important;background-image:none!important}\ninput[type=\"checkbox\"]::before{content:none!important;display:none!important}\ninput[type=\"checkbox\"]::after{content:none!important;display:none!important}\ninput[type=\"checkbox\"]:checked::after{content:'✓'!important;display:block!important;position:static!important;width:auto!important;height:auto!important;margin:0!important;padding:0!important;border:0!important;transform:none!important;background:none!important;box-shadow:none!important;color:#12c9bd!important;-webkit-text-fill-color:#12c9bd!important;-webkit-text-stroke:0!important;text-shadow:none!important;font:12px/12px Arial,sans-serif!important}\ninput[type=\"checkbox\"]:focus-visible{outline:2px solid #12c9bd;outline-offset:1px}\ninput[type=\"checkbox\"]:disabled{opacity:.45;cursor:not-allowed}\n";
+        gogatkiRoot.appendChild(checkboxStyle);
+    }
+
     const window = unsafeWindow;
 (() => {
     'use strict';
@@ -172,3 +181,4 @@ GogatkiRuntime.register({id:"anty-x",name:"Anty X",description:"Filtr ataków Pv
     setInterval(installHook, 1000);
 })();
 }});
+

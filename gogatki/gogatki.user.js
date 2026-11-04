@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Gogatki — panel dodatków
 // @namespace    gogatek.local
-// @version      0.5.6
+// @version      0.5.7
 // @description  Wspólny panel i przełączniki dodatków do Margonem.
 // @match        https://*.margonem.pl/*
 // @match        https://*.margonem.com/*
@@ -75,14 +75,14 @@
         input{width:14px;height:14px;accent-color:#21bd69;cursor:pointer}.error{color:#ffbd89}
         footer{font-weight:400;padding:7px 8px;border-top:1px solid #66829855;font-size:11px;color:#12c9bd}.refresh-list{background:#252b31;color:#dce6ee;border:1px solid #668298;border-radius:3px;padding:4px 7px;font-size:12px}.apply{display:block;width:100%;margin-top:7px;padding:5px;background:#38566c;border:1px solid #6d879a;border-radius:3px}
         :focus-visible{outline:2px solid #12c9bd;outline-offset:2px}
-        input[type="checkbox"]{-webkit-appearance:none!important;appearance:none!important;box-sizing:border-box!important;display:inline-block!important;position:relative;transform:none!important;filter:none!important;width:14px!important;height:14px!important;min-width:14px;min-height:14px;flex-shrink:0;padding:0!important;margin:0!important;vertical-align:middle;border:1px solid #668298!important;border-radius:3px!important;background:#171719!important;background-image:none!important;cursor:pointer;box-shadow:none!important}
-input[type="checkbox"]:checked{border-color:#12c9bd!important;background-color:#173838!important;background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2016%2016%22%20fill%3D%22none%22%20stroke%3D%22%2312c9bd%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22m3.5%208%203%203%206-6%22%2F%3E%3C%2Fsvg%3E")!important;background-position:center!important;background-repeat:no-repeat!important;background-size:12px 12px!important}
-input[type="checkbox"]:hover:not(:disabled){border-color:#12c9bd!important}
-input[type="checkbox"]:focus-visible{outline:2px solid #12c9bd;outline-offset:2px}
+        input[type="checkbox"]{-webkit-appearance:none!important;appearance:none!important;box-sizing:border-box!important;position:relative!important;transform:none!important;filter:none!important;display:grid!important;place-content:center!important;width:14px!important;height:14px!important;min-width:14px!important;min-height:14px!important;flex:none!important;padding:0!important;margin:0!important;border:1px solid #668298!important;border-radius:3px!important;background:#252b31!important;background-image:none!important;box-shadow:none!important;cursor:pointer;font:12px Arial,sans-serif!important;text-shadow:none!important;-webkit-text-stroke:0!important}
+input[type="checkbox"]:checked{border-color:#668298!important;background:#252b31!important;background-image:none!important}
+input[type="checkbox"]::before{content:none!important;display:none!important}
+input[type="checkbox"]::after{content:none!important;display:none!important}
+input[type="checkbox"]:checked::after{content:'✓'!important;display:block!important;position:static!important;width:auto!important;height:auto!important;margin:0!important;padding:0!important;border:0!important;transform:none!important;background:none!important;box-shadow:none!important;color:#12c9bd!important;-webkit-text-fill-color:#12c9bd!important;-webkit-text-stroke:0!important;text-shadow:none!important;font:12px/12px Arial,sans-serif!important}
+input[type="checkbox"]:focus-visible{outline:2px solid #12c9bd;outline-offset:1px}
 input[type="checkbox"]:disabled{opacity:.45;cursor:not-allowed}
-@media(forced-colors:active){input[type="checkbox"]{appearance:auto!important;background:none!important}}
 
-input[type="checkbox"]::before,input[type="checkbox"]::after{content:none!important;display:none!important}
 
     </style><button class="move" aria-label="Przesuń Gogatki" title="Przeciągnij, aby zmienić pozycję. Strzałki przesuwają o 10 px."><svg viewBox="0 0 12 18" width="10" height="16" aria-hidden="true" focusable="false" style="display:block;pointer-events:none;flex-shrink:0;fill:currentColor"><circle cx="4" cy="4" r="1"/><circle cx="8" cy="4" r="1"/><circle cx="4" cy="9" r="1"/><circle cx="8" cy="9" r="1"/><circle cx="4" cy="14" r="1"/><circle cx="8" cy="14" r="1"/></svg></button><button class="launcher" aria-expanded="false" aria-controls="panel">Gogatki</button>
     <section id="panel" hidden aria-label="Panel dodatków"><header><div><h2>Gogatki</h2><small>Twoje dodatki w jednym miejscu</small></div><button aria-label="Zamknij"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false" style="display:block;pointer-events:none;flex-shrink:0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 6 12 12M18 6 6 18"/></svg></button></header><div class="list"></div><footer><span role="status"></span><p class="catalogue-message"></p><button class="refresh-list">Odśwież listę</button><button class="apply" hidden>Zastosuj i odśwież grę</button></footer></section>`;
@@ -286,7 +286,7 @@ input[type="checkbox"]::before,input[type="checkbox"]::after{content:none!import
     }
 
     const catalogueUrl = "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/catalogue.json";
-const fallbackCatalogue = {"schemaVersion": 1, "modules": [{"id": "ulepa", "name": "Ulepa", "description": "Ulepszanie i rozbijanie przedmiotów", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/ulepa.js?v=1.2.9"}, {"id": "lootfilter", "name": "Lootfilter", "description": "Filtry łupu po walce", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/lootfilter.js?v=1.0.14"}, {"id": "wolacz", "name": "Wołacz Kolosy", "description": "Wołanie na globalny według mapy i grupy", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/wolacz.js?v=1.4.8"}, {"id": "gift", "name": "Gift", "description": "Odbieranie darmowych nagród z aktualności i kalendarza.", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/gift.js?v=1.0.9"}, {"id": "wolacz-ide", "name": "Wołacz + idę", "description": "Wołanie na E2 i wiadomość „Ide” przez Lootlog klanowy Death Sentence.", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/wolacz-ide.js?v=2026.11.03.8"}]};
+const fallbackCatalogue = {"schemaVersion": 1, "modules": [{"id": "ulepa", "name": "Ulepa", "description": "Ulepszanie i rozbijanie przedmiotów", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/ulepa.js?v=1.2.10"}, {"id": "lootfilter", "name": "Lootfilter", "description": "Filtry łupu po walce", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/lootfilter.js?v=1.0.15"}, {"id": "wolacz", "name": "Wołacz Kolosy", "description": "Wołanie na globalny według mapy i grupy", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/wolacz.js?v=1.4.9"}, {"id": "gift", "name": "Gift", "description": "Odbieranie darmowych nagród z aktualności i kalendarza.", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/gift.js?v=1.0.11"}, {"id": "wolacz-ide", "name": "Wołacz + idę", "description": "Wołanie na E2 i wiadomość „Ide” przez Lootlog klanowy Death Sentence.", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/wolacz-ide.js?v=2026.11.03.9"}, {"id": "pvp-info", "name": "PVP Info", "description": "Powiadomienia o walkach PvP i ich wynikach na czacie klanowym.", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/pvp-info.js?v=1.0.7"}, {"id": "anty-x", "name": "Anty X", "description": "Filtr ataków PvP według relacji, poziomów i listy chronionych graczy.", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/anty-x.js?v=1.0.2"}]};
     updateCatalogue();
     }
     if (!mountWhenReady()) {
@@ -297,3 +297,4 @@ const fallbackCatalogue = {"schemaVersion": 1, "modules": [{"id": "ulepa", "name
         window.addEventListener('pagehide', () => clearInterval(wait), {once:true});
     }
 })();
+

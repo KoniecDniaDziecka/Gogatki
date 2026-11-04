@@ -1,5 +1,14 @@
 // PVP Info 1.0.6 — samodzielna adaptacja modułu Maddonz (Barlag).
 GogatkiRuntime.register({id:"pvp-info",name:"PVP Info",description:"Powiadomienia o walkach PvP i ich wynikach na czacie klanowym.",start() {
+    // Keep checkbox styling consistent in already installed Gogatki panels.
+    const gogatkiRoot = document.querySelector('#gogatek-panel')?.shadowRoot;
+    if (gogatkiRoot && !gogatkiRoot.getElementById('gogatki-anty-x-checkboxes')) {
+        const checkboxStyle = document.createElement('style');
+        checkboxStyle.id = 'gogatki-anty-x-checkboxes';
+        checkboxStyle.textContent = "input[type=\"checkbox\"]{-webkit-appearance:none!important;appearance:none!important;box-sizing:border-box!important;position:relative!important;transform:none!important;filter:none!important;display:grid!important;place-content:center!important;width:14px!important;height:14px!important;min-width:14px!important;min-height:14px!important;flex:none!important;padding:0!important;margin:0!important;border:1px solid #668298!important;border-radius:3px!important;background:#252b31!important;background-image:none!important;box-shadow:none!important;cursor:pointer;font:12px Arial,sans-serif!important;text-shadow:none!important;-webkit-text-stroke:0!important}\ninput[type=\"checkbox\"]:checked{border-color:#668298!important;background:#252b31!important;background-image:none!important}\ninput[type=\"checkbox\"]::before{content:none!important;display:none!important}\ninput[type=\"checkbox\"]::after{content:none!important;display:none!important}\ninput[type=\"checkbox\"]:checked::after{content:'✓'!important;display:block!important;position:static!important;width:auto!important;height:auto!important;margin:0!important;padding:0!important;border:0!important;transform:none!important;background:none!important;box-shadow:none!important;color:#12c9bd!important;-webkit-text-fill-color:#12c9bd!important;-webkit-text-stroke:0!important;text-shadow:none!important;font:12px/12px Arial,sans-serif!important}\ninput[type=\"checkbox\"]:focus-visible{outline:2px solid #12c9bd;outline-offset:1px}\ninput[type=\"checkbox\"]:disabled{opacity:.45;cursor:not-allowed}\n";
+        gogatkiRoot.appendChild(checkboxStyle);
+    }
+
 (function () {
     'use strict';
     const defaults = { attacker: true, attacked: true, group: true,
@@ -178,7 +187,14 @@ GogatkiRuntime.register({id:"pvp-info",name:"PVP Info",description:"Powiadomieni
             input{accent-color:#12c9bd;width:14px;height:14px;margin:0;cursor:pointer}p{margin:8px 0 4px;color:#b1c0cb}
             [hidden]{display:none!important}small{display:block;color:#b1c0cb;font-size:11px;margin-top:8px}
             :focus-visible{outline:2px solid #12c9bd;outline-offset:2px}
-        </style><section><header><b>PVP Info</b><button data-settings title="Zminimalizuj PVP Info" aria-label="Zwiń lub rozwiń PVP Info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 3 4 1 11 12-3 3L4 7Z M14 17l6-6 M17 17l4 4 M19 22l3-3"/><path d="m20 3-4 1L5 16l3 3L20 7Z M10 17l-6-6 M7 17l-4 4 M5 22l-3-3"/></svg></button></header>
+        input[type="checkbox"]{-webkit-appearance:none!important;appearance:none!important;box-sizing:border-box!important;position:relative!important;transform:none!important;filter:none!important;display:grid!important;place-content:center!important;width:14px!important;height:14px!important;min-width:14px!important;min-height:14px!important;flex:none!important;padding:0!important;margin:0!important;border:1px solid #668298!important;border-radius:3px!important;background:#252b31!important;background-image:none!important;box-shadow:none!important;cursor:pointer;font:12px Arial,sans-serif!important;text-shadow:none!important;-webkit-text-stroke:0!important}
+input[type="checkbox"]:checked{border-color:#668298!important;background:#252b31!important;background-image:none!important}
+input[type="checkbox"]::before{content:none!important;display:none!important}
+input[type="checkbox"]::after{content:none!important;display:none!important}
+input[type="checkbox"]:checked::after{content:'✓'!important;display:block!important;position:static!important;width:auto!important;height:auto!important;margin:0!important;padding:0!important;border:0!important;transform:none!important;background:none!important;box-shadow:none!important;color:#12c9bd!important;-webkit-text-fill-color:#12c9bd!important;-webkit-text-stroke:0!important;text-shadow:none!important;font:12px/12px Arial,sans-serif!important}
+input[type="checkbox"]:focus-visible{outline:2px solid #12c9bd;outline-offset:1px}
+input[type="checkbox"]:disabled{opacity:.45;cursor:not-allowed}
+</style><section><header><b>PVP Info</b><button data-settings title="Zminimalizuj PVP Info" aria-label="Zwiń lub rozwiń PVP Info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 3 4 1 11 12-3 3L4 7Z M14 17l6-6 M17 17l4 4 M19 22l3-3"/><path d="m20 3-4 1L5 16l3 3L20 7Z M10 17l-6-6 M7 17l-4 4 M5 22l-3-3"/></svg></button></header>
         <main><p>Wysyłaj powiadomienia gdy:</p>
         ${[['attacker','Atakujesz przeciwnika'],['attacked','Jesteś atakowany'],['group','Walki grupowe']].map(([id,label]) => `<label><input type="checkbox" data-key="${id}">${label}</label>`).join('')}
         <p>Dodatkowe informacje:</p>
@@ -214,3 +230,4 @@ GogatkiRuntime.register({id:"pvp-info",name:"PVP Info",description:"Powiadomieni
     setInterval(tick, 250); tick();
 })();
 }});
+
