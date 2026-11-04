@@ -30,6 +30,12 @@
       "name": "Wołacz + idę",
       "description": "Wołanie na E2 i wiadomość „Ide” przez Lootlog klanowy Death Sentence.",
       "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/wolacz-ide.js?v=2026.11.03.8"
+    },
+    {
+      "id": "pvp-info",
+      "name": "PVP Info",
+      "description": "Powiadomienia o walkach PvP i ich wynikach na czacie klanowym.",
+      "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/pvp-info.js?v=1.0.6"
     }
   ]
 }
