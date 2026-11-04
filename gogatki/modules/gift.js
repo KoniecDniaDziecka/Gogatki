@@ -231,15 +231,48 @@ GogatkiRuntime.register({id:"gift",name:"Gift",description:"Odbieranie darmowych
         const button = panel.querySelector('[data-check]');
         const rewards = new Set();
         let busy = false;
+        const pendingNotices = new Set();
+        let noticeTimer = null;
+        function notifyAvailable() {
+            if (busy || !pendingNotices.size) return;
+            const kinds = [...pendingNotices].filter(kind => rewards.has(kind));
+            pendingNotices.clear();
+            if (!kinds.length) return;
+            const source = kinds.length > 1 ? 'Aktualności i kalendarza' : kinds[0] === 'news' ? 'Aktualności' : 'kalendarza';
+            const text = 'Gift: Odbierz darmowe nagrody z ' + source + '. Kliknij prezent.';
+            // Margonem's message() displays the game's yellow notification.
+            if (typeof window.message === 'function') {
+                try { window.message(text); return; }
+                catch (error) { console.warn('[Gift] Powiadomienie gry:', error); }
+            }
+            // Older clients without message() still get a local yellow notification.
+            let notice = document.getElementById('gogatki-gift-notice');
+            if (!notice) {
+                notice = document.createElement('div'); notice.id = 'gogatki-gift-notice';
+                notice.setAttribute('role', 'status'); notice.setAttribute('aria-live', 'polite');
+                notice.style.cssText = 'position:fixed;top:80px;left:50%;transform:translateX(-50%);z-index:2147483646;max-width:calc(100vw - 24px);box-sizing:border-box;padding:9px 13px;border:1px solid #b69a43;border-radius:4px;background:#29251a;color:#ffdc75;font:12px/1.4 Arial;text-align:center;text-shadow:none;-webkit-text-stroke:0;-webkit-text-fill-color:#ffdc75;pointer-events:none;box-shadow:0 4px 18px #0007';
+                for (const [property, value] of Object.entries({color:'#ffdc75',background:'#29251a',opacity:'1',filter:'none','text-shadow':'none','font-family':'Arial,sans-serif','-webkit-text-stroke':'0','-webkit-text-fill-color':'#ffdc75'})) {
+                    notice.style.setProperty(property, value, 'important');
+                }
+                document.body.append(notice);
+            }
+            notice.textContent = text;
+            clearTimeout(noticeTimer);
+            noticeTimer = setTimeout(() => { notice.remove(); noticeTimer = null; }, 6000);
+        }
+        window.addEventListener('pagehide', () => { clearTimeout(noticeTimer); document.getElementById('gogatki-gift-notice')?.remove(); }, {once:true});
         function updateButton() {
             button.disabled = busy || rewards.size === 0;
             button.setAttribute('aria-busy', String(busy));
         }
         const view = {
             status: text => console.warn('[Gift]', text),
-            busy(value) { busy = value; updateButton(); },
-            remove(kind) { rewards.delete(kind); updateButton(); },
-            offer(kind) { rewards.add(kind); updateButton(); }
+            busy(value) { busy = value; updateButton(); notifyAvailable(); },
+            remove(kind) { rewards.delete(kind); pendingNotices.delete(kind); updateButton(); },
+            offer(kind) {
+                if (!rewards.has(kind)) pendingNotices.add(kind);
+                rewards.add(kind); updateButton(); notifyAvailable();
+            }
         };
         api = controller(game, view);
         button.onclick = () => { if (!button.disabled) void api.acceptAll(); };
