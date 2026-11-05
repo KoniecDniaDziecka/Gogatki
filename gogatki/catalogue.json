@@ -42,6 +42,12 @@
       "name": "Anty X",
       "description": "Filtr ataków PvP według relacji, poziomów i listy chronionych graczy.",
       "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/anty-x.js?v=1.0.5"
+    },
+    {
+      "id": "auto-tp",
+      "name": "Auto TP",
+      "description": "Użycie przedmiotu po walce, przy wrogu lub z ucieczką.",
+      "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/auto-tp.js?v=1.0.0"
     }
   ]
 }
