@@ -256,6 +256,7 @@
         const entries = new Map();
         const extraCleanup = [];
         const key = 'gogatki:tile-dock:position:v1';
+        const anchorKey = 'gogatki:tile-dock:anchor:v1';
         const layoutKey = 'gogatki:tile-dock:layout:v1';
         const collapsedKey = 'gogatki:tile-dock:collapsed:v1';
         let collapsed = false;
@@ -266,6 +267,11 @@
         try {
             const saved = GM_getValue(key, null);
             if (Number.isFinite(saved?.right) && Number.isFinite(saved?.top)) preferred = saved;
+        } catch {}
+        let anchor = null, migrationTimer = null, legacySize = '';
+        try {
+            const saved = GM_getValue(anchorKey, null);
+            if (Number.isFinite(saved?.right) && Number.isFinite(saved?.top)) anchor = {right:saved.right, top:saved.top};
         } catch {}
         const host = document.createElement('div');
         host.id = 'gogatki-tile-dock'; host.hidden = true;
@@ -279,11 +285,13 @@
             .bar{display:flex;align-items:flex-start;gap:4px;padding:4px;background:#171b20;border:1px solid #668298;border-radius:4px;box-shadow:0 4px 16px #0006}
             .grip{display:flex;align-items:center;justify-content:center;flex:none;width:18px;height:28px;padding:0;border:0;border-radius:3px;background:#252b31;color:#b1c0cb;cursor:move;touch-action:none}
             .grip:focus-visible{outline:2px solid #12c9bd;outline-offset:1px}
-            .tiles{display:flex;flex-wrap:wrap;align-items:center;gap:4px;max-width:calc(100vw - 54px)}
+            .tiles{display:flex;flex-wrap:wrap;align-items:center;gap:4px;min-width:0;min-height:0;max-width:var(--tiles-max-width,calc(100vw - 54px));max-height:var(--tiles-max-height,calc(100vh - 20px));overflow:auto}
+            :host([data-direction="left"]) .bar{flex-direction:row-reverse}
             :host([data-orientation="vertical"]) .bar{flex-direction:column;align-items:center}
             :host([data-orientation="vertical"]) .grip{width:28px;height:18px}
             :host([data-orientation="vertical"]) .grip svg{transform:rotate(90deg)}
-            :host([data-orientation="vertical"]) .tiles{flex-direction:column;flex-wrap:nowrap;max-width:calc(100vw - 26px);max-height:calc(100vh - 56px);overflow-y:auto;overflow-x:hidden}
+            :host([data-orientation="vertical"][data-direction="up"]) .bar{flex-direction:column-reverse}
+            :host([data-orientation="vertical"]) .tiles{flex-direction:column;flex-wrap:nowrap;max-width:var(--tiles-max-width,calc(100vw - 26px));max-height:var(--tiles-max-height,calc(100vh - 56px))}
             :host([data-collapsed="true"]) .tiles{display:none!important}
             :host([data-collapsed="true"]) .grip{width:var(--tile,28px);height:var(--tile,28px);color:#12c9bd;cursor:pointer}
             :host([data-collapsed="true"]) .grip svg{transform:none}
@@ -304,6 +312,7 @@
         function destroy() {
             if (disposed) return;
             disposed = true;
+            if (migrationTimer) clearTimeout(migrationTimer);
             for (const fn of extraCleanup.splice(0).reverse()) { try { fn(); } catch {} }
             if (frame) window.cancelAnimationFrame(frame);
             observer?.disconnect(); resize?.disconnect();
@@ -320,11 +329,53 @@
         document.head.append(style); document.body.append(host);
         function place() {
             if (host.hidden) return;
+            if (!anchor) {
+                // Convert the old outer-box position once initial modules have settled.
+                const box = host.getBoundingClientRect();
+                host.style.right = Math.max(0, Math.min(preferred.right, window.innerWidth - box.width)) + 'px';
+                host.style.top = Math.max(0, Math.min(preferred.top, window.innerHeight - box.height)) + 'px';
+                const size = box.width + ':' + box.height;
+                if (size !== legacySize) {
+                    legacySize = size;
+                    if (migrationTimer) clearTimeout(migrationTimer);
+                    migrationTimer = setTimeout(() => {
+                        migrationTimer = null;
+                        if (disposed || host.hidden || anchor) return;
+                        anchor = gripPosition(); place(); save();
+                    }, 300);
+                }
+                return;
+            }
+            const initial = grip.getBoundingClientRect();
+            const x = Math.max(initial.width / 2 + 5, Math.min(window.innerWidth - initial.width / 2 - 5, window.innerWidth - anchor.right));
+            const y = Math.max(initial.height / 2 + 5, Math.min(window.innerHeight - initial.height / 2 - 5, anchor.top));
+            const tile = parseFloat(host.style.getPropertyValue('--tile')) || 28;
+            // Wrap/scroll away from the grip instead of moving it as the contents grow.
+            const backwards = vertical ? window.innerHeight - y < tile + 32 && y > window.innerHeight / 2 : window.innerWidth - x < tile + 32 && x > window.innerWidth / 2;
+            const direction = vertical ? (backwards ? 'up' : 'down') : (backwards ? 'left' : 'right');
+            host.dataset.direction = direction;
+            const maxWidth = vertical ? 2 * Math.min(x, window.innerWidth - x) : (backwards ? x : window.innerWidth - x) + initial.width / 2 + 5;
+            const maxHeight = vertical ? (backwards ? y : window.innerHeight - y) + initial.height / 2 + 5 : window.innerHeight - y + initial.height / 2 + 5;
+            host.style.maxWidth = maxWidth + 'px';
+            host.style.setProperty('--tiles-max-width', Math.max(0, maxWidth - (vertical ? 10 : initial.width + 14)) + 'px');
+            host.style.setProperty('--tiles-max-height', Math.max(0, maxHeight - (vertical ? initial.height + 14 : 10)) + 'px');
             const box = host.getBoundingClientRect();
-            host.style.right = Math.max(0, Math.min(preferred.right, window.innerWidth - box.width)) + 'px';
-            host.style.top = Math.max(0, Math.min(preferred.top, window.innerHeight - box.height)) + 'px';
+            const handle = grip.getBoundingClientRect();
+            host.style.right = (window.innerWidth - x - box.width + handle.left - box.left + handle.width / 2) + 'px';
+            host.style.top = (y - handle.top + box.top - handle.height / 2) + 'px';
+            if (collapsed) grip.querySelector('path')?.setAttribute('d', arrowPath());
         }
-        function save() { try { GM_setValue(key, {...preferred}); } catch {} }
+        function gripPosition() {
+            const rect = grip.getBoundingClientRect();
+            return {right:window.innerWidth - rect.left - rect.width / 2, top:rect.top + rect.height / 2};
+        }
+        function save() {
+            try {
+                if (anchor) GM_setValue(anchorKey, {...anchor});
+                const rect = host.getBoundingClientRect();
+                GM_setValue(key, {right:window.innerWidth - rect.right, top:rect.top});
+            } catch {}
+        }
         function compact(entry) {
             if (entry.spec.gift) return true;
             return entry.spec.shadow ? entry.node.shadowRoot?.querySelector('.panel')?.classList.contains('collapsed') : entry.node.dataset.compact === 'true';
@@ -427,29 +478,24 @@
         for (const type of ['pointerdown','mousedown']) document.addEventListener(type, preventTileDrag, true);
         const grip = root.querySelector('.grip'); let drag, dragged = false, expandedByFirstClick = false, arrowActivation = null;
         const gripIcon = grip.innerHTML;
+        function arrowPath() {
+            return {right:'M5 12h14m-6-6 6 6-6 6',left:'M19 12H5m6-6-6 6 6 6',down:'M12 5v14m-6-6 6 6 6-6',up:'M12 19V5m-6 6 6-6 6 6'}[host.dataset.direction] || (vertical ? 'M12 5v14m-6-6 6 6 6-6' : 'M5 12h14m-6-6 6 6-6 6');
+        }
         function updateView() {
             host.dataset.orientation = vertical ? 'vertical' : 'horizontal';
             host.dataset.collapsed = String(collapsed);
             grip.setAttribute('aria-expanded', String(!collapsed));
             grip.setAttribute('aria-controls', 'gogatki-dock-tiles');
             grip.setAttribute('aria-label', collapsed ? 'Rozwiń pasek dodatków' : 'Przesuń pasek dodatków');
-            const arrow = vertical ? 'M12 5v14m-6-6 6 6 6-6' : 'M5 12h14m-6-6 6 6-6 6';
+            const arrow = arrowPath();
             grip.innerHTML = collapsed ? '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="' + arrow + '"/></svg>' : gripIcon;
             grip.title = (collapsed ? 'Kliknij, aby rozwinąć pasek. ' : 'Dwuklik: zwiń pasek. ') +
                 'Przeciągnij, aby przesunąć. PPM: układ ' + (vertical ? 'poziomy' : 'pionowy') + '. Strzałki przesuwają o 10 px.';
             place();
         }
         function anchoredView(change) {
-            const before = grip.getBoundingClientRect();
-            const anchorX = before.left + before.width / 2;
-            const anchorY = before.top + before.height / 2;
+            anchor = gripPosition();
             change(); updateView();
-            const after = grip.getBoundingClientRect();
-            const box = host.getBoundingClientRect();
-            preferred = {
-                right: window.innerWidth - box.right + after.left + after.width / 2 - anchorX,
-                top: box.top + anchorY - after.top - after.height / 2
-            };
             place(); save();
         }
         function setCollapsed(value) {
@@ -489,22 +535,21 @@
         grip.addEventListener('pointerdown', event => {
             if (event.button !== 0) return;
             dragged = false;
-            const rect = host.getBoundingClientRect();
-            drag = {id:event.pointerId, x:event.clientX, y:event.clientY, right:window.innerWidth - rect.right, top:rect.top, preferred:{...preferred}, moved:false};
+            anchor = gripPosition();
+            drag = {id:event.pointerId, x:event.clientX, y:event.clientY, right:anchor.right, top:anchor.top, preferred:{...anchor}, moved:false};
             grip.setPointerCapture(event.pointerId); event.preventDefault();
         });
         grip.addEventListener('pointermove', event => {
             if (!drag || event.pointerId !== drag.id) return;
             if (!drag.moved && Math.hypot(event.clientX - drag.x, event.clientY - drag.y) <= 4) return;
             drag.moved = true; dragged = true;
-            preferred = {right:drag.right + drag.x - event.clientX, top:drag.top + event.clientY - drag.y}; place();
+            anchor = {right:drag.right + drag.x - event.clientX, top:drag.top + event.clientY - drag.y}; place();
         });
         function finish(event) {
             if (!drag || event.pointerId !== drag.id) return;
-            if (event.type === 'pointercancel') { preferred = drag.preferred; place(); }
+            if (event.type === 'pointercancel') { anchor = drag.preferred; place(); }
             else if (drag.moved) {
-                const rect = host.getBoundingClientRect();
-                preferred = {right:window.innerWidth - rect.right, top:rect.top}; save();
+                anchor = gripPosition(); save();
             }
             drag = null;
             if (grip.hasPointerCapture(event.pointerId)) grip.releasePointerCapture(event.pointerId);
@@ -513,8 +558,8 @@
         grip.addEventListener('keydown', event => {
             const offsets = {ArrowLeft:[10,0],ArrowRight:[-10,0],ArrowUp:[0,-10],ArrowDown:[0,10]};
             const offset = offsets[event.key]; if (!offset) return;
-            event.preventDefault(); preferred = {right:preferred.right + offset[0], top:preferred.top + offset[1]}; place();
-            const rect = host.getBoundingClientRect(); preferred = {right:window.innerWidth - rect.right, top:rect.top}; save();
+            event.preventDefault(); anchor = gripPosition(); anchor = {right:anchor.right + offset[0], top:anchor.top + offset[1]}; place();
+            anchor = gripPosition(); save();
         });
         window.addEventListener('resize', place);
         window.addEventListener('pagehide', destroy, {once:true});
