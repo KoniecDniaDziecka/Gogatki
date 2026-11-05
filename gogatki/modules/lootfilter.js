@@ -246,6 +246,7 @@ GogatkiRuntime.register({id:"lootfilter",name:"Lootfilter",description:"Filtry \
             } catch (error) { out.textContent = error.message; }
         };
         function position() {
+        if (window.__gogatkiTileDock?.isDocked(panel)) return;
             if (!Number.isFinite(config.right)) {
                 // Keep the previous left-based placement on the first run after updating.
                 config.right = Math.max(0, innerWidth - (+config.left || 0) - panel.offsetWidth);
@@ -295,4 +296,5 @@ GogatkiRuntime.register({id:"lootfilter",name:"Lootfilter",description:"Filtry \
 })();
 
 }});
+
 

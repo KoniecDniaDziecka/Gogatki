@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Gogatki — panel dodatków
 // @namespace    gogatek.local
-// @version      0.5.7
+// @version      0.6.0
 // @description  Wspólny panel i przełączniki dodatków do Margonem.
 // @match        https://*.margonem.pl/*
 // @match        https://*.margonem.com/*
@@ -47,7 +47,156 @@
         mount();
         return true;
     }
+    function createTileDock() {
+        const specs = [
+            {id:'standalone-fullmetal', control:'[data-min]'},
+            {id:'standalone-loot-filter', control:'[data-name]', bag:true},
+            {id:'wolacz-global-panel', control:'[aria-label="Uchwyt do przesuwania przycisku"]', contextOnly:true},
+            {id:'standalone-free-gift', gift:true},
+            {id:'e2-caller-panel', control:'.e2-handle', contextOnly:true},
+            {id:'pvp-clan-notificator', control:'[data-settings]'},
+            {id:'anty-x', control:'.gear', shadow:true},
+            {id:'emergency-item-standalone', control:'.gear', shadow:true}
+        ];
+        const selector = specs.map(s => '#' + s.id).join(',');
+        const entries = new Map();
+        const key = 'gogatki:tile-dock:position:v1';
+        let preferred = {right:18, top:80};
+        try {
+            const saved = GM_getValue(key, null);
+            if (Number.isFinite(saved?.right) && Number.isFinite(saved?.top)) preferred = saved;
+        } catch {}
+        const host = document.createElement('div');
+        host.id = 'gogatki-tile-dock'; host.hidden = true;
+        host.setAttribute('role', 'group');
+        host.setAttribute('aria-label', 'Zwinięte dodatki');
+        const root = host.attachShadow({mode:'open'});
+        root.innerHTML = `<style>
+            :host{all:initial;display:block;position:fixed;z-index:2147483646;width:max-content;max-width:calc(100vw - 16px);font:12px Arial,sans-serif;color:#c7d0d9}
+            :host([hidden]){display:none!important}
+            *{box-sizing:border-box}
+            .bar{display:flex;align-items:flex-start;gap:4px;padding:4px;background:#171b20;border:1px solid #668298;border-radius:4px;box-shadow:0 4px 16px #0006}
+            .grip{display:flex;align-items:center;justify-content:center;flex:none;width:18px;height:28px;padding:0;border:0;border-radius:3px;background:#252b31;color:#b1c0cb;cursor:move;touch-action:none}
+            .grip:focus-visible{outline:2px solid #12c9bd;outline-offset:1px}
+            .tiles{display:flex;flex-wrap:wrap;align-items:center;gap:4px;max-width:calc(100vw - 54px)}
+            slot{display:contents}
+        </style><div class="bar"><button class="grip" type="button" aria-label="Przesuń pasek zwiniętych dodatków" title="Przeciągnij pasek. Strzałki przesuwają go o 10 px."><svg viewBox="0 0 12 18" width="10" height="16" fill="currentColor" aria-hidden="true"><circle cx="4" cy="4" r="1"/><circle cx="8" cy="4" r="1"/><circle cx="4" cy="9" r="1"/><circle cx="8" cy="9" r="1"/><circle cx="4" cy="14" r="1"/><circle cx="8" cy="14" r="1"/></svg></button><div class="tiles"><slot></slot></div></div>`;
+        // Slotted light-DOM panels retain their existing scoped game styles.
+        const style = document.createElement('style');
+        style.textContent = ':root #gogatki-tile-dock > [data-gogatki-docked]{position:static!important;inset:auto!important;transform:none!important;float:none!important;margin:0!important;flex:0 0 auto!important;align-self:center;max-width:100%}';
+        document.head.append(style); document.body.append(host);
+        let frame = 0, disposed = false;
+        function place() {
+            if (host.hidden) return;
+            const box = host.getBoundingClientRect();
+            host.style.right = Math.max(8, Math.min(preferred.right, window.innerWidth - box.width - 8)) + 'px';
+            host.style.top = Math.max(8, Math.min(preferred.top, window.innerHeight - box.height - 8)) + 'px';
+        }
+        function save() { try { GM_setValue(key, {...preferred}); } catch {} }
+        function compact(entry) {
+            if (entry.spec.gift) return true;
+            return entry.spec.shadow ? entry.node.shadowRoot?.querySelector('.panel')?.classList.contains('collapsed') : entry.node.dataset.compact === 'true';
+        }
+        function dock(entry) {
+            if (entry.docked) return;
+            entry.parent = entry.node.parentNode; entry.next = entry.node.nextSibling;
+            entry.docked = true; entry.node.setAttribute('data-gogatki-docked', '');
+            host.append(entry.node);
+        }
+        function release(entry) {
+            if (!entry.docked) return;
+            entry.docked = false; entry.node.removeAttribute('data-gogatki-docked');
+            const parent = entry.parent?.isConnected ? entry.parent : document.body;
+            parent.insertBefore(entry.node, entry.next?.parentNode === parent ? entry.next : null);
+        }
+        function sync() {
+            frame = 0; if (disposed) return;
+            for (const spec of specs) {
+                let entry = entries.get(spec.id);
+                if (entry && !entry.node.isConnected) { entry.observer.disconnect(); entries.delete(spec.id); entry = null; }
+                if (!entry) {
+                    const node = document.getElementById(spec.id);
+                    if (!node) continue;
+                    entry = {node, spec, docked:false, observer:new MutationObserver(schedule)};
+                    entries.set(spec.id, entry);
+                    entry.observer.observe(node, {attributes:true, attributeFilter:['data-compact']});
+                    if (node.shadowRoot) entry.observer.observe(node.shadowRoot, {subtree:true, attributes:true, attributeFilter:['class']});
+                }
+                if (compact(entry)) dock(entry); else release(entry);
+            }
+            // Stable order is independent of asynchronous module download order.
+            let cursor = host.firstElementChild;
+            for (const spec of specs) {
+                const entry = entries.get(spec.id);
+                if (!entry?.docked) continue;
+                if (cursor === entry.node) cursor = cursor.nextElementSibling;
+                else host.insertBefore(entry.node, cursor);
+            }
+            host.hidden = ![...entries.values()].some(e => e.docked);
+            place();
+        }
+        function schedule() { if (!frame && !disposed) frame = window.requestAnimationFrame(sync); }
+        const observer = new MutationObserver(records => {
+            if (records.some(r => [...r.addedNodes, ...r.removedNodes].some(n => n.nodeType === 1 && (n.matches(selector) || n.querySelector(selector))))) schedule();
+        });
+        observer.observe(document.body, {childList:true, subtree:true});
+        const resize = new ResizeObserver(place); resize.observe(host);
+        function findEntry(event) {
+            return event.composedPath().map(n => n?.id && entries.get(n.id)).find(e => e?.docked);
+        }
+        function activate(event) {
+            const entry = findEntry(event);
+            if (!entry || entry.spec.gift || (entry.spec.contextOnly && event.type !== 'contextmenu')) return;
+            const path = event.composedPath();
+            if (!path.some(n => n?.matches?.(entry.spec.control))) return;
+            if (event.type === 'keydown' && (!entry.spec.bag || !['Enter',' '].includes(event.key))) return;
+            if (entry.spec.bag && event.type === 'contextmenu') return;
+            // Restore the floating panel before its own handler measures/persists an anchor.
+            release(entry); schedule();
+        }
+        function preventTileDrag(event) {
+            if (findEntry(event)) event.stopPropagation();
+        }
+        for (const type of ['click','contextmenu','keydown']) document.addEventListener(type, activate, true);
+        for (const type of ['pointerdown','mousedown']) document.addEventListener(type, preventTileDrag, true);
+        const grip = root.querySelector('.grip'); let drag;
+        grip.addEventListener('pointerdown', event => {
+            if (event.button !== 0) return;
+            const rect = host.getBoundingClientRect();
+            drag = {id:event.pointerId, x:event.clientX, y:event.clientY, right:window.innerWidth - rect.right, top:rect.top};
+            grip.setPointerCapture(event.pointerId); event.preventDefault();
+        });
+        grip.addEventListener('pointermove', event => {
+            if (!drag || event.pointerId !== drag.id) return;
+            preferred = {right:drag.right + drag.x - event.clientX, top:drag.top + event.clientY - drag.y}; place();
+        });
+        function finish(event) {
+            if (!drag || event.pointerId !== drag.id) return;
+            const rect = host.getBoundingClientRect();
+            preferred = {right:window.innerWidth - rect.right, top:rect.top}; drag = null; save();
+            if (grip.hasPointerCapture(event.pointerId)) grip.releasePointerCapture(event.pointerId);
+        }
+        for (const type of ['pointerup','pointercancel','lostpointercapture']) grip.addEventListener(type, finish);
+        grip.addEventListener('keydown', event => {
+            const offsets = {ArrowLeft:[10,0],ArrowRight:[-10,0],ArrowUp:[0,-10],ArrowDown:[0,10]};
+            const offset = offsets[event.key]; if (!offset) return;
+            event.preventDefault(); preferred = {right:preferred.right + offset[0], top:preferred.top + offset[1]}; place();
+            const rect = host.getBoundingClientRect(); preferred = {right:window.innerWidth - rect.right, top:rect.top}; save();
+        });
+        window.addEventListener('resize', place);
+        window.addEventListener('pagehide', () => {
+            disposed = true; if (frame) window.cancelAnimationFrame(frame);
+            observer.disconnect(); resize.disconnect(); entries.forEach(e => e.observer.disconnect());
+            for (const type of ['click','contextmenu','keydown']) document.removeEventListener(type, activate, true);
+            for (const type of ['pointerdown','mousedown']) document.removeEventListener(type, preventTileDrag, true);
+            window.removeEventListener('resize', place);
+        }, {once:true});
+        schedule();
+        return Object.freeze({isDocked(node) { return !!node && entries.get(node.id)?.node === node && entries.get(node.id).docked; }});
+    }
+
     function mount() {
+    window.__gogatkiTileDock ||= createTileDock();
     const key = 'gogatek:modules:v1';
     let preferences;
     try { preferences = GM_getValue(key, {}); } catch { preferences = {}; }
@@ -286,7 +435,7 @@ input[type="checkbox"]:disabled{opacity:.45;cursor:not-allowed}
     }
 
     const catalogueUrl = "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/catalogue.json";
-const fallbackCatalogue = {"schemaVersion": 1, "modules": [{"id": "ulepa", "name": "Ulepa", "description": "Ulepszanie i rozbijanie przedmiotów", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/ulepa.js?v=1.2.10"}, {"id": "lootfilter", "name": "Lootfilter", "description": "Filtry łupu po walce", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/lootfilter.js?v=1.0.15"}, {"id": "wolacz", "name": "Wołacz Kolosy", "description": "Wołanie na globalny według mapy i grupy", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/wolacz.js?v=1.4.9"}, {"id": "gift", "name": "Gift", "description": "Odbieranie darmowych nagród z aktualności i kalendarza.", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/gift.js?v=1.0.11"}, {"id": "wolacz-ide", "name": "Wołacz + idę", "description": "Wołanie na E2 i wiadomość „Ide” przez Lootlog klanowy Death Sentence.", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/wolacz-ide.js?v=2026.11.03.9"}, {"id": "pvp-info", "name": "PVP Info", "description": "Powiadomienia o walkach PvP i ich wynikach na czacie klanowym.", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/pvp-info.js?v=1.0.7"}, {"id": "anty-x", "name": "Anty X", "description": "Filtr ataków PvP według relacji, poziomów i listy chronionych graczy.", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/anty-x.js?v=1.0.2"}]};
+const fallbackCatalogue = {"schemaVersion": 1, "modules": [{"id": "ulepa", "name": "Ulepa", "description": "Ulepszanie i rozbijanie przedmiotów", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/ulepa.js?v=1.2.12"}, {"id": "lootfilter", "name": "Lootfilter", "description": "Filtry łupu po walce", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/lootfilter.js?v=1.0.18"}, {"id": "wolacz", "name": "Wołacz Kolosy", "description": "Wołanie na globalny według mapy i grupy", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/wolacz.js?v=1.4.10"}, {"id": "gift", "name": "Gift", "description": "Odbieranie darmowych nagród z aktualności i kalendarza.", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/gift.js?v=1.0.14"}, {"id": "wolacz-ide", "name": "Wołacz + idę", "description": "Wołanie na E2 i wiadomość „Ide” przez Lootlog klanowy Death Sentence.", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/wolacz-ide.js?v=2026.11.03.10"}, {"id": "pvp-info", "name": "PVP Info", "description": "Powiadomienia o walkach PvP i ich wynikach na czacie klanowym.", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/pvp-info.js?v=1.0.8"}, {"id": "anty-x", "name": "Anty X", "description": "Filtr ataków PvP według relacji, poziomów i listy chronionych graczy.", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/anty-x.js?v=1.0.6"}, {"id": "auto-tp", "name": "Auto TP", "description": "Użycie przedmiotu po walce, przy wrogu lub z ucieczką.", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/auto-tp.js?v=1.0.3"}]};
     updateCatalogue();
     }
     if (!mountWhenReady()) {
@@ -297,4 +446,5 @@ const fallbackCatalogue = {"schemaVersion": 1, "modules": [{"id": "ulepa", "name
         window.addEventListener('pagehide', () => clearInterval(wait), {once:true});
     }
 })();
+
 

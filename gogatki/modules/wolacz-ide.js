@@ -269,6 +269,7 @@ GogatkiRuntime.register({id:"wolacz-ide",name:"Wo\u0142acz + id\u0119",descripti
         container.id = 'e2-caller-panel';
 
         function setPosition(left, top) {
+        if (window.__gogatkiTileDock?.isDocked(container)) return;
             const maxLeft = Math.max(0, window.innerWidth - container.offsetWidth);
             const maxTop = Math.max(0, window.innerHeight - container.offsetHeight);
             container.style.left = Math.min(maxLeft, Math.max(0, Number.isFinite(left) ? left : 20)) + 'px';
@@ -278,6 +279,7 @@ GogatkiRuntime.register({id:"wolacz-ide",name:"Wo\u0142acz + id\u0119",descripti
             setPosition(parseFloat(container.style.left), parseFloat(container.style.top));
         }
         function savePosition() {
+        if (window.__gogatkiTileDock?.isDocked(container)) return;
             try {
                 localStorage.setItem('e2ButtonPos', JSON.stringify({
                     left: parseFloat(container.style.left), top: parseFloat(container.style.top)
@@ -433,4 +435,5 @@ GogatkiRuntime.register({id:"wolacz-ide",name:"Wo\u0142acz + id\u0119",descripti
     }
 })();
 }});
+
 

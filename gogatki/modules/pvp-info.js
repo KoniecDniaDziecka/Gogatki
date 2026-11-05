@@ -152,6 +152,7 @@ GogatkiRuntime.register({id:"pvp-info",name:"PVP Info",description:"Powiadomieni
         return height > 0 ? height : 28;
     }
     function position() {
+        if (window.__gogatkiTileDock?.isDocked(panel)) return;
         // Reserve expanded width so toggling never shifts the right-hand anchor.
         const width = Math.min(280, win.innerWidth - 8);
         config.right = Math.max(0, Math.min(config.right, Math.max(0, win.innerWidth - width)));
@@ -230,4 +231,5 @@ input[type="checkbox"]:disabled{opacity:.45;cursor:not-allowed}
     setInterval(tick, 250); tick();
 })();
 }});
+
 

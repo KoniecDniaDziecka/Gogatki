@@ -162,6 +162,7 @@ GogatkiRuntime.register({
     return 28;
   }
   function clamp() {
+        if (window.__gogatkiTileDock?.isDocked(host)) return;
     const rect = host.getBoundingClientRect();
     if (!Number.isFinite(state.x)) state.x = innerWidth - rect.width - 20;
     if (!Number.isFinite(state.y)) state.y = 100;
@@ -309,3 +310,4 @@ GogatkiRuntime.register({
 
   }
 });
+

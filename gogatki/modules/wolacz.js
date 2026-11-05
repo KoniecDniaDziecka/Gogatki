@@ -130,6 +130,7 @@ GogatkiRuntime.register({id:"wolacz",name:"Wo\u0142acz Kolosy",description:"Wo\u
     });
 
     function setPosition(left, top) {
+        if (window.__gogatkiTileDock?.isDocked(panel)) return;
         const maxLeft = Math.max(0, window.innerWidth - panel.offsetWidth);
         const maxTop = Math.max(0, window.innerHeight - panel.offsetHeight);
         panel.style.left = `${Math.min(maxLeft, Math.max(0, left))}px`;
@@ -137,6 +138,7 @@ GogatkiRuntime.register({id:"wolacz",name:"Wo\u0142acz Kolosy",description:"Wo\u
     }
 
     function savePosition() {
+        if (window.__gogatkiTileDock?.isDocked(panel)) return;
         try {
             localStorage.setItem(POSITION_KEY, JSON.stringify({
                 left: parseFloat(panel.style.left), top: parseFloat(panel.style.top),
@@ -281,4 +283,5 @@ GogatkiRuntime.register({id:"wolacz",name:"Wo\u0142acz Kolosy",description:"Wo\u
 })();
 
 }});
+
 

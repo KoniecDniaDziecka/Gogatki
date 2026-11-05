@@ -140,6 +140,7 @@ GogatkiRuntime.register({id:"anty-x",name:"Anty X",description:"Filtr ataków Pv
         });
     }
     function place() {
+        if (window.__gogatkiTileDock?.isDocked(host)) return;
         const box = host.getBoundingClientRect();
         config.x = Math.max(0, Math.min(Number(config.x) || 0, innerWidth - box.width));
         config.y = Math.max(0, Math.min(Number(config.y) || 0, innerHeight - box.height));
@@ -190,4 +191,5 @@ GogatkiRuntime.register({id:"anty-x",name:"Anty X",description:"Filtr ataków Pv
     setInterval(installHook, 1000);
 })();
 }});
+
 

@@ -492,6 +492,7 @@ GogatkiRuntime.register({id:"ulepa",name:"Ulepa",description:"Ulepszanie i rozbi
             say('Zatrzymano. Wysłana operacja może jeszcze zostać wykonana przez grę.');
         };
         function position() {
+        if (window.__gogatkiTileDock?.isDocked(panel)) return;
             // Keep the top-right corner fixed when the settings change the width.
             if (config.right === null || !Number.isFinite(+config.right)) {
                 config.right = window.innerWidth - (+config.left || 0) - panel.offsetWidth;
@@ -585,4 +586,5 @@ GogatkiRuntime.register({id:"ulepa",name:"Ulepa",description:"Ulepszanie i rozbi
 })();
 
 }});
+
 

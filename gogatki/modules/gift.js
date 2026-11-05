@@ -202,6 +202,7 @@ GogatkiRuntime.register({id:"gift",name:"Gift",description:"Odbieranie darmowych
             if (saved && Number.isFinite(saved.right) && Number.isFinite(saved.top)) position = saved;
         } catch { /* Use the default position when storage is unavailable. */ }
         function place() {
+        if (window.__gogatkiTileDock?.isDocked(panel)) return;
             const bounds = panel.getBoundingClientRect();
             panel.style.right = `${Math.max(0, Math.min(position.right, innerWidth - bounds.width))}px`;
             panel.style.top = `${Math.max(0, Math.min(position.top, innerHeight - bounds.height))}px`;
@@ -320,4 +321,5 @@ GogatkiRuntime.register({id:"gift",name:"Gift",description:"Odbieranie darmowych
 })();
 
 }});
+
 
