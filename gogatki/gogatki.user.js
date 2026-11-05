@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Gogatki — panel dodatków
 // @namespace    gogatek.local
-// @version      0.6.2
+// @version      0.6.3
 // @description  Wspólny panel i przełączniki dodatków do Margonem.
 // @match        https://*.margonem.pl/*
 // @match        https://*.margonem.com/*
@@ -60,6 +60,9 @@
         const selector = specs.map(s => '#' + s.id).join(',');
         const entries = new Map();
         const key = 'gogatki:tile-dock:position:v1';
+        const layoutKey = 'gogatki:tile-dock:layout:v1';
+        let vertical = false;
+        try { vertical = GM_getValue(layoutKey, 'horizontal') === 'vertical'; } catch {}
         let preferred = {right:18, top:80};
         try {
             const saved = GM_getValue(key, null);
@@ -78,6 +81,10 @@
             .grip{display:flex;align-items:center;justify-content:center;flex:none;width:18px;height:28px;padding:0;border:0;border-radius:3px;background:#252b31;color:#b1c0cb;cursor:move;touch-action:none}
             .grip:focus-visible{outline:2px solid #12c9bd;outline-offset:1px}
             .tiles{display:flex;flex-wrap:wrap;align-items:center;gap:4px;max-width:calc(100vw - 54px)}
+            :host([data-orientation="vertical"]) .bar{flex-direction:column;align-items:center}
+            :host([data-orientation="vertical"]) .grip{width:28px;height:18px}
+            :host([data-orientation="vertical"]) .grip svg{transform:rotate(90deg)}
+            :host([data-orientation="vertical"]) .tiles{flex-direction:column;flex-wrap:nowrap;max-width:calc(100vw - 26px);max-height:calc(100vh - 56px);overflow-y:auto;overflow-x:hidden}
             slot{display:contents}
         </style><div class="bar"><button class="grip" type="button" aria-label="Przesuń pasek zwiniętych dodatków" title="Przeciągnij pasek. Strzałki przesuwają go o 10 px."><svg viewBox="0 0 12 18" width="10" height="16" fill="currentColor" aria-hidden="true"><circle cx="4" cy="4" r="1"/><circle cx="8" cy="4" r="1"/><circle cx="4" cy="9" r="1"/><circle cx="8" cy="9" r="1"/><circle cx="4" cy="14" r="1"/><circle cx="8" cy="14" r="1"/></svg></button><div class="tiles"><slot></slot></div></div>`;
         // Slotted light-DOM panels retain their existing scoped game styles.
@@ -159,6 +166,17 @@
         for (const type of ['click','contextmenu','keydown']) document.addEventListener(type, activate, true);
         for (const type of ['pointerdown','mousedown']) document.addEventListener(type, preventTileDrag, true);
         const grip = root.querySelector('.grip'); let drag;
+        function orient() {
+            host.dataset.orientation = vertical ? 'vertical' : 'horizontal';
+            grip.title = 'Przeciągnij pasek. PPM: układ ' + (vertical ? 'poziomy' : 'pionowy') + '. Strzałki przesuwają o 10 px.';
+            place();
+        }
+        orient();
+        grip.addEventListener('contextmenu', event => {
+            event.preventDefault(); event.stopPropagation();
+            vertical = !vertical; orient();
+            try { GM_setValue(layoutKey, vertical ? 'vertical' : 'horizontal'); } catch {}
+        });
         grip.addEventListener('pointerdown', event => {
             if (event.button !== 0) return;
             const rect = host.getBoundingClientRect();
