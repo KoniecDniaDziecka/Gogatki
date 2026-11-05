@@ -1,4 +1,4 @@
-// Auto TP 1.0.1 — adaptacja EmergencyItem z Maddonz (Barlag).
+// Auto TP 1.0.2 — adaptacja EmergencyItem z Maddonz (Barlag).
 GogatkiRuntime.register({
   id: 'auto-tp',
   name: 'Auto TP',
@@ -144,8 +144,11 @@ GogatkiRuntime.register({
   const scrollIcon = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g transform="rotate(-35 12 12)"><path d="M5 7h13a4 5 0 0 1 0 10H5a4 5 0 0 1 0-10Z"/><ellipse cx="5" cy="12" rx="4" ry="5"/><path d="M5 9.5c-2.5 0-2.5 5 0 5 1.8 0 1.8-3 0-3M12 7v10M14 7v10M14 14l3 4-3-1-2 2v-5"/></g></svg>';
   function node(tag, props = {}, parent = root) { const el = document.createElement(tag); Object.assign(el, props); parent.append(el); return el; }
   function anchored(change) {
-    const rect = host.getBoundingClientRect(); change();
-    state.x = rect.right - host.getBoundingClientRect().width; state.y = rect.top; clamp(); persist();
+    // Anchor to the preferred position, even when the current viewport clips it.
+    const right = state.x + host.getBoundingClientRect().width;
+    change();
+    state.x = right - host.getBoundingClientRect().width;
+    clamp(); persist();
   }
   function tileSize() {
     const direct = document.querySelector('.launcher');
@@ -160,9 +163,12 @@ GogatkiRuntime.register({
   }
   function clamp() {
     const rect = host.getBoundingClientRect();
-    state.x = Math.max(0, Math.min(Number.isFinite(state.x) ? state.x : innerWidth - rect.width - 20, innerWidth - rect.width));
-    state.y = Math.max(0, Math.min(Number.isFinite(state.y) ? state.y : 100, innerHeight - rect.height));
-    host.style.left = state.x + 'px'; host.style.top = state.y + 'px';
+    if (!Number.isFinite(state.x)) state.x = innerWidth - rect.width - 20;
+    if (!Number.isFinite(state.y)) state.y = 100;
+    // Temporary viewport/content changes must not overwrite the saved position.
+    const left = Math.max(0, Math.min(state.x, innerWidth - rect.width));
+    const top = Math.max(0, Math.min(state.y, innerHeight - rect.height));
+    host.style.left = left + 'px'; host.style.top = top + 'px';
   }
   function layout() {
     host.style.setProperty('--tile', tileSize() + 'px');
@@ -245,11 +251,16 @@ GogatkiRuntime.register({
       const x = e.clientX, y = e.clientY, rect = host.getBoundingClientRect();
       header.setPointerCapture(e.pointerId);
       header.onpointermove = move => { state.x = rect.left + move.clientX - x; state.y = rect.top + move.clientY - y; clamp(); };
-      const end = () => { header.onpointermove = null; persist(); };
+      const end = () => {
+        header.onpointermove = null;
+        // A completed drag is an explicit position change; save the visible coordinates.
+        const rect = host.getBoundingClientRect();
+        state.x = rect.left; state.y = rect.top; persist();
+      };
       header.onpointerup = end; header.onpointercancel = end; header.onlostpointercapture = end;
     };
     refreshItems(); layout(); persist();
-    panelObserver = new ResizeObserver(() => { clamp(); persist(); });
+    panelObserver = new ResizeObserver(clamp);
     panelObserver.observe(panel);
   }
   function init() {
@@ -278,10 +289,10 @@ GogatkiRuntime.register({
       wrap(window, 'showMenu', (event, entries) => popup(entries, event));
     }
     window.addEventListener('resize', onResize);
-    window.addEventListener('pagehide', persist);
+    // All explicit changes are saved immediately; unloading a stale tab must not write them again.
     return true;
   }
-  function onResize() { layout(); persist(); }
+  function onResize() { layout(); }
   let refreshTick = 0;
   const timer = setInterval(() => {
     try {
@@ -292,7 +303,7 @@ GogatkiRuntime.register({
       if (++refreshTick % 8 === 0 && !['SELECT', 'TEXTAREA', 'INPUT'].includes(root.activeElement?.tagName)) refreshItems();
     } catch (e) { report('Oczekiwanie na grę'); console.debug('Auto TP', e); }
   }, 250);
-  function cleanup() { panelObserver?.disconnect(); window.removeEventListener('pagehide', persist); clearInterval(timer); restorers.reverse().forEach(fn => fn()); host?.remove(); window.removeEventListener('resize', onResize); }
+  function cleanup() { panelObserver?.disconnect(); clearInterval(timer); restorers.reverse().forEach(fn => fn()); host?.remove(); window.removeEventListener('resize', onResize); }
   window.EmergencyItemStandalone = { destroy() { cleanup(); delete window.__emergencyItemStandalone; delete window.EmergencyItemStandalone; } };
 })();
 
