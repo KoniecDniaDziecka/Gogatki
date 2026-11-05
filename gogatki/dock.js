@@ -7,12 +7,12 @@
         const key = 'gogatki:native-launcher:v1';
         const widgetKey = 'gogatki_addonsManager';
         const selector = '.widget-' + widgetKey;
-        let enabled = true;
-        try { enabled = GM_getValue(key, true) !== false; } catch {}
+        let enabled = false;
+        try { enabled = GM_getValue(key, false) === true; } catch {}
         let stopped = false, timer = null, frame = 0, registration = null, boundTile = null;
         let main = null, mainRoot = null, launcher = null, popup = null, choice = null, checkbox = null;
         let rootStyle = null, gameStyle = null, popupObserver = null, lastRect = null, active = false;
-        let lastWarning = '';
+        let lastWarning = '', restoringFloat = false;
         const icon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36"><rect x="1" y="1" width="34" height="34" rx="5" fill="#171b20" stroke="#668298" stroke-width="2"/><path d="M25 11a10 10 0 1 0 0 14v-7h-8" fill="none" stroke="#12c9bd" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
         function api() {
             const engine = window.Engine, manager = engine?.widgetManager;
@@ -34,7 +34,9 @@
             if (!main || !active) return;
             active = false; main.removeAttribute('data-native-widget'); lastRect = null;
             // Let the existing launcher restore its saved floating coordinates once.
-            window.dispatchEvent(new Event('resize')); placePopup();
+            restoringFloat = true;
+            try { window.dispatchEvent(new Event('resize')); } finally { restoringFloat = false; }
+            placePopup();
         }
         function bindTile(tile) {
             if (tile === boundTile) return;
@@ -49,14 +51,30 @@
             if (!['Enter',' '].includes(event.key)) return;
             event.preventDefault(); event.stopImmediatePropagation(); toggle();
         }
+        function usableTile() {
+            for (const tile of document.querySelectorAll(selector)) {
+                const rect = tile.getBoundingClientRect();
+                const left = Math.max(0, rect.left), right = Math.min(window.innerWidth, rect.right);
+                const top = Math.max(0, rect.top), bottom = Math.min(window.innerHeight, rect.bottom);
+                if (right - left < 8 || bottom - top < 8) continue;
+                let visible = true;
+                for (let node = tile; node; node = node.parentElement) {
+                    const css = window.getComputedStyle(node);
+                    if (css.display === 'none' || css.visibility !== 'visible' || css.contentVisibility === 'hidden' || Number(css.opacity) <= .01) { visible = false; break; }
+                }
+                if (!visible) continue;
+                // A sized element can still be clipped, offscreen, or covered by game UI.
+                const hit = document.elementFromPoint((left + right) / 2, (top + bottom) / 2);
+                if (hit && tile.contains(hit)) return {tile, rect};
+            }
+            return null;
+        }
         function anchor() {
-            if (stopped || !main || !enabled || !registration) return false;
-            const tile = document.querySelector(selector);
-            bindTile(tile);
-            if (!tile) { float(); return false; }
-            const rect = tile.getBoundingClientRect();
-            // A temporarily hidden game widget keeps its last valid anchor.
-            if (rect.width <= 0 || rect.height <= 0) return active;
+            if (stopped || restoringFloat || !main || !enabled || !registration) return false;
+            const usable = usableTile();
+            bindTile(usable?.tile || null);
+            if (!usable) { float(); return false; }
+            const {rect} = usable;
             if (!lastRect || ['left','top','width','height'].some(k => Math.abs(lastRect[k] - rect[k]) > .1)) {
                 for (const k of ['left','top','width','height']) main.style.setProperty('--native-' + k, rect[k] + 'px');
                 lastRect = {left:rect.left,top:rect.top,width:rect.width,height:rect.height};
