@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Gogatki — panel dodatków
 // @namespace    gogatek.local
-// @version      0.7.2
+// @version      0.7.3
 // @description  Wspólny panel i przełączniki dodatków do Margonem.
 // @match        https://*.margonem.pl/*
 // @match        https://*.margonem.com/*
@@ -220,14 +220,27 @@
             grip.setAttribute('aria-expanded', String(!collapsed));
             grip.setAttribute('aria-controls', 'gogatki-dock-tiles');
             grip.setAttribute('aria-label', collapsed ? 'Rozwiń pasek dodatków' : 'Przesuń pasek dodatków');
-            const arrow = vertical ? 'M12 5v14m-6-6 6 6 6-6' : 'M19 12H5m6-6-6 6 6 6';
+            const arrow = vertical ? 'M12 5v14m-6-6 6 6 6-6' : 'M5 12h14m-6-6 6 6-6 6';
             grip.innerHTML = collapsed ? '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="' + arrow + '"/></svg>' : gripIcon;
             grip.title = (collapsed ? 'Kliknij, aby rozwinąć pasek. ' : 'Dwuklik: zwiń pasek. ') +
                 'Przeciągnij, aby przesunąć. PPM: układ ' + (vertical ? 'poziomy' : 'pionowy') + '. Strzałki przesuwają o 10 px.';
             place();
         }
+        function anchoredView(change) {
+            const before = grip.getBoundingClientRect();
+            const anchorX = before.left + before.width / 2;
+            const anchorY = before.top + before.height / 2;
+            change(); updateView();
+            const after = grip.getBoundingClientRect();
+            const box = host.getBoundingClientRect();
+            preferred = {
+                right: window.innerWidth - box.right + after.left + after.width / 2 - anchorX,
+                top: box.top + anchorY - after.top - after.height / 2
+            };
+            place(); save();
+        }
         function setCollapsed(value) {
-            collapsed = value; updateView();
+            anchoredView(() => { collapsed = value; });
             try { GM_setValue(collapsedKey, collapsed); } catch {}
         }
         updateView();
@@ -242,8 +255,8 @@
             }
         });
         host.addEventListener('click', event => {
-            // Expanding horizontally moves the handle; the second click of a double click
-            // must not activate whichever addon icon appears under the old arrow position.
+            // The second click of an arrow double click must never activate an addon icon,
+            // including when keeping the dock on-screen limits the anchor adjustment.
             if (event.detail > 0 && arrowActivation && !event.composedPath().includes(grip) &&
                 event.timeStamp - arrowActivation.time < 600 && Math.hypot(event.clientX - arrowActivation.x, event.clientY - arrowActivation.y) <= 4) {
                 event.preventDefault(); event.stopImmediatePropagation(); arrowActivation = null;
@@ -257,18 +270,7 @@
         });
         grip.addEventListener('contextmenu', event => {
             event.preventDefault(); event.stopPropagation();
-            const before = grip.getBoundingClientRect();
-            const anchorX = before.left + before.width / 2;
-            const anchorY = before.top + before.height / 2;
-            vertical = !vertical; updateView();
-            // Keep the handle under the pointer instead of anchoring the dock's outer edge.
-            const after = grip.getBoundingClientRect();
-            const box = host.getBoundingClientRect();
-            preferred = {
-                right: window.innerWidth - box.right + after.left + after.width / 2 - anchorX,
-                top: box.top + anchorY - after.top - after.height / 2
-            };
-            place(); save();
+            anchoredView(() => { vertical = !vertical; });
             try { GM_setValue(layoutKey, vertical ? 'vertical' : 'horizontal'); } catch {}
         });
         grip.addEventListener('pointerdown', event => {
