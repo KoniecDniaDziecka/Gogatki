@@ -41,7 +41,7 @@
       "id": "anty-x",
       "name": "Anty X",
       "description": "Filtr ataków PvP według relacji, poziomów i listy chronionych graczy.",
-      "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/anty-x.js?v=1.0.4"
+      "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/anty-x.js?v=1.0.5"
     }
   ]
 }
