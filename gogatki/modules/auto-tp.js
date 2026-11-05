@@ -1,4 +1,4 @@
-// Auto TP 1.0.0 — adaptacja EmergencyItem z Maddonz (Barlag).
+// Auto TP 1.0.1 — adaptacja EmergencyItem z Maddonz (Barlag).
 GogatkiRuntime.register({
   id: 'auto-tp',
   name: 'Auto TP',
@@ -78,7 +78,8 @@ GogatkiRuntime.register({
   if (typeof module !== 'undefined' && module.exports) { module.exports = { createController, defaults }; return; }
   if (window.__emergencyItemStandalone) return;
   window.__emergencyItemStandalone = true;
-  let controller, state, root, host, status, storageKey, inBattle = false, lastMap, currentCharacter;
+  const storageKey = 'gogatki:auto-tp:global:v1';
+  let controller, state, root, host, status, inBattle = false, lastMap, currentCharacter;
   const restorers = [];
   let panelObserver;
   const ni = () => !!window.Engine?.hero?.d;
@@ -102,7 +103,7 @@ GogatkiRuntime.register({
       }); } catch (e) { clearTimeout(timer); reject(e); }
     });
   }
-  function persist() { try { localStorage.setItem(storageKey, JSON.stringify(state)); } catch { report('Nie można zapisać ustawień'); } }
+  function persist() { try { GM_setValue(storageKey, JSON.parse(JSON.stringify(state))); } catch { report('Nie można zapisać ustawień'); } }
   function report(text) { if (status) status.textContent = text; }
   function wrap(object, key, before, after) {
     if (typeof object?.[key] !== 'function') return false;
@@ -254,8 +255,14 @@ GogatkiRuntime.register({
   function init() {
     if (!hero()?.id || typeof window._g !== 'function' || (ni() && !window.Engine.allInit)) return false;
     currentCharacter = String(hero().id);
-    storageKey = 'gogatki:emergency-item:v1:' + location.hostname + ':' + currentCharacter;
-    let saved; try { saved = JSON.parse(localStorage.getItem(storageKey) || '{}'); } catch { saved = {}; }
+    const legacyKey = 'gogatki:emergency-item:v1:' + location.hostname + ':' + currentCharacter;
+    // Global userscript storage is shared by characters and world domains.
+    let saved = GM_getValue(storageKey, null);
+    if (saved === null) {
+      // Migrate once from the first character opened after this update.
+      try { saved = JSON.parse(window.localStorage.getItem(legacyKey) || '{}'); } catch { saved = {}; }
+    }
+    if (!saved || typeof saved !== 'object' || Array.isArray(saved)) saved = {};
     state = { ...structuredClone(defaults), ...saved, items: { ...defaults.items, ...saved?.items } };
     if (!Array.isArray(state.enemyClans)) state.enemyClans = [];
     controller = createController(api, state, () => { persist(); if (root) refreshItems(); }, report);
