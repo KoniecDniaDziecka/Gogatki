@@ -12,7 +12,7 @@ GogatkiRuntime.register({id:"wolacz",name:"Wo\u0142acz Kolosy",description:"Wo\u
     const tile = document.querySelector('#gogatek-panel')?.shadowRoot?.querySelector('.launcher');
     const tileHeight = tile?.getBoundingClientRect().height || 28;
     const tileStyle = document.createElement('style');
-    tileStyle.textContent = ":root #wolacz-global-panel[data-compact=\"true\"]{box-sizing:border-box;height:__TILE_HEIGHT__;min-height:0}:root #wolacz-global-panel[data-compact=\"true\"] > div:first-child{box-sizing:border-box;height:100%;min-height:0;padding:0 5px!important}:root #wolacz-global-panel[data-compact=\"true\"] > div:first-child > div{box-sizing:border-box;height:100%;line-height:calc(__TILE_HEIGHT__ - 2px)!important;font-size:16px!important}:root #wolacz-global-panel{background:#171b20!important;color:#dce6ee!important;opacity:1!important;filter:none!important;mix-blend-mode:normal!important;isolation:isolate;font-family:Arial,sans-serif!important;font-weight:400!important;font-style:normal!important}\n:root #wolacz-global-panel,:root #wolacz-global-panel *{font-family:Arial,sans-serif!important;text-shadow:none!important;-webkit-text-stroke:0!important;-webkit-text-fill-color:currentColor!important;letter-spacing:normal!important}\n:root #wolacz-global-panel header{background:#252b31!important}\n:root #wolacz-global-panel{color:#dce6ee!important}\n:root #wolacz-global-panel label,:root #wolacz-global-panel .slot-label{color:#c0ced8!important}\n:root #wolacz-global-panel legend,:root #wolacz-global-panel strong,:root #wolacz-global-panel header b{color:#edf3f7!important}\n:root #wolacz-global-panel small{color:#b1c0cb!important}\n:root #wolacz-global-panel input:not([type=\"checkbox\"]),:root #wolacz-global-panel select,:root #wolacz-global-panel textarea{color:#dce6ee!important}\n:root #wolacz-global-panel input::placeholder,:root #wolacz-global-panel textarea::placeholder{color:#8fa2b0!important;opacity:1}\n:root #wolacz-global-panel button{color:#dce6ee!important}\n:root #wolacz-global-panel header button:has(svg),:root #wolacz-global-panel button:has(svg){display:inline-flex;align-items:center;justify-content:center;color:#12c9bd!important}\n:root #wolacz-global-panel [aria-label^=\"Uchwyt\"]{color:#b1c0cb!important}\n:root #wolacz-global-panel button svg{display:block;max-width:100%;max-height:100%;flex-shrink:0}\n:root #standalone-fullmetal [data-status]{color:#b1c0cb!important}\n:root #standalone-fullmetal [data-usage]{color:#c0ced8!important}\n:root #e2-caller-panel .e2-ide{color:#12c9bd!important}\n\n:root #wolacz-global-panel label{font-size:12px!important;font-weight:400!important}\n:root #wolacz-global-panel legend,:root #wolacz-global-panel strong,:root #wolacz-global-panel header b{font-weight:600!important}\n:root #wolacz-global-panel input:not([type=\"checkbox\"]),:root #wolacz-global-panel select,:root #wolacz-global-panel textarea{font-size:12px!important;background:#1b242c}\n:root #e2-caller-panel,:root #wolacz-global-panel > div:first-child{background:#252b31!important}\n:root #e2-caller-panel .e2-auto{font-size:11px!important}\n\n:root #wolacz-global-panel input[type=\"checkbox\"]{-webkit-appearance:none!important;appearance:none!important;box-sizing:border-box!important;position:relative!important;transform:none!important;filter:none!important;display:grid!important;place-content:center!important;width:14px!important;height:14px!important;min-width:14px!important;min-height:14px!important;flex:none!important;padding:0!important;margin:0!important;border:1px solid #668298!important;border-radius:3px!important;background:#252b31!important;background-image:none!important;box-shadow:none!important;cursor:pointer;font:12px Arial,sans-serif!important;text-shadow:none!important;-webkit-text-stroke:0!important}\n:root #wolacz-global-panel input[type=\"checkbox\"]:checked{border-color:#668298!important;background:#252b31!important;background-image:none!important}\n:root #wolacz-global-panel input[type=\"checkbox\"]::before{content:none!important;display:none!important}\n:root #wolacz-global-panel input[type=\"checkbox\"]::after{content:none!important;display:none!important}\n:root #wolacz-global-panel input[type=\"checkbox\"]:checked::after{content:'✓'!important;display:block!important;position:static!important;width:auto!important;height:auto!important;margin:0!important;padding:0!important;border:0!important;transform:none!important;background:none!important;box-shadow:none!important;color:#12c9bd!important;-webkit-text-fill-color:#12c9bd!important;-webkit-text-stroke:0!important;text-shadow:none!important;font:12px/12px Arial,sans-serif!important}\n:root #wolacz-global-panel input[type=\"checkbox\"]:focus-visible{outline:2px solid #12c9bd;outline-offset:1px}\n:root #wolacz-global-panel input[type=\"checkbox\"]:disabled{opacity:.45;cursor:not-allowed}\n".replaceAll('__TILE_HEIGHT__', tileHeight + 'px');
+    tileStyle.textContent = ":root #wolacz-global-panel[data-compact=\"true\"]{box-sizing:border-box;height:__TILE_HEIGHT__;min-height:0}:root #wolacz-global-panel[data-compact=\"true\"] > div:first-child{box-sizing:border-box;height:100%;min-height:0;padding:0 5px!important}:root #wolacz-global-panel[data-compact=\"true\"] > div:first-child > div{box-sizing:border-box;height:100%;line-height:calc(__TILE_HEIGHT__ - 2px)!important;font-size:16px!important}:root #wolacz-global-panel{background:#171b20!important;color:#dce6ee!important;opacity:1!important;filter:none!important;mix-blend-mode:normal!important;isolation:isolate;font-family:Arial,sans-serif!important;font-weight:400!important;font-style:normal!important}\n:root #wolacz-global-panel,:root #wolacz-global-panel *{font-family:Arial,sans-serif!important;text-shadow:none!important;-webkit-text-stroke:0!important;-webkit-text-fill-color:currentColor!important;letter-spacing:normal!important}\n:root #wolacz-global-panel header{background:#252b31!important}\n:root #wolacz-global-panel{color:#dce6ee!important}\n:root #wolacz-global-panel label,:root #wolacz-global-panel .slot-label{color:#c0ced8!important}\n:root #wolacz-global-panel legend,:root #wolacz-global-panel strong,:root #wolacz-global-panel header b{color:#edf3f7!important}\n:root #wolacz-global-panel small{color:#b1c0cb!important}\n:root #wolacz-global-panel input:not([type=\"checkbox\"]),:root #wolacz-global-panel select,:root #wolacz-global-panel textarea{color:#dce6ee!important}\n:root #wolacz-global-panel input::placeholder,:root #wolacz-global-panel textarea::placeholder{color:#8fa2b0!important;opacity:1}\n:root #wolacz-global-panel button{color:#dce6ee!important}\n:root #wolacz-global-panel header button:has(svg),:root #wolacz-global-panel button:has(svg){display:inline-flex;align-items:center;justify-content:center;color:#12c9bd!important}\n:root #wolacz-global-panel [aria-label^=\"Uchwyt\"]{color:#b1c0cb!important}\n:root #wolacz-global-panel button svg{display:block;max-width:100%;max-height:100%;flex-shrink:0}\n:root #standalone-fullmetal [data-status]{color:#b1c0cb!important}\n:root #standalone-fullmetal [data-usage]{color:#c0ced8!important}\n:root #e2-caller-panel .e2-ide{color:#12c9bd!important}\n\n:root #wolacz-global-panel label{font-size:12px!important;font-weight:400!important}\n:root #wolacz-global-panel legend,:root #wolacz-global-panel strong,:root #wolacz-global-panel header b{font-weight:600!important}\n:root #wolacz-global-panel input:not([type=\"checkbox\"]),:root #wolacz-global-panel select,:root #wolacz-global-panel textarea{font-size:12px!important;background:#1b242c}\n:root #e2-caller-panel,:root #wolacz-global-panel > div:first-child{background:#252b31!important}\n:root #e2-caller-panel .e2-auto{font-size:11px!important}\n\n:root #wolacz-global-panel input[type=\"checkbox\"]{-webkit-appearance:none!important;appearance:none!important;box-sizing:border-box!important;position:relative!important;transform:none!important;filter:none!important;display:grid!important;place-content:center!important;width:14px!important;height:14px!important;min-width:14px!important;min-height:14px!important;flex:none!important;padding:0!important;margin:0!important;border:1px solid #668298!important;border-radius:3px!important;background:#252b31!important;background-image:none!important;box-shadow:none!important;cursor:pointer;font:12px Arial,sans-serif!important;text-shadow:none!important;-webkit-text-stroke:0!important}\n:root #wolacz-global-panel input[type=\"checkbox\"]:checked{border-color:#668298!important;background:#252b31!important;background-image:none!important}\n:root #wolacz-global-panel input[type=\"checkbox\"]::before{content:none!important;display:none!important}\n:root #wolacz-global-panel input[type=\"checkbox\"]::after{content:none!important;display:none!important}\n:root #wolacz-global-panel input[type=\"checkbox\"]:checked::after{content:'✓'!important;display:block!important;position:static!important;width:auto!important;height:auto!important;margin:0!important;padding:0!important;border:0!important;transform:none!important;background:none!important;box-shadow:none!important;color:#12c9bd!important;-webkit-text-fill-color:#12c9bd!important;-webkit-text-stroke:0!important;text-shadow:none!important;font:12px/12px Arial,sans-serif!important}\n:root #wolacz-global-panel input[type=\"checkbox\"]:focus-visible{outline:2px solid #12c9bd;outline-offset:1px}\n:root #wolacz-global-panel input[type=\"checkbox\"]:disabled{opacity:.45;cursor:not-allowed}\n\n:root #wolacz-global-panel[data-compact=\"true\"]{width:__TILE_HEIGHT__;overflow:hidden}\n:root #wolacz-global-panel[data-compact=\"true\"] > div:first-child{padding:0!important}\n:root #wolacz-global-panel[data-compact=\"true\"] [aria-label=\"Uchwyt do przesuwania przycisku\"]{width:100%;height:100%;padding:0;cursor:pointer}\n:root #wolacz-global-panel[data-compact=\"true\"] [aria-label=\"Uchwyt do przesuwania przycisku\"]:focus-visible{outline:2px solid #12c9bd;outline-offset:-3px}\n".replaceAll('__TILE_HEIGHT__', tileHeight + 'px');
     document.head.appendChild(tileStyle);
     // Centre the existing panel grip without replacing its button or event handlers.
     const panelGrip = document.querySelector('#gogatek-panel')?.shadowRoot?.querySelector('.move');
@@ -106,17 +106,23 @@ GogatkiRuntime.register({id:"wolacz",name:"Wo\u0142acz Kolosy",description:"Wo\u
 
     let lastAttempt = -Infinity;
     let notificationTimer = null;
-    let drag = null;
+    let drag = null, dragged = false;
     const COMPACT_KEY = 'wolaczGlobalCompact';
+    const gripIcon = handle.innerHTML;
+    const megaphoneIcon = "<svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\" style=\"display:block;pointer-events:none\"><path d=\"M3 10v4h4l12 5V5L7 10H3Z\"/><path d=\"m7 14 2 7h4l-2-5M7 10v4M22 9v6\"/></svg>";
     let compact = false;
     try { compact = localStorage.getItem(COMPACT_KEY) === 'true'; } catch {}
 
     function applyCompact() {
+        dragged = false;
         panel.dataset.compact = String(compact);
+        handle.innerHTML = compact ? megaphoneIcon : gripIcon;
+        if (compact) { handle.setAttribute('role', 'button'); handle.tabIndex = 0; }
+        else { handle.removeAttribute('role'); handle.removeAttribute('tabindex'); }
         button.style.display = compact ? 'none' : '';
         status.style.display = !compact && status.textContent ? 'block' : 'none';
         controls.style.gap = compact ? '0' : '4px';
-        handle.title = 'Przeciągnij, aby zmienić pozycję. PPM: ' + (compact ? 'rozwiń Wołacza.' : 'zwiń Wołacza.');
+        handle.title = compact ? 'Wołacz Kolosy — kliknij, aby rozwinąć. PPM również rozwija.' : 'Przeciągnij, aby zmienić pozycję. PPM: zwiń Wołacza.';
         handle.setAttribute('aria-expanded', String(!compact));
         setPosition(parseFloat(panel.style.left), parseFloat(panel.style.top));
     }
@@ -165,6 +171,7 @@ GogatkiRuntime.register({id:"wolacz",name:"Wo\u0142acz Kolosy",description:"Wo\u
 
     handle.addEventListener('pointerdown', event => {
         if (event.button !== 0 || drag) return;
+        dragged = false;
         event.preventDefault();
         event.stopPropagation();
         const rect = panel.getBoundingClientRect();
@@ -179,6 +186,7 @@ GogatkiRuntime.register({id:"wolacz",name:"Wo\u0142acz Kolosy",description:"Wo\u
         if (!drag || drag.id !== event.pointerId) return;
         event.preventDefault();
         event.stopPropagation();
+        if (Math.hypot(event.clientX - drag.left - drag.offsetX, event.clientY - drag.top - drag.offsetY) > 4) dragged = true;
         setPosition(event.clientX - drag.offsetX, event.clientY - drag.offsetY);
     });
     function finishDrag(event) {
@@ -198,7 +206,17 @@ GogatkiRuntime.register({id:"wolacz",name:"Wo\u0142acz Kolosy",description:"Wo\u
         drag = null;
         handle.style.cursor = 'grab';
     });
-    handle.addEventListener('click', event => event.stopPropagation());
+    function expandFromIcon() {
+        handle.dispatchEvent(new MouseEvent('contextmenu', {bubbles:true, cancelable:true}));
+    }
+    handle.addEventListener('click', event => {
+        event.stopPropagation();
+        if (compact && !dragged) expandFromIcon();
+    });
+    handle.addEventListener('keydown', event => {
+        if (!compact || !['Enter', ' '].includes(event.key)) return;
+        event.preventDefault(); expandFromIcon();
+    });
     window.addEventListener('resize', () => {
         setPosition(parseFloat(panel.style.left), parseFloat(panel.style.top));
         savePosition();

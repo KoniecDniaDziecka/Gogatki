@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Gogatki — panel dodatków
 // @namespace    gogatek.local
-// @version      0.6.0
+// @version      0.6.1
 // @description  Wspólny panel i przełączniki dodatków do Margonem.
 // @match        https://*.margonem.pl/*
 // @match        https://*.margonem.com/*
@@ -53,7 +53,6 @@
             {id:'standalone-loot-filter', control:'[data-name]', bag:true},
             {id:'wolacz-global-panel', control:'[aria-label="Uchwyt do przesuwania przycisku"]', contextOnly:true},
             {id:'standalone-free-gift', gift:true},
-            {id:'e2-caller-panel', control:'.e2-handle', contextOnly:true},
             {id:'pvp-clan-notificator', control:'[data-settings]'},
             {id:'anty-x', control:'.gear', shadow:true},
             {id:'emergency-item-standalone', control:'.gear', shadow:true}
@@ -435,7 +434,7 @@ input[type="checkbox"]:disabled{opacity:.45;cursor:not-allowed}
     }
 
     const catalogueUrl = "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/catalogue.json";
-const fallbackCatalogue = {"schemaVersion": 1, "modules": [{"id": "ulepa", "name": "Ulepa", "description": "Ulepszanie i rozbijanie przedmiotów", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/ulepa.js?v=1.2.12"}, {"id": "lootfilter", "name": "Lootfilter", "description": "Filtry łupu po walce", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/lootfilter.js?v=1.0.18"}, {"id": "wolacz", "name": "Wołacz Kolosy", "description": "Wołanie na globalny według mapy i grupy", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/wolacz.js?v=1.4.10"}, {"id": "gift", "name": "Gift", "description": "Odbieranie darmowych nagród z aktualności i kalendarza.", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/gift.js?v=1.0.14"}, {"id": "wolacz-ide", "name": "Wołacz + idę", "description": "Wołanie na E2 i wiadomość „Ide” przez Lootlog klanowy Death Sentence.", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/wolacz-ide.js?v=2026.11.03.10"}, {"id": "pvp-info", "name": "PVP Info", "description": "Powiadomienia o walkach PvP i ich wynikach na czacie klanowym.", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/pvp-info.js?v=1.0.8"}, {"id": "anty-x", "name": "Anty X", "description": "Filtr ataków PvP według relacji, poziomów i listy chronionych graczy.", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/anty-x.js?v=1.0.6"}, {"id": "auto-tp", "name": "Auto TP", "description": "Użycie przedmiotu po walce, przy wrogu lub z ucieczką.", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/auto-tp.js?v=1.0.3"}]};
+const fallbackCatalogue = {"schemaVersion":1,"modules":[{"id":"ulepa","name":"Ulepa","description":"Ulepszanie i rozbijanie przedmiotów","url":"https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/ulepa.js?v=1.2.12"},{"id":"lootfilter","name":"Lootfilter","description":"Filtry łupu po walce","url":"https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/lootfilter.js?v=1.0.18"},{"id":"wolacz","name":"Wołacz Kolosy","description":"Wołanie na globalny według mapy i grupy","url":"https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/wolacz.js?v=1.4.11"},{"id":"gift","name":"Gift","description":"Odbieranie darmowych nagród z aktualności i kalendarza.","url":"https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/gift.js?v=1.0.14"},{"id":"wolacz-ide","name":"Wołacz + idę","description":"Wołanie na E2 i wiadomość „Ide” przez Lootlog klanowy Death Sentence.","url":"https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/wolacz-ide.js?v=2026.11.03.10"},{"id":"pvp-info","name":"PVP Info","description":"Powiadomienia o walkach PvP i ich wynikach na czacie klanowym.","url":"https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/pvp-info.js?v=1.0.8"},{"id":"anty-x","name":"Anty X","description":"Filtr ataków PvP według relacji, poziomów i listy chronionych graczy.","url":"https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/anty-x.js?v=1.0.6"},{"id":"auto-tp","name":"Auto TP","description":"Użycie przedmiotu po walce, przy wrogu lub z ucieczką.","url":"https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/auto-tp.js?v=1.0.3"}]};
     updateCatalogue();
     }
     if (!mountWhenReady()) {
