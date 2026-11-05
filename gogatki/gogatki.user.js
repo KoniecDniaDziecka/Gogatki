@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Gogatki — panel dodatków
 // @namespace    gogatek.local
-// @version      0.7.0
+// @version      0.7.1
 // @description  Wspólny panel i przełączniki dodatków do Margonem.
 // @match        https://*.margonem.pl/*
 // @match        https://*.margonem.com/*
@@ -61,6 +61,9 @@
         const entries = new Map();
         const key = 'gogatki:tile-dock:position:v1';
         const layoutKey = 'gogatki:tile-dock:layout:v1';
+        const collapsedKey = 'gogatki:tile-dock:collapsed:v1';
+        let collapsed = false;
+        try { collapsed = GM_getValue(collapsedKey, false) === true; } catch {}
         let vertical = false;
         try { vertical = GM_getValue(layoutKey, 'horizontal') === 'vertical'; } catch {}
         let preferred = {right:18, top:80};
@@ -85,8 +88,11 @@
             :host([data-orientation="vertical"]) .grip{width:28px;height:18px}
             :host([data-orientation="vertical"]) .grip svg{transform:rotate(90deg)}
             :host([data-orientation="vertical"]) .tiles{flex-direction:column;flex-wrap:nowrap;max-width:calc(100vw - 26px);max-height:calc(100vh - 56px);overflow-y:auto;overflow-x:hidden}
+            :host([data-collapsed="true"]) .tiles{display:none!important}
+            :host([data-collapsed="true"]) .grip{width:var(--tile,28px);height:var(--tile,28px);color:#12c9bd;cursor:pointer}
+            :host([data-collapsed="true"]) .grip svg{transform:none}
             slot{display:contents}
-        </style><div class="bar"><button class="grip" type="button" aria-label="Przesuń pasek zwiniętych dodatków" title="Przeciągnij pasek. Strzałki przesuwają go o 10 px."><svg viewBox="0 0 12 18" width="10" height="16" fill="currentColor" aria-hidden="true"><circle cx="4" cy="4" r="1"/><circle cx="8" cy="4" r="1"/><circle cx="4" cy="9" r="1"/><circle cx="8" cy="9" r="1"/><circle cx="4" cy="14" r="1"/><circle cx="8" cy="14" r="1"/></svg></button><div class="tiles"><slot></slot></div></div>`;
+        </style><div class="bar"><button class="grip" type="button" aria-label="Przesuń pasek zwiniętych dodatków" title="Przeciągnij pasek. Strzałki przesuwają go o 10 px."><svg viewBox="0 0 12 18" width="10" height="16" fill="currentColor" aria-hidden="true"><circle cx="4" cy="4" r="1"/><circle cx="8" cy="4" r="1"/><circle cx="4" cy="9" r="1"/><circle cx="8" cy="9" r="1"/><circle cx="4" cy="14" r="1"/><circle cx="8" cy="14" r="1"/></svg></button><div class="tiles" id="gogatki-dock-tiles"><slot></slot></div></div>`;
         // Slotted light-DOM panels retain their existing scoped game styles.
         const style = document.createElement('style');
         style.textContent = `
@@ -206,32 +212,75 @@
             if (findEntry(event)) event.stopPropagation();
         }
         for (const type of ['pointerdown','mousedown']) document.addEventListener(type, preventTileDrag, true);
-        const grip = root.querySelector('.grip'); let drag;
-        function orient() {
+        const grip = root.querySelector('.grip'); let drag, dragged = false, expandedByFirstClick = false, arrowActivation = null;
+        const gripIcon = grip.innerHTML;
+        function updateView() {
             host.dataset.orientation = vertical ? 'vertical' : 'horizontal';
-            grip.title = 'Przeciągnij pasek. PPM: układ ' + (vertical ? 'poziomy' : 'pionowy') + '. Strzałki przesuwają o 10 px.';
+            host.dataset.collapsed = String(collapsed);
+            grip.setAttribute('aria-expanded', String(!collapsed));
+            grip.setAttribute('aria-controls', 'gogatki-dock-tiles');
+            grip.setAttribute('aria-label', collapsed ? 'Rozwiń pasek dodatków' : 'Przesuń pasek dodatków');
+            const arrow = vertical ? 'M12 5v14m-6-6 6 6 6-6' : 'M19 12H5m6-6-6 6 6 6';
+            grip.innerHTML = collapsed ? '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="' + arrow + '"/></svg>' : gripIcon;
+            grip.title = (collapsed ? 'Kliknij, aby rozwinąć pasek. ' : 'Dwuklik: zwiń pasek. ') +
+                'Przeciągnij, aby przesunąć. PPM: układ ' + (vertical ? 'poziomy' : 'pionowy') + '. Strzałki przesuwają o 10 px.';
             place();
         }
-        orient();
+        function setCollapsed(value) {
+            collapsed = value; updateView();
+            try { GM_setValue(collapsedKey, collapsed); } catch {}
+        }
+        updateView();
+        grip.addEventListener('click', event => {
+            if (event.detail <= 1) expandedByFirstClick = false;
+            if (dragged && event.detail !== 0) { event.preventDefault(); return; }
+            if (event.detail === 0) { arrowActivation = null; setCollapsed(!collapsed); return; }
+            if (collapsed) {
+                expandedByFirstClick = true;
+                arrowActivation = event.detail === 0 ? null : {x:event.clientX, y:event.clientY, time:event.timeStamp};
+                setCollapsed(false);
+            }
+        });
+        host.addEventListener('click', event => {
+            // Expanding horizontally moves the handle; the second click of a double click
+            // must not activate whichever addon icon appears under the old arrow position.
+            if (event.detail > 0 && arrowActivation && !event.composedPath().includes(grip) &&
+                event.timeStamp - arrowActivation.time < 600 && Math.hypot(event.clientX - arrowActivation.x, event.clientY - arrowActivation.y) <= 4) {
+                event.preventDefault(); event.stopImmediatePropagation(); arrowActivation = null;
+            }
+        }, true);
+        grip.addEventListener('dblclick', event => {
+            event.preventDefault(); event.stopPropagation();
+            // A double click on the arrow should expand once, not immediately collapse again.
+            if (expandedByFirstClick) { expandedByFirstClick = false; arrowActivation = null; return; }
+            if (!dragged) setCollapsed(!collapsed);
+        });
         grip.addEventListener('contextmenu', event => {
             event.preventDefault(); event.stopPropagation();
-            vertical = !vertical; orient();
+            vertical = !vertical; updateView();
             try { GM_setValue(layoutKey, vertical ? 'vertical' : 'horizontal'); } catch {}
         });
         grip.addEventListener('pointerdown', event => {
             if (event.button !== 0) return;
+            dragged = false;
             const rect = host.getBoundingClientRect();
-            drag = {id:event.pointerId, x:event.clientX, y:event.clientY, right:window.innerWidth - rect.right, top:rect.top};
+            drag = {id:event.pointerId, x:event.clientX, y:event.clientY, right:window.innerWidth - rect.right, top:rect.top, preferred:{...preferred}, moved:false};
             grip.setPointerCapture(event.pointerId); event.preventDefault();
         });
         grip.addEventListener('pointermove', event => {
             if (!drag || event.pointerId !== drag.id) return;
+            if (!drag.moved && Math.hypot(event.clientX - drag.x, event.clientY - drag.y) <= 4) return;
+            drag.moved = true; dragged = true;
             preferred = {right:drag.right + drag.x - event.clientX, top:drag.top + event.clientY - drag.y}; place();
         });
         function finish(event) {
             if (!drag || event.pointerId !== drag.id) return;
-            const rect = host.getBoundingClientRect();
-            preferred = {right:window.innerWidth - rect.right, top:rect.top}; drag = null; save();
+            if (event.type === 'pointercancel') { preferred = drag.preferred; place(); }
+            else if (drag.moved) {
+                const rect = host.getBoundingClientRect();
+                preferred = {right:window.innerWidth - rect.right, top:rect.top}; save();
+            }
+            drag = null;
             if (grip.hasPointerCapture(event.pointerId)) grip.releasePointerCapture(event.pointerId);
         }
         for (const type of ['pointerup','pointercancel','lostpointercapture']) grip.addEventListener(type, finish);
@@ -515,6 +564,7 @@ const fallbackCatalogue = {"schemaVersion": 1, "modules": [{"id": "ulepa", "name
         window.addEventListener('pagehide', () => clearInterval(wait), {once:true});
     }
 })();
+
 
 
 
