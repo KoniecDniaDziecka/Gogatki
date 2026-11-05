@@ -145,8 +145,10 @@ GogatkiRuntime.register({id:"anty-x",name:"Anty X",description:"Filtr ataków Pv
         config.y = Math.max(0, Math.min(Number(config.y) || 0, innerHeight - box.height));
         host.style.left = `${config.x}px`; host.style.top = `${config.y}px`;
     }
-    function render() {
-        const right = host.getBoundingClientRect().right;
+    function render(preserveRight = true) {
+        // Preserve the right edge only for a user-initiated size change.
+        // At startup, x/y already describe the saved collapsed/expanded state.
+        const right = preserveRight ? host.getBoundingClientRect().right : null;
         const launcher = document.querySelector('#gogatek-panel')?.shadowRoot?.querySelector('.launcher');
         const height = launcher?.getBoundingClientRect().height || 28;
         host.style.setProperty('--tile', `${height}px`);
@@ -155,7 +157,7 @@ GogatkiRuntime.register({id:"anty-x",name:"Anty X",description:"Filtr ataków Pv
         root.querySelector('.body').hidden = config.collapsed;
         settings.hidden = config.collapsed || !config.settings;
         gearButton.setAttribute('aria-expanded', String(!settings.hidden));
-        if (right > 0) config.x = right - host.getBoundingClientRect().width;
+        if (right !== null) config.x = right - host.getBoundingClientRect().width;
         place(); save();
     }
     gearButton.addEventListener('click', () => {
@@ -183,7 +185,7 @@ GogatkiRuntime.register({id:"anty-x",name:"Anty X",description:"Filtr ataków Pv
         if (event.composedPath().some(el => el instanceof HTMLElement && (el.matches('input,textarea,select') || el.isContentEditable))) return;
         event.preventDefault(); attack();
     });
-    place(); render(); installHook();
+    render(false); installHook();
     // Ponowne podpięcie, jeżeli gra lub inny dodatek zastąpi _g po uruchomieniu.
     setInterval(installHook, 1000);
 })();
