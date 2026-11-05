@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Gogatki — panel dodatków
 // @namespace    gogatek.local
-// @version      0.7.1
+// @version      0.7.2
 // @description  Wspólny panel i przełączniki dodatków do Margonem.
 // @match        https://*.margonem.pl/*
 // @match        https://*.margonem.com/*
@@ -257,7 +257,18 @@
         });
         grip.addEventListener('contextmenu', event => {
             event.preventDefault(); event.stopPropagation();
+            const before = grip.getBoundingClientRect();
+            const anchorX = before.left + before.width / 2;
+            const anchorY = before.top + before.height / 2;
             vertical = !vertical; updateView();
+            // Keep the handle under the pointer instead of anchoring the dock's outer edge.
+            const after = grip.getBoundingClientRect();
+            const box = host.getBoundingClientRect();
+            preferred = {
+                right: window.innerWidth - box.right + after.left + after.width / 2 - anchorX,
+                top: box.top + anchorY - after.top - after.height / 2
+            };
+            place(); save();
             try { GM_setValue(layoutKey, vertical ? 'vertical' : 'horizontal'); } catch {}
         });
         grip.addEventListener('pointerdown', event => {
