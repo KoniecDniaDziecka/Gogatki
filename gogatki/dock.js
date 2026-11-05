@@ -3,6 +3,163 @@
 (() => {
     'use strict';
     const window = unsafeWindow;
+    function installNativeLauncher(onCleanup) {
+        const key = 'gogatki:native-launcher:v1';
+        const widgetKey = 'gogatki_addonsManager';
+        const selector = '.widget-' + widgetKey;
+        let enabled = true;
+        try { enabled = GM_getValue(key, true) !== false; } catch {}
+        let stopped = false, timer = null, frame = 0, registration = null, boundTile = null;
+        let main = null, mainRoot = null, launcher = null, popup = null, choice = null, checkbox = null;
+        let rootStyle = null, gameStyle = null, popupObserver = null, lastRect = null, active = false;
+        let lastWarning = '';
+        const icon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36"><rect x="1" y="1" width="34" height="34" rx="5" fill="#171b20" stroke="#668298" stroke-width="2"/><path d="M25 11a10 10 0 1 0 0 14v-7h-8" fill="none" stroke="#12c9bd" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        function api() {
+            const engine = window.Engine, manager = engine?.widgetManager;
+            return engine?.hero?.d && engine.allInit !== false && typeof manager?.getDefaultWidgetSet === 'function' && typeof manager?.rebuildWidgetButtons === 'function' ? manager : null;
+        }
+        function placePopup() {
+            if (!popup || popup.hidden) return;
+            const anchor = main.getBoundingClientRect(), margin = 8, gap = 5;
+            const left = Math.max(margin, Math.min(anchor.right - popup.offsetWidth, window.innerWidth - popup.offsetWidth - margin));
+            popup.style.left = (left - anchor.left) + 'px'; popup.style.right = 'auto';
+            const below = Math.max(0, window.innerHeight - anchor.bottom - gap - margin);
+            const above = Math.max(0, anchor.top - gap - margin);
+            const upwards = above > below && popup.scrollHeight > below;
+            popup.style.maxHeight = (upwards ? above : below) + 'px';
+            popup.style.top = upwards ? 'auto' : (anchor.height + gap) + 'px';
+            popup.style.bottom = upwards ? (anchor.height + gap) + 'px' : 'auto';
+        }
+        function float() {
+            if (!main || !active) return;
+            active = false; main.removeAttribute('data-native-widget'); lastRect = null;
+            // Let the existing launcher restore its saved floating coordinates once.
+            window.dispatchEvent(new Event('resize')); placePopup();
+        }
+        function bindTile(tile) {
+            if (tile === boundTile) return;
+            if (boundTile) boundTile.removeEventListener('keydown', tileKey, true);
+            boundTile = tile;
+            if (tile) {
+                tile.setAttribute('aria-label', 'Gogatki'); tile.setAttribute('role', 'button');
+                tile.tabIndex = 0; tile.addEventListener('keydown', tileKey, true);
+            }
+        }
+        function tileKey(event) {
+            if (!['Enter',' '].includes(event.key)) return;
+            event.preventDefault(); event.stopImmediatePropagation(); toggle();
+        }
+        function anchor() {
+            if (stopped || !main || !enabled || !registration) return false;
+            const tile = document.querySelector(selector);
+            bindTile(tile);
+            if (!tile) { float(); return false; }
+            const rect = tile.getBoundingClientRect();
+            // A temporarily hidden game widget keeps its last valid anchor.
+            if (rect.width <= 0 || rect.height <= 0) return active;
+            if (!lastRect || ['left','top','width','height'].some(k => Math.abs(lastRect[k] - rect[k]) > .1)) {
+                for (const k of ['left','top','width','height']) main.style.setProperty('--native-' + k, rect[k] + 'px');
+                lastRect = {left:rect.left,top:rect.top,width:rect.width,height:rect.height};
+            }
+            active = true; main.setAttribute('data-native-widget', 'true');
+            placePopup(); return true;
+        }
+        function follow() {
+            if (frame) window.cancelAnimationFrame(frame);
+            frame = 0;
+            if (stopped || !active || popup?.hidden) return;
+            frame = window.requestAnimationFrame(() => { frame = 0; anchor(); follow(); });
+        }
+        function toggle() {
+            if (stopped || !enabled || !launcher) return;
+            anchor(); launcher.click(); placePopup(); follow();
+        }
+        function unregister() {
+            if (!registration) return;
+            const old = registration; registration = null;
+            if (old.set[widgetKey] === old.definition) {
+                delete old.set[widgetKey];
+                try { old.manager.rebuildWidgetButtons(); } catch {}
+            }
+            bindTile(null);
+        }
+        function blockHeaderDrag(event) {
+            if (active && event.target.closest?.('header') && !event.target.closest('button,input')) {
+                event.preventDefault(); event.stopImmediatePropagation();
+            }
+        }
+        function closeFocus(event) {
+            if (active && event.target.closest?.('header button')) boundTile?.focus({preventScroll:true});
+        }
+        function escapeFocus(event) {
+            if (active && event.key === 'Escape') boundTile?.focus({preventScroll:true});
+        }
+        function destroy() {
+            if (stopped) return;
+            stopped = true; if (timer) clearInterval(timer); if (frame) window.cancelAnimationFrame(frame);
+            popupObserver?.disconnect(); window.removeEventListener('resize', anchor);
+            mainRoot?.removeEventListener('pointerdown', blockHeaderDrag, true);
+            mainRoot?.removeEventListener('click', closeFocus);
+            mainRoot?.removeEventListener('keydown', escapeFocus);
+            unregister(); float(); choice?.remove(); rootStyle?.remove(); gameStyle?.remove();
+        }
+        onCleanup(destroy);
+        function bindMain() {
+            main = document.getElementById('gogatek-panel'); mainRoot = main?.shadowRoot;
+            launcher = mainRoot?.querySelector('.launcher'); popup = mainRoot?.querySelector('section');
+            if (!launcher || !popup) return false;
+            rootStyle = document.createElement('style');
+            rootStyle.textContent = `
+                :host([data-native-widget="true"]){left:var(--native-left)!important;right:auto!important;top:var(--native-top)!important;width:var(--native-width)!important;height:var(--native-height)!important;pointer-events:none!important}
+                :host([data-native-widget="true"]) .launcher{visibility:hidden!important;pointer-events:none!important}
+                :host([data-native-widget="true"]) section{pointer-events:auto!important}
+                :host([data-native-widget="true"]) header{cursor:default}
+                .native-choice{display:flex;align-items:center;gap:6px;margin:7px 0;color:#c7d0d9;font:12px/1.4 Arial,sans-serif}
+            `;
+            mainRoot.append(rootStyle);
+            choice = document.createElement('label'); choice.className = 'native-choice'; choice.hidden = true;
+            checkbox = document.createElement('input'); checkbox.type = 'checkbox'; checkbox.checked = enabled;
+            choice.append(checkbox, document.createTextNode('Przypnij Gogatki do paska gry'));
+            mainRoot.querySelector('footer').append(choice);
+            checkbox.addEventListener('change', () => {
+                enabled = checkbox.checked;
+                try { GM_setValue(key, enabled); } catch {}
+                if (!enabled) { unregister(); float(); } else poll();
+            });
+            mainRoot.addEventListener('pointerdown', blockHeaderDrag, true);
+            mainRoot.addEventListener('click', closeFocus);
+            mainRoot.addEventListener('keydown', escapeFocus);
+            popupObserver = new MutationObserver(follow); popupObserver.observe(popup, {attributes:true,attributeFilter:['hidden']});
+            gameStyle = document.createElement('style');
+            gameStyle.textContent = selector + '{background-position:center!important;background-repeat:no-repeat!important;background-size:contain!important;background-image:url("data:image/svg+xml,' + encodeURIComponent(icon) + '")!important}' + selector + ' .icon{display:none!important}' + selector + ':focus-visible{outline:2px solid #12c9bd;outline-offset:1px}';
+            document.head.append(gameStyle); window.addEventListener('resize', anchor);
+            return true;
+        }
+        function poll() {
+            if (stopped) return;
+            try {
+                if ((!launcher || !popup) && !bindMain()) return;
+                const manager = api(); choice.hidden = !manager;
+                if (!manager || !enabled) { unregister(); float(); return; }
+                const set = manager.getDefaultWidgetSet();
+                if (!set || typeof set !== 'object' || Array.isArray(set)) { unregister(); float(); return; }
+                if (!registration || registration.manager !== manager || registration.set !== set || set[widgetKey] !== registration.definition) {
+                    unregister();
+                    const index = Math.max(0, ...Object.values(set).filter(w => w?.pos === 'bottom-right').map(w => Number(w.index) || 0)) + 1;
+                    const definition = {keyName:widgetKey,txt:'Gogatki',default:true,index,pos:'bottom-right',alwaysExist:true,type:'gogatki-widget',clb:toggle};
+                    set[widgetKey] = definition; registration = {manager,set,definition};
+                    manager.rebuildWidgetButtons();
+                }
+                anchor(); follow();
+            } catch (error) {
+                unregister(); float();
+                const message = String(error?.message || error);
+                if (message !== lastWarning) { console.warn('[Gogatki] Kafelek gry:', error); lastWarning = message; }
+            }
+        }
+        poll(); timer = setInterval(poll, 500);
+    }
+
     function createTileDock({onCleanup = () => {}} = {}) {
         const specs = [
             {id:'standalone-fullmetal', name:'Ulepa', control:'[data-min]'},
@@ -15,6 +172,7 @@
         ];
         const selector = specs.map(s => '#' + s.id).join(',');
         const entries = new Map();
+        const extraCleanup = [];
         const key = 'gogatki:tile-dock:position:v1';
         const layoutKey = 'gogatki:tile-dock:layout:v1';
         const collapsedKey = 'gogatki:tile-dock:collapsed:v1';
@@ -64,6 +222,7 @@
         function destroy() {
             if (disposed) return;
             disposed = true;
+            for (const fn of extraCleanup.splice(0).reverse()) { try { fn(); } catch {} }
             if (frame) window.cancelAnimationFrame(frame);
             observer?.disconnect(); resize?.disconnect();
             entries.forEach(entry => { entry.observer.disconnect(); release(entry); });
@@ -277,8 +436,10 @@
         });
         window.addEventListener('resize', place);
         window.addEventListener('pagehide', destroy, {once:true});
+        installNativeLauncher(fn => extraCleanup.push(fn));
         schedule();
         return Object.freeze({destroy, isDocked(node) { return !!node && entries.get(node.id)?.node === node && entries.get(node.id).docked; }});
     }
     GogatkiDockRuntime.register({apiVersion:1, create:createTileDock});
 })();
+
