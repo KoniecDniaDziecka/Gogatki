@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Gogatki — panel dodatków
 // @namespace    gogatek.local
-// @version      0.6.3
+// @version      0.7.0
 // @description  Wspólny panel i przełączniki dodatków do Margonem.
 // @match        https://*.margonem.pl/*
 // @match        https://*.margonem.com/*
@@ -49,13 +49,13 @@
     }
     function createTileDock() {
         const specs = [
-            {id:'standalone-fullmetal', control:'[data-min]'},
-            {id:'standalone-loot-filter', control:'[data-name]', bag:true},
-            {id:'wolacz-global-panel', control:'[aria-label="Uchwyt do przesuwania przycisku"]', contextOnly:true},
-            {id:'standalone-free-gift', gift:true},
-            {id:'pvp-clan-notificator', control:'[data-settings]'},
-            {id:'anty-x', control:'.gear', shadow:true},
-            {id:'emergency-item-standalone', control:'.gear', shadow:true}
+            {id:'standalone-fullmetal', name:'Ulepa', control:'[data-min]'},
+            {id:'standalone-loot-filter', name:'Lootfilter', control:'[data-settings]', click:true, icon:'bag'},
+            {id:'wolacz-global-panel', name:'Wołacz Kolosy', control:'[aria-label="Uchwyt do przesuwania przycisku"]', icon:'megaphone'},
+            {id:'standalone-free-gift', name:'Gift', gift:true},
+            {id:'pvp-clan-notificator', name:'PVP Info', control:'[data-settings]'},
+            {id:'anty-x', name:'Anty X', control:'.gear', shadow:true, clickToOpen:true},
+            {id:'emergency-item-standalone', name:'Auto TP', control:'.gear', shadow:true}
         ];
         const selector = specs.map(s => '#' + s.id).join(',');
         const entries = new Map();
@@ -71,10 +71,10 @@
         const host = document.createElement('div');
         host.id = 'gogatki-tile-dock'; host.hidden = true;
         host.setAttribute('role', 'group');
-        host.setAttribute('aria-label', 'Zwinięte dodatki');
+        host.setAttribute('aria-label', 'Pasek dodatków');
         const root = host.attachShadow({mode:'open'});
         root.innerHTML = `<style>
-            :host{all:initial;display:block;position:fixed;z-index:2147483646;width:max-content;max-width:calc(100vw - 16px);font:12px Arial,sans-serif;color:#c7d0d9}
+            :host{all:initial;display:block;position:fixed;z-index:2147483647;width:max-content;max-width:calc(100vw - 16px);font:12px Arial,sans-serif;color:#c7d0d9}
             :host([hidden]){display:none!important}
             *{box-sizing:border-box}
             .bar{display:flex;align-items:flex-start;gap:4px;padding:4px;background:#171b20;border:1px solid #668298;border-radius:4px;box-shadow:0 4px 16px #0006}
@@ -89,7 +89,15 @@
         </style><div class="bar"><button class="grip" type="button" aria-label="Przesuń pasek zwiniętych dodatków" title="Przeciągnij pasek. Strzałki przesuwają go o 10 px."><svg viewBox="0 0 12 18" width="10" height="16" fill="currentColor" aria-hidden="true"><circle cx="4" cy="4" r="1"/><circle cx="8" cy="4" r="1"/><circle cx="4" cy="9" r="1"/><circle cx="8" cy="9" r="1"/><circle cx="4" cy="14" r="1"/><circle cx="8" cy="14" r="1"/></svg></button><div class="tiles"><slot></slot></div></div>`;
         // Slotted light-DOM panels retain their existing scoped game styles.
         const style = document.createElement('style');
-        style.textContent = ':root #gogatki-tile-dock > [data-gogatki-docked]{position:static!important;inset:auto!important;transform:none!important;float:none!important;margin:0!important;flex:0 0 auto!important;align-self:center;max-width:100%}';
+        style.textContent = `
+            :root #gogatki-tile-dock > [data-gogatki-docked]{position:static!important;inset:auto!important;transform:none!important;float:none!important;margin:0!important;flex:0 0 auto!important;align-self:center;max-width:100%}
+            :root #gogatki-tile-dock > [data-gogatki-docked]:not(#standalone-free-gift){display:none!important}
+            :root #gogatki-tile-dock > .gogatki-dock-toggle{all:initial;box-sizing:border-box!important;display:flex!important;align-items:center!important;justify-content:center!important;flex:0 0 auto!important;align-self:center!important;width:var(--tile,28px)!important;height:var(--tile,28px)!important;padding:0!important;margin:0!important;border:1px solid #668298!important;border-radius:4px!important;background:#252b31!important;color:#12c9bd!important;opacity:1!important;filter:none!important;box-shadow:none!important;font:12px/1 Arial,sans-serif!important;text-shadow:none!important;-webkit-text-stroke:0!important;cursor:pointer;touch-action:manipulation}
+            :root #gogatki-tile-dock > .gogatki-dock-toggle[aria-expanded="true"]{border-color:#12c9bd!important;background:#173838!important}
+            :root #gogatki-tile-dock > .gogatki-dock-toggle:focus-visible{outline:2px solid #12c9bd!important;outline-offset:2px}
+            :root #gogatki-tile-dock > .gogatki-dock-toggle::before,:root #gogatki-tile-dock > .gogatki-dock-toggle::after{content:none!important;display:none!important}
+            :root #gogatki-tile-dock > .gogatki-dock-toggle svg{display:block!important;width:18px!important;height:18px!important;color:#12c9bd!important;pointer-events:none!important}
+        `;
         document.head.append(style); document.body.append(host);
         let frame = 0, disposed = false;
         function place() {
@@ -115,30 +123,74 @@
             const parent = entry.parent?.isConnected ? entry.parent : document.body;
             parent.insertBefore(entry.node, entry.next?.parentNode === parent ? entry.next : null);
         }
+        function control(entry) { return (entry.node.shadowRoot || entry.node).querySelector(entry.spec.control); }
+        function makeToggle(entry) {
+            const button = document.createElement('button');
+            button.type = 'button'; button.className = 'gogatki-dock-toggle';
+            button.dataset.gogatkiDockItem = entry.spec.id;
+            button.setAttribute('aria-controls', entry.spec.id);
+            const icons = {
+                bag:'<path d="m8 3 2 4h4l2-4H8ZM8 8h8M9 8c-2 3-5 5-5 9a4 4 0 0 0 4 4h8a4 4 0 0 0 4-4c0-4-3-6-5-9"/><circle cx="12" cy="15.5" r="2.5"/>',
+                megaphone:'<path d="M3 10v4h4l12 5V5L7 10H3Z"/><path d="m7 14 2 7h4l-2-5M7 10v4M22 9v6"/>'
+            };
+            if (entry.spec.icon) button.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + icons[entry.spec.icon] + '</svg>';
+            else {
+                const svg = control(entry)?.querySelector('svg');
+                if (svg) button.append(svg.cloneNode(true));
+            }
+            function toggle(event) {
+                event.preventDefault(); event.stopPropagation();
+                if (!entry.node.isConnected) return;
+                // Measure and save the module's floating coordinates, never its dock coordinates.
+                release(entry);
+                const target = control(entry);
+                if (target) {
+                    if (entry.spec.click || (entry.spec.clickToOpen && compact(entry))) target.click();
+                    else target.dispatchEvent(new MouseEvent('contextmenu', {bubbles:true, cancelable:true}));
+                }
+                sync();
+            }
+            button.addEventListener('click', toggle);
+            button.addEventListener('contextmenu', toggle);
+            return button;
+        }
         function sync() {
             frame = 0; if (disposed) return;
+            const launcher = document.querySelector('#gogatek-panel')?.shadowRoot?.querySelector('.launcher');
+            host.style.setProperty('--tile', (launcher?.getBoundingClientRect().height || 28) + 'px');
             for (const spec of specs) {
                 let entry = entries.get(spec.id);
-                if (entry && !entry.node.isConnected) { entry.observer.disconnect(); entries.delete(spec.id); entry = null; }
+                if (entry && !entry.node.isConnected) { entry.observer.disconnect(); entry.button?.remove(); entries.delete(spec.id); entry = null; }
                 if (!entry) {
                     const node = document.getElementById(spec.id);
                     if (!node) continue;
                     entry = {node, spec, docked:false, observer:new MutationObserver(schedule)};
                     entries.set(spec.id, entry);
+                    if (!spec.gift) entry.button = makeToggle(entry);
                     entry.observer.observe(node, {attributes:true, attributeFilter:['data-compact']});
                     if (node.shadowRoot) entry.observer.observe(node.shadowRoot, {subtree:true, attributes:true, attributeFilter:['class']});
                 }
                 if (compact(entry)) dock(entry); else release(entry);
+                if (entry.button) {
+                    const expanded = !compact(entry);
+                    const title = spec.name + (expanded ? ' — zwiń' : ' — rozwiń');
+                    entry.button.title = title; entry.button.setAttribute('aria-label', title);
+                    entry.button.setAttribute('aria-expanded', String(expanded));
+                } else entry.node.dataset.gogatkiDockItem = spec.id;
             }
-            // Stable order is independent of asynchronous module download order.
-            let cursor = host.firstElementChild;
+            // Keep a permanent button for each module; its compact UI is parked out of sight.
+            const ordered = [];
             for (const spec of specs) {
-                const entry = entries.get(spec.id);
-                if (!entry?.docked) continue;
-                if (cursor === entry.node) cursor = cursor.nextElementSibling;
-                else host.insertBefore(entry.node, cursor);
+                const entry = entries.get(spec.id); if (!entry) continue;
+                if (entry.button) ordered.push(entry.button);
+                if (entry.docked) ordered.push(entry.node);
             }
-            host.hidden = ![...entries.values()].some(e => e.docked);
+            let cursor = host.firstElementChild;
+            for (const node of ordered) {
+                if (cursor === node) cursor = cursor.nextElementSibling;
+                else host.insertBefore(node, cursor);
+            }
+            host.hidden = entries.size === 0;
             place();
         }
         function schedule() { if (!frame && !disposed) frame = window.requestAnimationFrame(sync); }
@@ -150,20 +202,9 @@
         function findEntry(event) {
             return event.composedPath().map(n => n?.id && entries.get(n.id)).find(e => e?.docked);
         }
-        function activate(event) {
-            const entry = findEntry(event);
-            if (!entry || entry.spec.gift || (entry.spec.contextOnly && event.type !== 'contextmenu')) return;
-            const path = event.composedPath();
-            if (!path.some(n => n?.matches?.(entry.spec.control))) return;
-            if (event.type === 'keydown' && (!entry.spec.bag || !['Enter',' '].includes(event.key))) return;
-            if (entry.spec.bag && event.type === 'contextmenu') return;
-            // Restore the floating panel before its own handler measures/persists an anchor.
-            release(entry); schedule();
-        }
         function preventTileDrag(event) {
             if (findEntry(event)) event.stopPropagation();
         }
-        for (const type of ['click','contextmenu','keydown']) document.addEventListener(type, activate, true);
         for (const type of ['pointerdown','mousedown']) document.addEventListener(type, preventTileDrag, true);
         const grip = root.querySelector('.grip'); let drag;
         function orient() {
@@ -204,7 +245,6 @@
         window.addEventListener('pagehide', () => {
             disposed = true; if (frame) window.cancelAnimationFrame(frame);
             observer.disconnect(); resize.disconnect(); entries.forEach(e => e.observer.disconnect());
-            for (const type of ['click','contextmenu','keydown']) document.removeEventListener(type, activate, true);
             for (const type of ['pointerdown','mousedown']) document.removeEventListener(type, preventTileDrag, true);
             window.removeEventListener('resize', place);
         }, {once:true});
@@ -464,7 +504,7 @@ input[type="checkbox"]:disabled{opacity:.45;cursor:not-allowed}
     }
 
     const catalogueUrl = "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/catalogue.json";
-const fallbackCatalogue = {"schemaVersion":1,"modules":[{"id":"ulepa","name":"Ulepa","description":"Ulepszanie i rozbijanie przedmiotów","url":"https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/ulepa.js?v=1.2.12"},{"id":"lootfilter","name":"Lootfilter","description":"Filtry łupu po walce","url":"https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/lootfilter.js?v=1.0.18"},{"id":"wolacz","name":"Wołacz Kolosy","description":"Wołanie na globalny według mapy i grupy","url":"https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/wolacz.js?v=1.4.11"},{"id":"gift","name":"Gift","description":"Odbieranie darmowych nagród z aktualności i kalendarza.","url":"https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/gift.js?v=1.0.14"},{"id":"wolacz-ide","name":"Wołacz + idę","description":"Wołanie na E2 i wiadomość „Ide” przez Lootlog klanowy Death Sentence.","url":"https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/wolacz-ide.js?v=2026.11.03.10"},{"id":"pvp-info","name":"PVP Info","description":"Powiadomienia o walkach PvP i ich wynikach na czacie klanowym.","url":"https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/pvp-info.js?v=1.0.8"},{"id":"anty-x","name":"Anty X","description":"Filtr ataków PvP według relacji, poziomów i listy chronionych graczy.","url":"https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/anty-x.js?v=1.0.6"},{"id":"auto-tp","name":"Auto TP","description":"Użycie przedmiotu po walce, przy wrogu lub z ucieczką.","url":"https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/auto-tp.js?v=1.0.3"}]};
+const fallbackCatalogue = {"schemaVersion": 1, "modules": [{"id": "ulepa", "name": "Ulepa", "description": "Ulepszanie i rozbijanie przedmiotów", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/ulepa.js?v=1.2.12"}, {"id": "lootfilter", "name": "Lootfilter", "description": "Filtry łupu po walce", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/lootfilter.js?v=1.0.18"}, {"id": "wolacz", "name": "Wołacz Kolosy", "description": "Wołanie na globalny według mapy i grupy", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/wolacz.js?v=1.4.12"}, {"id": "gift", "name": "Gift", "description": "Odbieranie darmowych nagród z aktualności i kalendarza.", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/gift.js?v=1.0.14"}, {"id": "wolacz-ide", "name": "Wołacz + idę", "description": "Wołanie na E2 i wiadomość „Ide” przez Lootlog klanowy Death Sentence.", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/wolacz-ide.js?v=2026.11.03.10"}, {"id": "pvp-info", "name": "PVP Info", "description": "Powiadomienia o walkach PvP i ich wynikach na czacie klanowym.", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/pvp-info.js?v=1.0.8"}, {"id": "anty-x", "name": "Anty X", "description": "Filtr ataków PvP według relacji, poziomów i listy chronionych graczy.", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/anty-x.js?v=1.0.6"}, {"id": "auto-tp", "name": "Auto TP", "description": "Użycie przedmiotu po walce, przy wrogu lub z ucieczką.", "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/auto-tp.js?v=1.0.3"}]};
     updateCatalogue();
     }
     if (!mountWhenReady()) {
@@ -475,5 +515,6 @@ const fallbackCatalogue = {"schemaVersion":1,"modules":[{"id":"ulepa","name":"Ul
         window.addEventListener('pagehide', () => clearInterval(wait), {once:true});
     }
 })();
+
 
 
