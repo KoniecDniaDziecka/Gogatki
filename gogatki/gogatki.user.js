@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Gogatki — panel dodatków
 // @namespace    gogatek.local
-// @version      0.6.1
+// @version      0.6.2
 // @description  Wspólny panel i przełączniki dodatków do Margonem.
 // @match        https://*.margonem.pl/*
 // @match        https://*.margonem.com/*
@@ -215,7 +215,7 @@
     root.innerHTML = `<style>
         :host{all:initial;display:flex;align-items:flex-start;width:max-content;position:fixed;right:18px;top:40px;z-index:2147483647;font:12px/1.3 Arial;color:#dce6ee;opacity:1!important;filter:none!important;mix-blend-mode:normal!important;isolation:isolate;font-family:Arial,sans-serif!important;font-size:12px!important;font-weight:400!important;font-style:normal!important;line-height:1.3!important;background:transparent!important;border:0!important;padding:0!important;margin:0!important;text-shadow:none!important;-webkit-text-stroke:0!important;-webkit-text-fill-color:currentColor!important}
         *{box-sizing:border-box;font-family:Arial,sans-serif!important;text-shadow:none!important;-webkit-text-stroke:0!important;-webkit-text-fill-color:currentColor!important;letter-spacing:normal!important}button,input{font:inherit}button{cursor:pointer;color:inherit}
-        .move{display:flex;align-items:center;justify-content:center;background:#252b31;color:#9aadb9;border:1px solid #668298;border-radius:4px;padding:5px;cursor:move;touch-action:none;user-select:none;margin-right:3px}header{cursor:move;touch-action:none;user-select:none}.launcher{color:#12c9bd;background:#252b31;border:1px solid #668298;border-radius:4px;padding:5px 9px;font-weight:bold;box-shadow:0 6px 22px #0009}
+        header{cursor:move;touch-action:none;user-select:none}.launcher{color:#12c9bd;background:#252b31;border:1px solid #668298;border-radius:4px;padding:5px 9px;font-weight:bold;box-shadow:0 6px 22px #0009;cursor:grab;touch-action:none;user-select:none}.launcher[data-dragging="true"]{cursor:grabbing}
         section{position:absolute;top:calc(100% + 5px);right:0;width:280px;max-width:calc(100vw - 16px);overflow-y:auto;background:#171b20!important;border:1px solid #668298;border-radius:4px;box-shadow:0 6px 22px #0009;overflow-x:hidden}
         [hidden]{display:none!important}header{padding:5px 8px;background:#252b31;display:flex;align-items:center;justify-content:space-between}
         h2{margin:0;font-size:14px;font-weight:600;color:#edf3f7}small{font-size:11px;color:#b1c0cb;line-height:1.4}header button{display:flex;align-items:center;justify-content:center;border:0;background:none;color:#12c9bd;padding:3px}
@@ -232,7 +232,7 @@ input[type="checkbox"]:focus-visible{outline:2px solid #12c9bd;outline-offset:1p
 input[type="checkbox"]:disabled{opacity:.45;cursor:not-allowed}
 
 
-    </style><button class="move" aria-label="Przesuń Gogatki" title="Przeciągnij, aby zmienić pozycję. Strzałki przesuwają o 10 px."><svg viewBox="0 0 12 18" width="10" height="16" aria-hidden="true" focusable="false" style="display:block;pointer-events:none;flex-shrink:0;fill:currentColor"><circle cx="4" cy="4" r="1"/><circle cx="8" cy="4" r="1"/><circle cx="4" cy="9" r="1"/><circle cx="8" cy="9" r="1"/><circle cx="4" cy="14" r="1"/><circle cx="8" cy="14" r="1"/></svg></button><button class="launcher" aria-expanded="false" aria-controls="panel">Gogatki</button>
+    </style><button class="launcher" aria-expanded="false" aria-controls="panel" title="Kliknij, aby rozwinąć. Przeciągnij, aby przesunąć. Strzałki przesuwają o 10 px.">Gogatki</button>
     <section id="panel" hidden aria-label="Panel dodatków"><header><div><h2>Gogatki</h2><small>Twoje dodatki w jednym miejscu</small></div><button aria-label="Zamknij"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false" style="display:block;pointer-events:none;flex-shrink:0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 6 12 12M18 6 6 18"/></svg></button></header><div class="list"></div><footer><span role="status"></span><p class="catalogue-message"></p><button class="refresh-list">Odśwież listę</button><button class="apply" hidden>Zastosuj i odśwież grę</button></footer></section>`;
     document.body.appendChild(host);
     const panel = root.querySelector('section');
@@ -276,21 +276,26 @@ input[type="checkbox"]:disabled{opacity:.45;cursor:not-allowed}
         catch { root.querySelector('[role=status]').textContent = 'Nie udało się zapisać pozycji.'; }
     }
     position(positionState);
-    let drag = null;
-    for (const handle of [root.querySelector('.move'), root.querySelector('header')]) {
+    let drag = null, suppressLauncherClick = false;
+    for (const handle of [launcher, root.querySelector('header')]) {
         handle.addEventListener('pointerdown', event => {
             if (event.button !== 0 || drag || (handle.tagName !== 'BUTTON' && event.target.closest('button'))) return;
             event.preventDefault();
-            drag = {id:event.pointerId, x:event.clientX, y:event.clientY, ...positionState};
+            if (handle === launcher) { suppressLauncherClick = false; launcher.focus({preventScroll:true}); }
+            drag = {id:event.pointerId, x:event.clientX, y:event.clientY, moved:false, ...positionState};
             handle.setPointerCapture(event.pointerId);
         });
         handle.addEventListener('pointermove', event => {
             if (!drag || drag.id !== event.pointerId) return;
+            if (!drag.moved && Math.hypot(event.clientX - drag.x, event.clientY - drag.y) <= 4) return;
+            drag.moved = true;
+            if (handle === launcher) { suppressLauncherClick = true; launcher.dataset.dragging = 'true'; }
             position({right:drag.right - (event.clientX - drag.x), top:drag.top + event.clientY - drag.y});
         });
         function finish(event) {
             if (!drag || drag.id !== event.pointerId) return;
             if (event.type === 'pointercancel') position(drag);
+            launcher.removeAttribute('data-dragging');
             drag = null;
             if (handle.hasPointerCapture(event.pointerId)) handle.releasePointerCapture(event.pointerId);
             savePosition();
@@ -299,7 +304,7 @@ input[type="checkbox"]:disabled{opacity:.45;cursor:not-allowed}
         handle.addEventListener('pointercancel', finish);
         handle.addEventListener('lostpointercapture', finish);
     }
-    root.querySelector('.move').addEventListener('keydown', event => {
+    launcher.addEventListener('keydown', event => {
         const offsets = {ArrowLeft:[10,0], ArrowRight:[-10,0], ArrowUp:[0,-10], ArrowDown:[0,10]};
         const offset = offsets[event.key];
         if (!offset) return;
@@ -308,7 +313,14 @@ input[type="checkbox"]:disabled{opacity:.45;cursor:not-allowed}
         savePosition();
     });
     window.addEventListener('resize', () => { position(positionState); savePosition(); });
-    launcher.addEventListener('click', () => open(panel.hidden));
+    launcher.addEventListener('click', event => {
+        // Pointer drags emit a click on release; keyboard activation must still work.
+        if (suppressLauncherClick && event.detail !== 0) {
+            suppressLauncherClick = false; event.preventDefault(); return;
+        }
+        suppressLauncherClick = false;
+        open(panel.hidden);
+    });
     root.querySelector('header button').addEventListener('click', () => { open(false); launcher.focus(); });
     root.addEventListener('keydown', event => { if (event.key === 'Escape') { open(false); launcher.focus(); } });
     root.querySelector('.refresh-list').addEventListener('click', () => updateCatalogue());
