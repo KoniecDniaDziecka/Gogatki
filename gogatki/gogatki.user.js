@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Gogatki — panel dodatków
 // @namespace    gogatek.local
-// @version      0.7.3
+// @version      0.7.4
 // @description  Wspólny panel i przełączniki dodatków do Margonem.
 // @match        https://*.margonem.pl/*
 // @match        https://*.margonem.com/*
@@ -109,8 +109,8 @@
         function place() {
             if (host.hidden) return;
             const box = host.getBoundingClientRect();
-            host.style.right = Math.max(8, Math.min(preferred.right, window.innerWidth - box.width - 8)) + 'px';
-            host.style.top = Math.max(8, Math.min(preferred.top, window.innerHeight - box.height - 8)) + 'px';
+            host.style.right = Math.max(0, Math.min(preferred.right, window.innerWidth - box.width)) + 'px';
+            host.style.top = Math.max(0, Math.min(preferred.top, window.innerHeight - box.height)) + 'px';
         }
         function save() { try { GM_setValue(key, {...preferred}); } catch {} }
         function compact(entry) {
