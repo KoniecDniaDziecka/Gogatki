@@ -10,13 +10,26 @@
         let enabled = false;
         try { enabled = GM_getValue(key, false) === true; } catch {}
         let stopped = false, timer = null, frame = 0, registration = null, boundTile = null;
-        let main = null, mainRoot = null, launcher = null, popup = null, choice = null, checkbox = null;
+        let main = null, mainRoot = null, launcher = null, popup = null, choice = null, checkbox = null, nativeStatus = null;
         let rootStyle = null, gameStyle = null, popupObserver = null, lastRect = null, active = false;
         let lastWarning = '', restoringFloat = false;
         const icon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36"><rect x="1" y="1" width="34" height="34" rx="5" fill="#171b20" stroke="#668298" stroke-width="2"/><path d="M25 11a10 10 0 1 0 0 14v-7h-8" fill="none" stroke="#12c9bd" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
         function api() {
             const engine = window.Engine, manager = engine?.widgetManager;
-            return engine?.hero?.d && engine.allInit !== false && typeof manager?.getDefaultWidgetSet === 'function' && typeof manager?.rebuildWidgetButtons === 'function' ? manager : null;
+            return engine?.hero?.d && engine.allInit !== false && ['getDefaultWidgetSet','getFirstEmptyWidgetSlot','createOneWidget'].every(method => typeof manager?.[method] === 'function') ? manager : null;
+        }
+        function tiles() {
+            const result = new Set(document.querySelectorAll(selector));
+            for (const icon of document.querySelectorAll('.icon.' + widgetKey)) {
+                const tile = icon.closest('.widget-button');
+                if (tile) result.add(tile);
+            }
+            return [...result];
+        }
+        function status(text = '') {
+            if (!nativeStatus) return;
+            nativeStatus.hidden = !text;
+            if (nativeStatus.textContent !== text) nativeStatus.textContent = text;
         }
         function placePopup() {
             if (!popup || popup.hidden) return;
@@ -40,10 +53,11 @@
         }
         function bindTile(tile) {
             if (tile === boundTile) return;
-            if (boundTile) boundTile.removeEventListener('keydown', tileKey, true);
+            if (boundTile) { boundTile.removeEventListener('keydown', tileKey, true); boundTile.removeAttribute('data-gogatki-native-launcher'); }
             boundTile = tile;
             if (tile) {
                 tile.setAttribute('aria-label', 'Gogatki'); tile.setAttribute('role', 'button');
+                tile.setAttribute('data-gogatki-native-launcher', 'true');
                 tile.tabIndex = 0; tile.addEventListener('keydown', tileKey, true);
             }
         }
@@ -52,7 +66,7 @@
             event.preventDefault(); event.stopImmediatePropagation(); toggle();
         }
         function usableTile() {
-            for (const tile of document.querySelectorAll(selector)) {
+            for (const tile of tiles()) {
                 const rect = tile.getBoundingClientRect();
                 const left = Math.max(0, rect.left), right = Math.min(window.innerWidth, rect.right);
                 const top = Math.max(0, rect.top), bottom = Math.min(window.innerHeight, rect.bottom);
@@ -95,11 +109,9 @@
         function unregister() {
             if (!registration) return;
             const old = registration; registration = null;
-            if (old.set[widgetKey] === old.definition) {
-                delete old.set[widgetKey];
-                try { old.manager.rebuildWidgetButtons(); } catch {}
-            }
+            if (old.set[widgetKey] === old.definition) delete old.set[widgetKey];
             bindTile(null);
+            for (const tile of tiles()) tile.remove();
         }
         function blockHeaderDrag(event) {
             if (active && event.target.closest?.('header') && !event.target.closest('button,input')) {
@@ -119,7 +131,7 @@
             mainRoot?.removeEventListener('pointerdown', blockHeaderDrag, true);
             mainRoot?.removeEventListener('click', closeFocus);
             mainRoot?.removeEventListener('keydown', escapeFocus);
-            unregister(); float(); choice?.remove(); rootStyle?.remove(); gameStyle?.remove();
+            unregister(); float(); choice?.remove(); nativeStatus?.remove(); rootStyle?.remove(); gameStyle?.remove();
         }
         onCleanup(destroy);
         function bindMain() {
@@ -133,23 +145,27 @@
                 :host([data-native-widget="true"]) section{pointer-events:auto!important}
                 :host([data-native-widget="true"]) header{cursor:default}
                 .native-choice{display:flex;align-items:center;gap:6px;margin:7px 0;color:#c7d0d9;font:12px/1.4 Arial,sans-serif}
+                .native-status{display:block;margin:4px 0;color:#b1c0cb;font:11px/1.4 Arial,sans-serif}
             `;
             mainRoot.append(rootStyle);
             choice = document.createElement('label'); choice.className = 'native-choice'; choice.hidden = true;
             checkbox = document.createElement('input'); checkbox.type = 'checkbox'; checkbox.checked = enabled;
             choice.append(checkbox, document.createTextNode('Przypnij Gogatki do paska gry'));
-            mainRoot.querySelector('footer').append(choice);
+            nativeStatus = document.createElement('small'); nativeStatus.className = 'native-status';
+            nativeStatus.setAttribute('role', 'status'); nativeStatus.hidden = true;
+            mainRoot.querySelector('footer').append(choice, nativeStatus);
             checkbox.addEventListener('change', () => {
                 enabled = checkbox.checked;
                 try { GM_setValue(key, enabled); } catch {}
-                if (!enabled) { unregister(); float(); } else poll();
+                if (!enabled) { unregister(); float(); status(); } else poll();
             });
             mainRoot.addEventListener('pointerdown', blockHeaderDrag, true);
             mainRoot.addEventListener('click', closeFocus);
             mainRoot.addEventListener('keydown', escapeFocus);
             popupObserver = new MutationObserver(follow); popupObserver.observe(popup, {attributes:true,attributeFilter:['hidden']});
             gameStyle = document.createElement('style');
-            gameStyle.textContent = selector + '{background-position:center!important;background-repeat:no-repeat!important;background-size:contain!important;background-image:url("data:image/svg+xml,' + encodeURIComponent(icon) + '")!important}' + selector + ' .icon{display:none!important}' + selector + ':focus-visible{outline:2px solid #12c9bd;outline-offset:1px}';
+            const iconTarget = '.main-buttons-container .widget-button .icon.' + widgetKey;
+            gameStyle.textContent = selector + ',' + iconTarget + '{background-position:center!important;background-repeat:no-repeat!important;background-size:contain!important;background-image:url("data:image/svg+xml,' + encodeURIComponent(icon) + '")!important}' + selector + ' .icon{display:none!important}[data-gogatki-native-launcher]:focus-visible{outline:2px solid #12c9bd;outline-offset:1px}';
             document.head.append(gameStyle); window.addEventListener('resize', anchor);
             return true;
         }
@@ -158,19 +174,34 @@
             try {
                 if ((!launcher || !popup) && !bindMain()) return;
                 const manager = api(); choice.hidden = !manager;
-                if (!manager || !enabled) { unregister(); float(); return; }
+                if (!manager || !enabled) { unregister(); float(); status(); return; }
                 const set = manager.getDefaultWidgetSet();
                 if (!set || typeof set !== 'object' || Array.isArray(set)) { unregister(); float(); return; }
                 if (!registration || registration.manager !== manager || registration.set !== set || set[widgetKey] !== registration.definition) {
                     unregister();
-                    const index = Math.max(0, ...Object.values(set).filter(w => w?.pos === 'bottom-right').map(w => Number(w.index) || 0)) + 1;
-                    const definition = {keyName:widgetKey,txt:'Gogatki',default:true,index,pos:'bottom-right',alwaysExist:true,type:'gogatki-widget',clb:toggle};
-                    set[widgetKey] = definition; registration = {manager,set,definition};
-                    manager.rebuildWidgetButtons();
                 }
-                anchor(); follow();
+                if (!registration || (!tiles().length && Date.now() - registration.createdAt >= 1500)) {
+                    unregister();
+                    // The game checks its current bars, including widgets moved by the player
+                    // and other addons. Never append beyond a bar's fixed slot count.
+                    const empty = manager.getFirstEmptyWidgetSlot();
+                    if (!Number.isInteger(empty?.slot) || empty.slot < 0 || typeof empty.container !== 'string' || !empty.container.trim()) {
+                        float(); status('Brak wolnego miejsca na paskach gry. Gogatki pozostają jako pływający kafelek.'); return;
+                    }
+                    const definition = {keyName:widgetKey,txt:'Gogatki',default:true,index:empty.slot,pos:empty.container,alwaysExist:true,type:'blue',clb:toggle};
+                    set[widgetKey] = definition; registration = {manager,set,definition,createdAt:Date.now()};
+                    const withoutSlot = [];
+                    manager.createOneWidget(widgetKey, {[widgetKey]:[empty.slot,empty.container]}, true, withoutSlot);
+                    if (withoutSlot.includes(widgetKey)) {
+                        unregister(); float(); status('Wybrane miejsce jest już zajęte. Szukam wolnego miejsca na paskach gry…'); return;
+                    }
+                    manager.setEnableDraggingButtonsWidget?.(false);
+                }
+                const pinned = anchor(); follow();
+                status(pinned ? '' : tiles().length ? 'Kafelek na pasku gry jest ukryty. Dostępny jest pływający przycisk Gogatki.' : 'Oczekiwanie na kafelek na pasku gry…');
             } catch (error) {
                 unregister(); float();
+                status('Nie udało się przypiąć kafelka. Dostępny jest pływający przycisk Gogatki.');
                 const message = String(error?.message || error);
                 if (message !== lastWarning) { console.warn('[Gogatki] Kafelek gry:', error); lastWarning = message; }
             }
