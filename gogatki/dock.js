@@ -12,7 +12,7 @@
         let stopped = false, timer = null, frame = 0, registration = null, boundTile = null;
         let main = null, mainRoot = null, launcher = null, popup = null, choice = null, checkbox = null, nativeStatus = null;
         let rootStyle = null, gameStyle = null, popupObserver = null, lastRect = null, active = false;
-        let lastWarning = '', restoringFloat = false;
+        let lastWarning = '', restoringFloat = false, rejectedSavedPosition = null;
         const icon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36"><rect x="1" y="1" width="34" height="34" rx="5" fill="#171b20" stroke="#668298" stroke-width="2"/><path d="M25 11a10 10 0 1 0 0 14v-7h-8" fill="none" stroke="#12c9bd" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
         function api() {
             const engine = window.Engine, manager = engine?.widgetManager;
@@ -30,6 +30,35 @@
             if (!nativeStatus) return;
             nativeStatus.hidden = !text;
             if (nativeStatus.textContent !== text) nativeStatus.textContent = text;
+        }
+        function validPosition(position) {
+            return Array.isArray(position) && Number.isInteger(position[0]) && position[0] >= 0 && typeof position[1] === 'string' && !!position[1].trim();
+        }
+        function savedLayout(manager) {
+            const storage = window.Engine?.serverStorage;
+            if (typeof storage?.get !== 'function' || typeof manager.getPathToHotWidgetVersion !== 'function') return {};
+            const layout = storage.get(manager.getPathToHotWidgetVersion());
+            return layout && typeof layout === 'object' && !Array.isArray(layout) ? layout : {};
+        }
+        function occupied(position, layout, set) {
+            const matches = value => validPosition(value) && value[0] === position[0] && value[1] === position[1];
+            // Saved moves override native defaults; disabled widgets do not occupy a slot.
+            for (const id of new Set([...Object.keys(set), ...Object.keys(layout)])) {
+                if (id === widgetKey || layout[id] === false) continue;
+                const definition = set[id];
+                const other = validPosition(layout[id]) ? layout[id] : definition?.default ? [definition.index,definition.pos] : null;
+                if (matches(other)) return true;
+            }
+            return false;
+        }
+        function createWidget(manager, set, position, savedSignature = null) {
+            const definition = {keyName:widgetKey,txt:'Gogatki',default:true,index:position[0],pos:position[1],alwaysExist:true,type:'blue',clb:toggle};
+            set[widgetKey] = definition; registration = {manager,set,definition,createdAt:Date.now(),savedSignature};
+            const withoutSlot = [];
+            manager.createOneWidget(widgetKey, {[widgetKey]:[...position]}, true, withoutSlot);
+            if (withoutSlot.includes(widgetKey)) { unregister(); return false; }
+            manager.setEnableDraggingButtonsWidget?.(false);
+            return true;
         }
         function placePopup() {
             if (!popup || popup.hidden) return;
@@ -181,21 +210,25 @@
                     unregister();
                 }
                 if (!registration || (!tiles().length && Date.now() - registration.createdAt >= 1500)) {
+                    // A stale saved slot can also fail without the native rejection list.
+                    if (registration?.savedSignature && !tiles().length) rejectedSavedPosition = registration.savedSignature;
                     unregister();
+                    const layout = savedLayout(manager), saved = layout[widgetKey];
+                    const signature = validPosition(saved) ? JSON.stringify([saved[0],saved[1]]) : null;
+                    if (signature && signature !== rejectedSavedPosition && !occupied(saved, layout, set)) {
+                        if (!createWidget(manager, set, [saved[0],saved[1]], signature)) rejectedSavedPosition = signature;
+                    }
                     // The game checks its current bars, including widgets moved by the player
-                    // and other addons. Never append beyond a bar's fixed slot count.
-                    const empty = manager.getFirstEmptyWidgetSlot();
-                    if (!Number.isInteger(empty?.slot) || empty.slot < 0 || typeof empty.container !== 'string' || !empty.container.trim()) {
-                        float(); status('Brak wolnego miejsca na paskach gry. Gogatki pozostają jako pływający kafelek.'); return;
+                    // and other addons, when there is no usable saved position.
+                    if (!registration) {
+                        const empty = manager.getFirstEmptyWidgetSlot(), position = [empty?.slot,empty?.container];
+                        if (!validPosition(position)) {
+                            float(); status('Brak wolnego miejsca na paskach gry. Gogatki pozostają jako pływający kafelek.'); return;
+                        }
+                        if (!createWidget(manager, set, position)) {
+                            float(); status('Wybrane miejsce jest już zajęte. Szukam wolnego miejsca na paskach gry…'); return;
+                        }
                     }
-                    const definition = {keyName:widgetKey,txt:'Gogatki',default:true,index:empty.slot,pos:empty.container,alwaysExist:true,type:'blue',clb:toggle};
-                    set[widgetKey] = definition; registration = {manager,set,definition,createdAt:Date.now()};
-                    const withoutSlot = [];
-                    manager.createOneWidget(widgetKey, {[widgetKey]:[empty.slot,empty.container]}, true, withoutSlot);
-                    if (withoutSlot.includes(widgetKey)) {
-                        unregister(); float(); status('Wybrane miejsce jest już zajęte. Szukam wolnego miejsca na paskach gry…'); return;
-                    }
-                    manager.setEnableDraggingButtonsWidget?.(false);
                 }
                 const pinned = anchor(); follow();
                 status(pinned ? '' : tiles().length ? 'Kafelek na pasku gry jest ukryty. Dostępny jest pływający przycisk Gogatki.' : 'Oczekiwanie na kafelek na pasku gry…');
