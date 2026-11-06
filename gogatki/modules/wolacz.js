@@ -238,7 +238,7 @@ GogatkiRuntime.register({id:"wolacz",name:"Wo\u0142acz Kolosy",description:"Wo\u
         if (typeof window._g !== 'function') {
             throw new Error('Oczekiwanie na czat gry.');
         }
-        const displayedCount = (count >= 2 && count <= 5 || count === 7) ? count + 2 : count;
+        const displayedCount = count >= 2 && count <= 7 ? count + 2 : count;
         const groupText = count <= 1 ? 'Zapraszam!' : `${displayedCount}/${LIMIT_GRUPY}`;
         return { message: `${MAPY[mapId]} ${groupText}` };
     }
@@ -301,6 +301,7 @@ GogatkiRuntime.register({id:"wolacz",name:"Wo\u0142acz Kolosy",description:"Wo\u
 })();
 
 }});
+
 
 
 
