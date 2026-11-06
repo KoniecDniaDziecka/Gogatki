@@ -42,17 +42,22 @@ GogatkiRuntime.register({id:"gift",name:"Gift",description:"Odbieranie darmowych
         if (!Array.isArray(data?.promotions?.active)) throw Error('Nieprawidłowa odpowiedź Aktualności.');
         return data.promotions.active.filter(p => p && p.price != null && Number(p.price) === 0 && !p.is_used && p.id != null);
     };
+    function calendarWindowOpen(calendar, now) {
+        return calendar?.start_ts != null && calendar?.end_ts != null && Number.isFinite(+now) && +now > 0 &&
+            Number.isFinite(+calendar.start_ts) && +calendar.start_ts > 0 &&
+            Number.isFinite(+calendar.end_ts) && +calendar.end_ts > +calendar.start_ts &&
+            +now >= +calendar.start_ts && +now < +calendar.end_ts;
+    }
     function availableCalendarDay(calendar, now) {
         if (!calendar || !calendar.days || typeof calendar.days !== 'object') return null;
-        if (!Number.isFinite(+now) || !Number.isFinite(+calendar.start_ts) ||
-            !Number.isFinite(+calendar.end_ts) || +now < +calendar.start_ts || +now >= +calendar.end_ts) return null;
+        if (!calendarWindowOpen(calendar, now)) return null;
         const day = calendarDay(calendar.start_ts, now);
         const entry = calendar.days[String(day - 1)]; // days is indexed from zero; open uses day numbers from one.
         if (!entry || typeof entry !== 'object' || (entry.isOpened != null && Number(entry.isOpened) !== 0)) return null;
         return day;
     }
     function controller(game, view) {
-        let busy = false, calendarState = null;
+        let busy = false, calendarState = null, calendarChecked = false;
         const available = new Set();
         async function run(job) {
             if (busy) return;
@@ -66,17 +71,28 @@ GogatkiRuntime.register({id:"gift",name:"Gift",description:"Odbieranie darmowych
             else { available.delete(kind); view.remove(kind); }
         }
         function updateCalendarAvailability() {
+            if (game.calendarActive?.() !== true) {
+                calendarState = null; calendarChecked = false; offer('calendar', false); return;
+            }
             offer('calendar', availableCalendarDay(calendarState, game.worldTime()) !== null);
         }
         function observeCalendar(calendar) {
             // Ignore partial acknowledgments; full responses also cover manual collection in the game's UI.
             if (calendar?.days && calendar.start_ts != null && calendar.end_ts != null) {
                 calendarState = structuredClone(calendar);
+                calendarChecked = true;
                 updateCalendarAvailability();
             }
         }
         async function refreshCalendar() {
+            // An inactive event must never trigger a show/open request (the game displays an alert).
+            if (game.calendarActive?.() !== true) { updateCalendarAvailability(); return null; }
+            calendarChecked = true;
+            if (calendarState && !calendarWindowOpen(calendarState, game.worldTime())) {
+                updateCalendarAvailability(); return null;
+            }
             const data = await game.request('rewards_calendar&action=show', 'rewards_calendar');
+            if (game.calendarActive?.() !== true) { updateCalendarAvailability(); return null; }
             calendarState = data.rewards_calendar || null;
             updateCalendarAvailability();
             return availableCalendarDay(calendarState, game.worldTime());
@@ -103,6 +119,9 @@ GogatkiRuntime.register({id:"gift",name:"Gift",description:"Odbieranie darmowych
                 // Recheck today's isOpened immediately before claiming, never request earlier or future days.
                 const day = await refreshCalendar();
                 if (day === null) return;
+                if (game.calendarActive?.() !== true || availableCalendarDay(calendarState, game.worldTime()) !== day) {
+                    updateCalendarAvailability(); return;
+                }
                 const eventStart = calendarState.start_ts;
                 const data = await game.request('rewards_calendar&action=open&day_no=' + day, 'rewards_calendar');
                 if (data.rewards_calendar?.days) observeCalendar(data.rewards_calendar);
@@ -117,10 +136,15 @@ GogatkiRuntime.register({id:"gift",name:"Gift",description:"Odbieranie darmowych
         const acceptAll = () => run(async () => {
             for (const kind of ['news', 'calendar']) if (available.has(kind)) await claim(kind);
         });
-        return { check, accept, acceptAll, observeCalendar, updateCalendarAvailability };
+        function pollCalendar() {
+            updateCalendarAvailability();
+            // Discover a newly started event once; never poll the server while it is inactive.
+            if (!calendarChecked && !busy && game.calendarActive?.() === true) void run(refreshCalendar);
+        }
+        return { check, accept, acceptAll, observeCalendar, updateCalendarAvailability, pollCalendar };
     }
     if (typeof module !== 'undefined' && module.exports) {
-        module.exports = { calendarDay, freePromotions, availableCalendarDay, controller }; return;
+        module.exports = { calendarDay, freePromotions, calendarWindowOpen, availableCalendarDay, controller }; return;
     }
     if (window.top !== window.self || window.__standaloneFreeGift) return;
     window.__standaloneFreeGift = true;
@@ -130,6 +154,14 @@ GogatkiRuntime.register({id:"gift",name:"Gift",description:"Odbieranie darmowych
     let character;
     const game = {
         worldTime: () => window.Engine?.getWorldTime?.() ?? window.getWorldTime?.(),
+        calendarActive: () => {
+            if (window.Engine) {
+                const active = window.Engine.rewardsCalendarActive;
+                return active === true || active === 1 || active === '1';
+            }
+            const icon = document.getElementById('new_event_calendar');
+            return !!icon && !icon.hidden && window.getComputedStyle(icon).display !== 'none';
+        },
         clearNotice: key => window.Engine?.widgetManager?.updateOneWidgetServerNoticeProcedure?.(key, false),
         request(query, key) {
             return new Promise((resolve, reject) => {
@@ -314,13 +346,14 @@ GogatkiRuntime.register({id:"gift",name:"Gift",description:"Odbieranie darmowych
             checked = true;
             void api.check();
         } else if (heroId() === character) {
-            api.updateCalendarAvailability();
+            api.pollCalendar();
         }
     }, 100);
     window.addEventListener('pagehide', () => clearInterval(timer), { once: true });
 })();
 
 }});
+
 
 
 
