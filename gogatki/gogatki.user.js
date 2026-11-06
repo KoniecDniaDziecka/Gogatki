@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Gogatki — panel dodatków
 // @namespace    gogatek.local
-// @version      0.9.0
+// @version      0.9.1
 // @description  Wspólny panel i przełączniki dodatków do Margonem.
 // @match        https://*.margonem.pl/*
 // @match        https://*.margonem.com/*
@@ -372,6 +372,18 @@ const fallbackCatalogue = {"schemaVersion":1,"modules":[{"id":"ulepa","name":"Ul
         let gameStyle = null, popupObserver = null, widgetObserver = null, lastRect = null, active = false;
         let lastWarning = '', restoringFloat = false, rejectedSavedPosition = null;
         let nativeReadySince = null, missingTileSince = null;
+        let nativeSession = false;
+        function nativeLoading() {
+            const engine = window.Engine;
+            return (nativeSession && !engine) || !!engine && !!(nativeSession || engine.hero || engine.map) &&
+                (!engine.hero?.d || engine.allInit === false || engine.interfaceStart === false);
+        }
+        function holdNative() {
+            if (!main) return;
+            if (main.dataset.launcherState !== 'pending') nativeReadySince = null;
+            // Keep the native coordinates and floating-position preference while NI rebuilds.
+            main.dataset.launcherState = 'pending';
+        }
         function api() {
             const engine = window.Engine, manager = engine?.widgetManager;
             return engine?.hero?.d && engine.allInit !== false && engine.interfaceStart !== false && ['getDefaultWidgetSet','getFirstEmptyWidgetSlot','createOneWidget'].every(method => typeof manager?.[method] === 'function') ? manager : null;
@@ -474,17 +486,20 @@ const fallbackCatalogue = {"schemaVersion":1,"modules":[{"id":"ulepa","name":"Ul
                     if (css.display === 'none' || css.visibility !== 'visible' || css.contentVisibility === 'hidden' || Number(css.opacity) <= .01) { visible = false; break; }
                 }
                 if (!visible) continue;
-                // A sized element can still be clipped, offscreen, or covered by game UI.
-                const hit = document.elementFromPoint((left + right) / 2, (top + bottom) / 2);
-                if (hit && tile.contains(hit)) return {tile, rect};
+                // Menus and dialogs can cover a valid tile; occlusion never changes its layout.
+                return {tile, rect};
             }
             return null;
         }
         function anchor() {
             if (stopped || restoringFloat || !main || !registration) return false;
+            if (nativeLoading()) { holdNative(); return false; }
             const usable = usableTile();
             bindTile(usable?.tile || null);
             if (!usable) {
+                // A hidden native bar belongs to the game's current UI state, not a new slot.
+                if (active && tiles().length) { holdNative(); return false; }
+                if (active) holdNative();
                 const waiting = awaitingNativeStartup();
                 if (!tiles().length) {
                     if (missingTileSince === null) missingTileSince = Date.now();
@@ -508,11 +523,11 @@ const fallbackCatalogue = {"schemaVersion":1,"modules":[{"id":"ulepa","name":"Ul
         function follow() {
             if (frame) window.cancelAnimationFrame(frame);
             frame = 0;
-            if (stopped || !active || popup?.hidden) return;
+            if (stopped || !active || popup?.hidden || main?.dataset.launcherState === 'pending') return;
             frame = window.requestAnimationFrame(() => { frame = 0; anchor(); follow(); });
         }
         function toggle() {
-            if (stopped || !launcher) return;
+            if (stopped || !launcher || nativeLoading()) return;
             anchor(); launcher.click(); placePopup(); follow();
         }
         function unregister() {
@@ -569,14 +584,26 @@ const fallbackCatalogue = {"schemaVersion":1,"modules":[{"id":"ulepa","name":"Ul
             if (stopped) return;
             try {
                 if ((!launcher || !popup) && !bindMain()) return;
+                if (nativeLoading()) {
+                    holdNative(); nativeReadySince = null;
+                    status('Oczekiwanie na załadowanie interfejsu postaci…'); return;
+                }
                 const manager = api();
                 if (!manager) {
+                    if (active) {
+                        holdNative();
+                        if (awaitingNativeStartup()) return;
+                    }
                     unregister();
                     if (!awaitingNativeStartup()) float();
                     status(); return;
                 }
+                nativeSession = true;
                 const set = manager.getDefaultWidgetSet();
-                if (!set || typeof set !== 'object' || Array.isArray(set)) { unregister(); if (!awaitingNativeStartup()) float(); return; }
+                if (!set || typeof set !== 'object' || Array.isArray(set)) {
+                    if (active) { holdNative(); if (awaitingNativeStartup()) return; }
+                    unregister(); if (!awaitingNativeStartup()) float(); return;
+                }
                 if (!registration || registration.manager !== manager || registration.set !== set || set[widgetKey] !== registration.definition) {
                     unregister();
                 }
@@ -606,8 +633,14 @@ const fallbackCatalogue = {"schemaVersion":1,"modules":[{"id":"ulepa","name":"Ul
                     }
                 }
                 const pinned = anchor(); follow();
-                status(pinned ? '' : tiles().length ? 'Kafelek na pasku gry jest ukryty. Dostępny jest pływający przycisk Gogatki.' : 'Oczekiwanie na kafelek na pasku gry…');
+                status(pinned ? '' : 'Oczekiwanie na kafelek na pasku gry…');
             } catch (error) {
+                if (active) {
+                    holdNative();
+                    if (awaitingNativeStartup()) {
+                        status('Oczekiwanie na odbudowanie kafelka na pasku gry…'); return;
+                    }
+                }
                 unregister(); if (!awaitingNativeStartup()) float();
                 status('Nie udało się przypiąć kafelka. Dostępny jest pływający przycisk Gogatki.');
                 const message = String(error?.message || error);
@@ -625,6 +658,7 @@ const fallbackCatalogue = {"schemaVersion":1,"modules":[{"id":"ulepa","name":"Ul
         window.addEventListener('pagehide', () => clearInterval(wait), {once:true});
     }
 })();
+
 
 
 
