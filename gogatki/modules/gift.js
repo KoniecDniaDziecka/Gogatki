@@ -40,7 +40,10 @@ GogatkiRuntime.register({id:"gift",name:"Gift",description:"Odbieranie darmowych
     }
     const freePromotions = data => {
         if (!Array.isArray(data?.promotions?.active)) throw Error('Nieprawidłowa odpowiedź Aktualności.');
-        return data.promotions.active.filter(p => p && p.price != null && Number(p.price) === 0 && !p.is_used && p.id != null);
+        // The native promotions payload can omit price for a free reward (as in Maddonz).
+        // Explicit non-zero or invalid prices must never be collected.
+        return data.promotions.active.filter(p => p && (p.price == null || Number(p.price) === 0) &&
+            (p.is_used == null || p.is_used === false || p.is_used === 0 || p.is_used === '0') && p.id != null);
     };
     function calendarWindowOpen(calendar, now) {
         return calendar?.start_ts != null && calendar?.end_ts != null && Number.isFinite(+now) && +now > 0 &&
@@ -58,6 +61,7 @@ GogatkiRuntime.register({id:"gift",name:"Gift",description:"Odbieranie darmowych
     }
     function controller(game, view) {
         let busy = false, calendarState = null, calendarChecked = false;
+        let newsDirty = false, newsRetryAt = 0, newsFailures = 0, newsNoticeActive = false;
         const available = new Set();
         async function run(job) {
             if (busy) return;
@@ -97,13 +101,39 @@ GogatkiRuntime.register({id:"gift",name:"Gift",description:"Odbieranie darmowych
             updateCalendarAvailability();
             return availableCalendarDay(calendarState, game.worldTime());
         }
+        function observePromotions(promotions) {
+            if (!Array.isArray(promotions?.active)) return;
+            offer('news', freePromotions({ promotions }).length > 0);
+            newsDirty = false; newsFailures = 0; newsRetryAt = 0;
+        }
+        function observeNotices(notices) {
+            if (!Array.isArray(notices)) return;
+            const active = notices.some(id => Number(id) === 1);
+            if (active && !newsNoticeActive) invalidateNews();
+            newsNoticeActive = active;
+        }
+        function invalidateNews() {
+            newsDirty = true; newsFailures = 0; newsRetryAt = 0;
+        }
+        async function refreshNews() {
+            newsDirty = false;
+            try {
+                const data = await game.request('promotions&a=show', 'promotions');
+                offer('news', freePromotions(data).length > 0);
+                newsFailures = 0; newsRetryAt = 0;
+            } catch (error) {
+                // Recover from a startup/network failure, with at most two delayed retries.
+                newsDirty = ++newsFailures < 3;
+                newsRetryAt = Date.now() + 15000;
+                throw error;
+            }
+        }
         async function check() {
             return run(async () => {
                 // Check the two independent sources even if one fails.
                 try {
-                    const data = await game.request('promotions&a=show', 'promotions');
-                    offer('news', freePromotions(data).length > 0);
-                } catch (error) { offer('news', false); view.status(error.message || String(error)); }
+                    await refreshNews();
+                } catch (error) { view.status(error.message || String(error)); }
                 await refreshCalendar();
             });
         }
@@ -136,12 +166,14 @@ GogatkiRuntime.register({id:"gift",name:"Gift",description:"Odbieranie darmowych
         const acceptAll = () => run(async () => {
             for (const kind of ['news', 'calendar']) if (available.has(kind)) await claim(kind);
         });
-        function pollCalendar() {
+        function pollRewards() {
             updateCalendarAvailability();
+            if (newsDirty && !busy && Date.now() >= newsRetryAt) { void run(refreshNews); return; }
             // Discover a newly started event once; never poll the server while it is inactive.
             if (!calendarChecked && !busy && game.calendarActive?.() === true) void run(refreshCalendar);
         }
-        return { check, accept, acceptAll, observeCalendar, updateCalendarAvailability, pollCalendar };
+        return { check, accept, acceptAll, observeCalendar, observePromotions, observeNotices,
+            invalidateNews, updateCalendarAvailability, pollRewards };
     }
     if (typeof module !== 'undefined' && module.exports) {
         module.exports = { calendarDay, freePromotions, calendarWindowOpen, availableCalendarDay, controller }; return;
@@ -195,6 +227,9 @@ GogatkiRuntime.register({id:"gift",name:"Gift",description:"Odbieranie darmowych
         function wrapped(...args) {
             const data = args[0]; let entry, response, error;
             const calendar = data?.rewards_calendar?.days ? structuredClone(data.rewards_calendar) : null;
+            const promotions = Array.isArray(data?.promotions?.active) ? structuredClone(data.promotions) : null;
+            const notices = Array.isArray(data?.notices) ? [...data.notices] : null;
+            const promotionChanged = data && Object.hasOwn(data, 'promotion_changed');
             if (data && typeof data === 'object') {
                 if (pending && (Object.hasOwn(data, pending.key) || data.e === 'error' || data.error)) {
                     entry = pending; pending = null; clearTimeout(entry.timer);
@@ -208,7 +243,13 @@ GogatkiRuntime.register({id:"gift",name:"Gift",description:"Odbieranie darmowych
             let result;
             try { result = original.apply(this, args); }
             catch (err) { entry?.reject(err); throw err; }
-            if (calendar && heroId() === character) api?.observeCalendar(calendar);
+            if (heroId() === character) {
+                if (calendar) api?.observeCalendar(calendar);
+                if (notices) api?.observeNotices(notices);
+                // Native UI responses update Gift without hiding or altering their dialogs.
+                if (promotions && !entry) api?.observePromotions(promotions);
+                if (promotionChanged && !entry) api?.invalidateNews();
+            }
             if (entry) error ? entry.reject(error) : entry.resolve(response);
             return result;
         }
@@ -346,13 +387,14 @@ GogatkiRuntime.register({id:"gift",name:"Gift",description:"Odbieranie darmowych
             checked = true;
             void api.check();
         } else if (heroId() === character) {
-            api.pollCalendar();
+            api.pollRewards();
         }
     }, 100);
     window.addEventListener('pagehide', () => clearInterval(timer), { once: true });
 })();
 
 }});
+
 
 
 
