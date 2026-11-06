@@ -4,16 +4,15 @@
     'use strict';
     const window = unsafeWindow;
     function installNativeLauncher(onCleanup) {
-        const key = 'gogatki:native-launcher:v1';
         const widgetKey = 'gogatki_addonsManager';
         const selector = '.widget-' + widgetKey;
-        let enabled = false;
-        try { enabled = GM_getValue(key, false) === true; } catch {}
         let stopped = false, timer = null, frame = 0, registration = null, boundTile = null;
-        let main = null, mainRoot = null, launcher = null, popup = null, choice = null, checkbox = null, nativeStatus = null;
+        let main = null, mainRoot = null, launcher = null, popup = null, nativeStatus = null;
         let rootStyle = null, gameStyle = null, popupObserver = null, lastRect = null, active = false;
         let lastWarning = '', restoringFloat = false, rejectedSavedPosition = null;
         const icon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36"><rect x="1" y="1" width="34" height="34" rx="5" fill="#171b20" stroke="#668298" stroke-width="2"/><path d="M25 11a10 10 0 1 0 0 14v-7h-8" fill="none" stroke="#12c9bd" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+        // One visual definition for the native NI widget and the floating SI button.
+        const tileStyle = 'appearance:none!important;-webkit-appearance:none!important;box-sizing:border-box!important;display:flex!important;align-items:center!important;justify-content:center!important;width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important;padding:0!important;border:1px solid #668298!important;border-radius:4px!important;background:#252b31 url("data:image/svg+xml,' + encodeURIComponent(icon) + '") center/36px 36px no-repeat!important;box-shadow:inset 0 0 0 2px #171b20!important;color:#12c9bd!important;font-size:0!important;text-shadow:none!important';
         function api() {
             const engine = window.Engine, manager = engine?.widgetManager;
             return engine?.hero?.d && engine.allInit !== false && ['getDefaultWidgetSet','getFirstEmptyWidgetSlot','createOneWidget'].every(method => typeof manager?.[method] === 'function') ? manager : null;
@@ -113,7 +112,7 @@
             return null;
         }
         function anchor() {
-            if (stopped || restoringFloat || !main || !enabled || !registration) return false;
+            if (stopped || restoringFloat || !main || !registration) return false;
             const usable = usableTile();
             bindTile(usable?.tile || null);
             if (!usable) { float(); return false; }
@@ -132,7 +131,7 @@
             frame = window.requestAnimationFrame(() => { frame = 0; anchor(); follow(); });
         }
         function toggle() {
-            if (stopped || !enabled || !launcher) return;
+            if (stopped || !launcher) return;
             anchor(); launcher.click(); placePopup(); follow();
         }
         function unregister() {
@@ -160,7 +159,7 @@
             mainRoot?.removeEventListener('pointerdown', blockHeaderDrag, true);
             mainRoot?.removeEventListener('click', closeFocus);
             mainRoot?.removeEventListener('keydown', escapeFocus);
-            unregister(); float(); choice?.remove(); nativeStatus?.remove(); rootStyle?.remove(); gameStyle?.remove();
+            unregister(); float(); nativeStatus?.remove(); rootStyle?.remove(); gameStyle?.remove();
         }
         onCleanup(destroy);
         function bindMain() {
@@ -169,41 +168,37 @@
             if (!launcher || !popup) return false;
             rootStyle = document.createElement('style');
             rootStyle.textContent = `
+                .launcher{${tileStyle}}
+                .launcher::before,.launcher::after{content:none!important;display:none!important}
                 :host([data-native-widget="true"]){left:var(--native-left)!important;right:auto!important;top:var(--native-top)!important;width:var(--native-width)!important;height:var(--native-height)!important;pointer-events:none!important}
                 :host([data-native-widget="true"]) .launcher{visibility:hidden!important;pointer-events:none!important}
                 :host([data-native-widget="true"]) section{pointer-events:auto!important}
                 :host([data-native-widget="true"]) header{cursor:default}
-                .native-choice{display:flex;align-items:center;gap:6px;margin:7px 0;color:#c7d0d9;font:12px/1.4 Arial,sans-serif}
                 .native-status{display:block;margin:4px 0;color:#b1c0cb;font:11px/1.4 Arial,sans-serif}
             `;
             mainRoot.append(rootStyle);
-            choice = document.createElement('label'); choice.className = 'native-choice'; choice.hidden = true;
-            checkbox = document.createElement('input'); checkbox.type = 'checkbox'; checkbox.checked = enabled;
-            choice.append(checkbox, document.createTextNode('Przypnij Gogatki do paska gry'));
+            launcher.setAttribute('aria-label', 'Gogatki');
             nativeStatus = document.createElement('small'); nativeStatus.className = 'native-status';
             nativeStatus.setAttribute('role', 'status'); nativeStatus.hidden = true;
-            mainRoot.querySelector('footer').append(choice, nativeStatus);
-            checkbox.addEventListener('change', () => {
-                enabled = checkbox.checked;
-                try { GM_setValue(key, enabled); } catch {}
-                if (!enabled) { unregister(); float(); status(); } else poll();
-            });
+            mainRoot.querySelector('footer').append(nativeStatus);
             mainRoot.addEventListener('pointerdown', blockHeaderDrag, true);
             mainRoot.addEventListener('click', closeFocus);
             mainRoot.addEventListener('keydown', escapeFocus);
             popupObserver = new MutationObserver(follow); popupObserver.observe(popup, {attributes:true,attributeFilter:['hidden']});
             gameStyle = document.createElement('style');
-            const iconTarget = '.main-buttons-container .widget-button .icon.' + widgetKey;
-            gameStyle.textContent = selector + ',' + iconTarget + '{background-position:center!important;background-repeat:no-repeat!important;background-size:contain!important;background-image:url("data:image/svg+xml,' + encodeURIComponent(icon) + '")!important}' + selector + ' .icon{display:none!important}[data-gogatki-native-launcher]:focus-visible{outline:2px solid #12c9bd;outline-offset:1px}';
+            const tileTargets = [':root .main-buttons-container .widget-button[data-gogatki-native-launcher]', ':root [data-gogatki-native-launcher]'];
+            gameStyle.textContent = tileTargets.join(',') + '{' + tileStyle + ';cursor:pointer}' + tileTargets.flatMap(target => [target + '::before', target + '::after']).join(',') + '{content:none!important;display:none!important}' + tileTargets.map(target => target + ' .icon').join(',') + '{display:none!important}' + tileTargets.map(target => target + ':focus-visible').join(',') + '{outline:2px solid #12c9bd!important;outline-offset:2px!important}';
             document.head.append(gameStyle); window.addEventListener('resize', anchor);
+            // Re-clamp the existing floating position after replacing the text button with a tile.
+            window.dispatchEvent(new Event('resize'));
             return true;
         }
         function poll() {
             if (stopped) return;
             try {
                 if ((!launcher || !popup) && !bindMain()) return;
-                const manager = api(); choice.hidden = !manager;
-                if (!manager || !enabled) { unregister(); float(); status(); return; }
+                const manager = api();
+                if (!manager) { unregister(); float(); status(); return; }
                 const set = manager.getDefaultWidgetSet();
                 if (!set || typeof set !== 'object' || Array.isArray(set)) { unregister(); float(); return; }
                 if (!registration || registration.manager !== manager || registration.set !== set || set[widgetKey] !== registration.definition) {
