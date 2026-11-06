@@ -421,8 +421,8 @@
         }
         function sync() {
             frame = 0; if (disposed) return;
-            const launcher = document.querySelector('#gogatek-panel')?.shadowRoot?.querySelector('.launcher');
-            host.style.setProperty('--tile', (launcher?.getBoundingClientRect().height || 28) + 'px');
+            // The dock icon size is independent of the larger main launcher.
+            host.style.setProperty('--tile', '28px');
             for (const spec of specs) {
                 let entry = entries.get(spec.id);
                 if (entry && !entry.node.isConnected) { entry.observer.disconnect(); entry.button?.remove(); entries.delete(spec.id); entry = null; }
@@ -564,4 +564,5 @@
     }
     GogatkiDockRuntime.register({apiVersion:1, create:createTileDock});
 })();
+
 

@@ -151,15 +151,7 @@ GogatkiRuntime.register({
     clamp(); persist();
   }
   function tileSize() {
-    const direct = document.querySelector('.launcher');
-    if (direct?.getBoundingClientRect().height > 0) return direct.getBoundingClientRect().height;
-    for (const el of document.querySelectorAll('*')) {
-      if (!el.shadowRoot || el === host) continue;
-      const launcher = el.shadowRoot.querySelector('.launcher');
-      const height = launcher?.getBoundingClientRect().height;
-      if (height > 0) return height;
-    }
-    return 28;
+    return 28; // Independent of the main Gogatki launcher size.
   }
   function clamp() {
         if (window.__gogatkiTileDock?.isDocked(host)) return;
@@ -310,4 +302,5 @@ GogatkiRuntime.register({
 
   }
 });
+
 

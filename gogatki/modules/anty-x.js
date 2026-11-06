@@ -150,8 +150,7 @@ GogatkiRuntime.register({id:"anty-x",name:"Anty X",description:"Filtr ataków Pv
         // Preserve the right edge only for a user-initiated size change.
         // At startup, x/y already describe the saved collapsed/expanded state.
         const right = preserveRight ? host.getBoundingClientRect().right : null;
-        const launcher = document.querySelector('#gogatek-panel')?.shadowRoot?.querySelector('.launcher');
-        const height = launcher?.getBoundingClientRect().height || 28;
+        const height = 28; // Independent of the main Gogatki launcher size.
         host.style.setProperty('--tile', `${height}px`);
         panel.classList.toggle('collapsed', config.collapsed);
         root.querySelector('strong').hidden = config.collapsed;
@@ -191,5 +190,6 @@ GogatkiRuntime.register({id:"anty-x",name:"Anty X",description:"Filtr ataków Pv
     setInterval(installHook, 1000);
 })();
 }});
+
 
 

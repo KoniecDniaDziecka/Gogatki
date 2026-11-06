@@ -148,8 +148,7 @@ GogatkiRuntime.register({id:"pvp-info",name:"PVP Info",description:"Powiadomieni
         catch (error) { console.error('[PVP Info]', error); say('Nie udało się wysłać wiadomości.'); }
     }
     function tileHeight() {
-        const height = document.querySelector('#gogatek-panel')?.shadowRoot?.querySelector('.launcher')?.getBoundingClientRect().height;
-        return height > 0 ? height : 28;
+        return 28; // Independent of the main Gogatki launcher size.
     }
     function position() {
         if (window.__gogatkiTileDock?.isDocked(panel)) return;
@@ -231,5 +230,6 @@ input[type="checkbox"]:disabled{opacity:.45;cursor:not-allowed}
     setInterval(tick, 250); tick();
 })();
 }});
+
 
 
