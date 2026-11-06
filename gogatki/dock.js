@@ -5,10 +5,10 @@
     const window = unsafeWindow;
     function createTileDock({onCleanup = () => {}} = {}) {
         const specs = [
+            {id:'standalone-free-gift', name:'Gift', gift:true},
             {id:'standalone-fullmetal', name:'Ulepa', control:'[data-min]'},
             {id:'standalone-loot-filter', name:'Lootfilter', control:'[data-settings]', click:true, icon:'bag'},
             {id:'wolacz-global-panel', name:'Wołacz Kolosy', control:'[aria-label="Uchwyt do przesuwania przycisku"]', icon:'megaphone'},
-            {id:'standalone-free-gift', name:'Gift', gift:true},
             {id:'pvp-clan-notificator', name:'PVP Info', control:'[data-settings]'},
             {id:'anty-x', name:'Anty X', control:'.gear', shadow:true, clickToOpen:true},
             {id:'emergency-item-standalone', name:'Auto TP', control:'.gear', shadow:true}
@@ -45,29 +45,37 @@
             .bar{display:flex;align-items:flex-start;gap:4px;padding:4px;background:#171b20;border:1px solid #668298;border-radius:4px;box-shadow:0 4px 16px #0006}
             .grip{display:flex;align-items:center;justify-content:center;flex:none;width:18px;height:28px;padding:0;border:0;border-radius:3px;background:#252b31;color:#b1c0cb;cursor:move;touch-action:none}
             .grip:focus-visible{outline:2px solid #12c9bd;outline-offset:1px}
-            .tiles{display:flex;flex-wrap:wrap;align-items:center;gap:4px;min-width:0;min-height:0;max-width:var(--tiles-max-width,calc(100vw - 54px));max-height:var(--tiles-max-height,calc(100vh - 20px));overflow:auto}
+            .items{display:flex;align-items:flex-start;gap:4px;min-width:0;min-height:0}
+            .gift-slot{display:flex;align-items:center;justify-content:center;flex:none;width:42px;height:28px;transform:translateY(var(--gift-offset,0px));overflow:visible}
+            .tiles{display:flex;flex-wrap:wrap;align-items:center;gap:4px;min-width:0;min-height:0;max-width:calc(var(--tiles-max-width,calc(100vw - 54px)) - var(--gift-space,0px));max-height:var(--tiles-max-height,calc(100vh - 20px));overflow:auto}
+            .gift-slot[hidden],.tiles[hidden]{display:none!important}
             :host([data-direction="left"]) .bar{flex-direction:row-reverse}
             :host([data-orientation="vertical"]) .bar{flex-direction:column;align-items:center}
             :host([data-orientation="vertical"]) .grip{width:28px;height:18px}
             :host([data-orientation="vertical"]) .grip svg{transform:rotate(90deg)}
+            :host([data-orientation="vertical"]) .items{flex-direction:column;align-items:center}
+            :host([data-orientation="vertical"]) .gift-slot{width:28px;height:42px;transform:translateX(var(--gift-offset,0px))}
             :host([data-orientation="vertical"][data-direction="up"]) .bar{flex-direction:column-reverse}
-            :host([data-orientation="vertical"]) .tiles{flex-direction:column;flex-wrap:nowrap;max-width:var(--tiles-max-width,calc(100vw - 26px));max-height:var(--tiles-max-height,calc(100vh - 56px))}
-            :host([data-collapsed="true"]) .tiles{display:none!important}
+            :host([data-orientation="vertical"]) .tiles{flex-direction:column;flex-wrap:nowrap;max-width:var(--tiles-max-width,calc(100vw - 26px));max-height:calc(var(--tiles-max-height,calc(100vh - 56px)) - var(--gift-space,0px))}
+            :host([data-collapsed="true"]) .items{display:none!important}
             :host([data-collapsed="true"]) .grip{width:var(--tile,28px);height:var(--tile,28px);color:#12c9bd;cursor:pointer}
             :host([data-collapsed="true"]) .grip svg{transform:none}
             slot{display:contents}
-        </style><div class="bar"><button class="grip" type="button" aria-label="Przesuń pasek zwiniętych dodatków" title="Przeciągnij pasek. Strzałki przesuwają go o 10 px."><svg viewBox="0 0 12 18" width="10" height="16" fill="currentColor" aria-hidden="true"><circle cx="4" cy="4" r="1"/><circle cx="8" cy="4" r="1"/><circle cx="4" cy="9" r="1"/><circle cx="8" cy="9" r="1"/><circle cx="4" cy="14" r="1"/><circle cx="8" cy="14" r="1"/></svg></button><div class="tiles" id="gogatki-dock-tiles"><slot></slot></div></div>`;
+        </style><div class="bar"><button class="grip" type="button" aria-label="Przesuń pasek zwiniętych dodatków" title="Przeciągnij pasek. Strzałki przesuwają go o 10 px."><svg viewBox="0 0 12 18" width="10" height="16" fill="currentColor" aria-hidden="true"><circle cx="4" cy="4" r="1"/><circle cx="8" cy="4" r="1"/><circle cx="4" cy="9" r="1"/><circle cx="8" cy="9" r="1"/><circle cx="4" cy="14" r="1"/><circle cx="8" cy="14" r="1"/></svg></button><div class="items" id="gogatki-dock-tiles"><div class="gift-slot" hidden><slot name="gift"></slot></div><div class="tiles"><slot></slot></div></div></div>`;
         // Slotted light-DOM panels retain their existing scoped game styles.
         const style = document.createElement('style');
         style.textContent = `
             :root #gogatki-tile-dock > [data-gogatki-docked]{position:static!important;inset:auto!important;transform:none!important;float:none!important;margin:0!important;flex:0 0 auto!important;align-self:center;max-width:100%}
             :root #gogatki-tile-dock > [data-gogatki-docked]:not(#standalone-free-gift){display:none!important}
+            :root #gogatki-tile-dock > #standalone-free-gift[data-gogatki-docked]{max-width:none!important}
             :root #gogatki-tile-dock > .gogatki-dock-toggle{all:initial;box-sizing:border-box!important;display:flex!important;align-items:center!important;justify-content:center!important;flex:0 0 auto!important;align-self:center!important;width:var(--tile,28px)!important;height:var(--tile,28px)!important;padding:0!important;margin:0!important;border:1px solid #668298!important;border-radius:4px!important;background:#252b31!important;color:#12c9bd!important;opacity:1!important;filter:none!important;box-shadow:none!important;font:12px/1 Arial,sans-serif!important;text-shadow:none!important;-webkit-text-stroke:0!important;cursor:pointer;touch-action:manipulation}
             :root #gogatki-tile-dock > .gogatki-dock-toggle[aria-expanded="true"]{border-color:#12c9bd!important;background:#173838!important}
             :root #gogatki-tile-dock > .gogatki-dock-toggle:focus-visible{outline:2px solid #12c9bd!important;outline-offset:2px}
             :root #gogatki-tile-dock > .gogatki-dock-toggle::before,:root #gogatki-tile-dock > .gogatki-dock-toggle::after{content:none!important;display:none!important}
             :root #gogatki-tile-dock > .gogatki-dock-toggle svg{display:block!important;width:18px!important;height:18px!important;color:#12c9bd!important;pointer-events:none!important}
         `;
+        const giftSlot = root.querySelector('.gift-slot');
+        const otherTiles = root.querySelector('.tiles');
         let frame = 0, disposed = false, observer = null, resize = null;
         function destroy() {
             if (disposed) return;
@@ -109,6 +117,11 @@
             const x = Math.max(initial.width / 2 + 5, Math.min(window.innerWidth - initial.width / 2 - 5, window.innerWidth - anchor.right));
             const y = Math.max(initial.height / 2 + 5, Math.min(window.innerHeight - initial.height / 2 - 5, anchor.top));
             const tile = parseFloat(host.style.getPropertyValue('--tile')) || 28;
+            // Keep the enlarged Gift visible at screen edges without moving the grip.
+            const cross = vertical ? x : y;
+            const crossLimit = vertical ? window.innerWidth : window.innerHeight;
+            const giftOffset = Math.max(21, Math.min(crossLimit - 21, cross)) - cross;
+            host.style.setProperty('--gift-offset', giftOffset + 'px');
             // Wrap/scroll away from the grip instead of moving it as the contents grow.
             const backwards = vertical ? window.innerHeight - y < tile + 32 && y > window.innerHeight / 2 : window.innerWidth - x < tile + 32 && x > window.innerWidth / 2;
             const direction = vertical ? (backwards ? 'up' : 'down') : (backwards ? 'left' : 'right');
@@ -143,12 +156,23 @@
             if (entry.docked) return;
             entry.parent = entry.node.parentNode; entry.next = entry.node.nextSibling;
             entry.docked = true; entry.node.setAttribute('data-gogatki-docked', '');
+            if (entry.spec.gift) {
+                entry.originalSlot = entry.node.getAttribute('slot');
+                entry.node.setAttribute('slot', 'gift');
+            }
             host.append(entry.node);
+        }
+        function clearDockMarker(entry) {
+            entry.docked = false; entry.node.removeAttribute('data-gogatki-docked');
+            if (entry.spec.gift) {
+                entry.node.removeAttribute('data-gogatki-dock-item');
+                if (entry.originalSlot === null) entry.node.removeAttribute('slot');
+                else entry.node.setAttribute('slot', entry.originalSlot);
+            }
         }
         function release(entry) {
             if (!entry.docked) return;
-            entry.docked = false; entry.node.removeAttribute('data-gogatki-docked');
-            if (entry.spec.gift) entry.node.removeAttribute('data-gogatki-dock-item');
+            clearDockMarker(entry);
             const parent = entry.parent?.isConnected ? entry.parent : document.body;
             parent.insertBefore(entry.node, entry.next?.parentNode === parent ? entry.next : null);
         }
@@ -189,7 +213,11 @@
             host.style.setProperty('--tile', '28px');
             for (const spec of specs) {
                 let entry = entries.get(spec.id);
-                if (entry && !entry.node.isConnected) { entry.observer.disconnect(); entry.button?.remove(); entries.delete(spec.id); entry = null; }
+                if (entry && !entry.node.isConnected) {
+                    entry.observer.disconnect(); entry.button?.remove();
+                    if (entry.docked) clearDockMarker(entry);
+                    entries.delete(spec.id); entry = null;
+                }
                 if (!entry) {
                     const node = document.getElementById(spec.id);
                     if (!node) continue;
@@ -219,6 +247,10 @@
                 if (cursor === node) cursor = cursor.nextElementSibling;
                 else host.insertBefore(node, cursor);
             }
+            const hasGift = !!entries.get('standalone-free-gift')?.docked;
+            giftSlot.hidden = !hasGift;
+            otherTiles.hidden = !specs.some(spec => !spec.gift && entries.has(spec.id));
+            host.style.setProperty('--gift-space', hasGift && !otherTiles.hidden ? '46px' : '0px');
             host.hidden = entries.size === 0;
             place();
         }
@@ -327,6 +359,7 @@
     }
     GogatkiDockRuntime.register({apiVersion:2, create:createTileDock});
 })();
+
 
 
 
