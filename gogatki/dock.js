@@ -46,7 +46,7 @@
             .grip{display:flex;align-items:center;justify-content:center;flex:none;width:18px;height:28px;padding:0;border:0;border-radius:3px;background:#252b31;color:#b1c0cb;cursor:move;touch-action:none}
             .grip:focus-visible{outline:2px solid #12c9bd;outline-offset:1px}
             .items{display:flex;align-items:flex-start;gap:4px;min-width:0;min-height:0}
-            .gift-slot{display:flex;align-items:center;justify-content:center;flex:none;width:42px;height:28px;transform:translateY(var(--gift-offset,0px));overflow:visible}
+            .gift-slot{display:flex;align-items:center;justify-content:center;flex:none;width:var(--gift-size,28px);height:28px;transform:translateY(var(--gift-offset,0px));overflow:visible}
             .tiles{display:flex;flex-wrap:wrap;align-items:center;gap:4px;min-width:0;min-height:0;max-width:calc(var(--tiles-max-width,calc(100vw - 54px)) - var(--gift-space,0px));max-height:var(--tiles-max-height,calc(100vh - 20px));overflow:auto}
             .gift-slot[hidden],.tiles[hidden]{display:none!important}
             :host([data-direction="left"]) .bar{flex-direction:row-reverse}
@@ -54,7 +54,7 @@
             :host([data-orientation="vertical"]) .grip{width:28px;height:18px}
             :host([data-orientation="vertical"]) .grip svg{transform:rotate(90deg)}
             :host([data-orientation="vertical"]) .items{flex-direction:column;align-items:center}
-            :host([data-orientation="vertical"]) .gift-slot{width:28px;height:42px;transform:translateX(var(--gift-offset,0px))}
+            :host([data-orientation="vertical"]) .gift-slot{width:28px;height:var(--gift-size,28px);transform:translateX(var(--gift-offset,0px))}
             :host([data-orientation="vertical"][data-direction="up"]) .bar{flex-direction:column-reverse}
             :host([data-orientation="vertical"]) .tiles{flex-direction:column;flex-wrap:nowrap;max-width:var(--tiles-max-width,calc(100vw - 26px));max-height:calc(var(--tiles-max-height,calc(100vh - 56px)) - var(--gift-space,0px))}
             :host([data-collapsed="true"]) .items{display:none!important}
@@ -120,7 +120,8 @@
             // Keep the enlarged Gift visible at screen edges without moving the grip.
             const cross = vertical ? x : y;
             const crossLimit = vertical ? window.innerWidth : window.innerHeight;
-            const giftOffset = Math.max(21, Math.min(crossLimit - 21, cross)) - cross;
+            const giftHalf = (parseFloat(host.style.getPropertyValue('--gift-size')) || tile) / 2;
+            const giftOffset = Math.max(giftHalf, Math.min(crossLimit - giftHalf, cross)) - cross;
             host.style.setProperty('--gift-offset', giftOffset + 'px');
             // Wrap/scroll away from the grip instead of moving it as the contents grow.
             const backwards = vertical ? window.innerHeight - y < tile + 32 && y > window.innerHeight / 2 : window.innerWidth - x < tile + 32 && x > window.innerWidth / 2;
@@ -224,7 +225,7 @@
                     entry = {node, spec, docked:false, observer:new MutationObserver(schedule)};
                     entries.set(spec.id, entry);
                     if (!spec.gift) entry.button = makeToggle(entry);
-                    entry.observer.observe(node, {attributes:true, attributeFilter:['data-compact']});
+                    entry.observer.observe(node, {attributes:true, attributeFilter:spec.gift ? ['data-reward'] : ['data-compact']});
                     if (node.shadowRoot) entry.observer.observe(node.shadowRoot, {subtree:true, attributes:true, attributeFilter:['class']});
                 }
                 if (compact(entry)) dock(entry); else release(entry);
@@ -248,9 +249,11 @@
                 else host.insertBefore(node, cursor);
             }
             const hasGift = !!entries.get('standalone-free-gift')?.docked;
+            const giftSize = hasGift && entries.get('standalone-free-gift').node.dataset.reward === 'true' ? 42 : 28;
             giftSlot.hidden = !hasGift;
             otherTiles.hidden = !specs.some(spec => !spec.gift && entries.has(spec.id));
-            host.style.setProperty('--gift-space', hasGift && !otherTiles.hidden ? '46px' : '0px');
+            host.style.setProperty('--gift-size', giftSize + 'px');
+            host.style.setProperty('--gift-space', hasGift && !otherTiles.hidden ? (giftSize + 4) + 'px' : '0px');
             host.hidden = entries.size === 0;
             place();
         }
@@ -359,6 +362,7 @@
     }
     GogatkiDockRuntime.register({apiVersion:2, create:createTileDock});
 })();
+
 
 
 
