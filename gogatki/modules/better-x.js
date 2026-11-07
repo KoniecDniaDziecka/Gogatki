@@ -1,4 +1,4 @@
-// Better X 1.0.0 — samodzielna adaptacja Wild Hunt (Maddonz, Barlag) dla Gogatków.
+// Better X 1.0.1 — samodzielna adaptacja Wild Hunt (Maddonz, Barlag) dla Gogatków.
 GogatkiRuntime.register({
   id: 'better-x', name: 'Better X',
   description: 'Atakowanie i dobijanie graczy; domyślny skrót X, próby co 200–350 ms.',
@@ -21,7 +21,7 @@ GogatkiRuntime.register({
   const save = () => GM_setValue(key, JSON.parse(JSON.stringify(settings)));
   save();
   let target = null, mapId, ready = false, timer;
-  let markedElement = null;
+  let markedElement = null, targetMarker = null;
   const engine = () => window.Engine?.hero?.d ? window.Engine : null;
   const hero = () => engine()?.hero.d || window.hero;
   const others = () => engine() ? Object.values(engine().others.check()).map(o => o.d) : Object.entries(window.g?.other || {}).map(([id, o]) => ({ ...o, id: o.id ?? id }));
@@ -53,7 +53,8 @@ GogatkiRuntime.register({
       movementLock.remove('searchPath');
     }
   }
-  function stop() { target = null; if (markedElement) { markedElement.style.outline = markedElement.dataset.wildHuntOutline || ""; markedElement = null; } renderStatus(); }
+  function clearMarker() { targetMarker?.remove(); targetMarker = null; markedElement = null; }
+  function stop() { target = null; clearMarker(); renderStatus(); }
   function hunt(o) { if (!o || !eligible(o)) return stop(); target = String(o.id); renderStatus(); clearTimeout(timer); poll(); }
   function nearest() {
     try {
@@ -95,13 +96,47 @@ GogatkiRuntime.register({
     }
   }
   const drawableHooks = new WeakSet();
+  function markerVisible(o) {
+    return ready && !!target && !!o && String(o.id) === target && eligible(o) && !inBattle() &&
+      !(engine()?.dead || window.g?.dead) && (engine()?.map?.d?.id ?? window.map?.id) === mapId;
+  }
+  function drawMarker(ctx, master, map) {
+    const rx = Number(master.rx ?? master.d.x), ry = Number(master.ry ?? master.d.y);
+    const fw = Number(master.fw) || 32, fh = Number(master.fh) || 48;
+    const x = rx * 32 + 16 - fw / 2 - (Number(map.offset?.[0]) || 0) - 4;
+    let y = ry * 32 - fh + 32 - (Number(map.offset?.[1]) || 0) - 4;
+    if (map.water?.[Math.round(rx) + Math.round(ry) * 256] != null) y += Number(master.waterTopModify) || 0;
+    if (![x,y,fw,fh].every(Number.isFinite)) return;
+    const width = fw + 8, height = fh + 8, center = x + width / 2;
+    ctx.save();
+    try {
+      ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+      ctx.setLineDash([]); ctx.shadowBlur = 0;
+      ctx.strokeStyle = '#171b20'; ctx.lineWidth = 5; ctx.strokeRect(x,y,width,height);
+      ctx.strokeStyle = '#12c9bd'; ctx.lineWidth = 2; ctx.strokeRect(x,y,width,height);
+      ctx.fillStyle = '#12c9bd'; ctx.strokeStyle = '#171b20'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(center - 6,y - 10); ctx.lineTo(center + 6,y - 10); ctx.lineTo(center,y - 3); ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#171b20'; ctx.fillRect(center - 19,y - 29,38,16);
+      ctx.strokeStyle = '#12c9bd'; ctx.lineWidth = 1; ctx.strokeRect(center - 19,y - 29,38,16);
+      ctx.font = 'bold 11px Arial,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#12c9bd'; ctx.fillText('CEL',center,y - 21);
+    } finally { ctx.restore(); }
+  }
   function installMarker() {
     if (!engine()) {
-      const el = target && document.getElementById('other' + target);
-      if (markedElement && markedElement !== el) { markedElement.style.outline = markedElement.dataset.wildHuntOutline || ''; markedElement = null; }
-      if (el && el !== markedElement) { el.dataset.wildHuntOutline = el.style.outline; el.style.outline = '2px solid red'; markedElement = el; }
+      const el = markerVisible(target && find(target)) && document.getElementById('other' + target);
+      if (markedElement !== el || !targetMarker?.isConnected) {
+        clearMarker();
+        if (el) {
+          markedElement = el; targetMarker = document.createElement('span');
+          targetMarker.id = 'gogatki-better-x-target'; targetMarker.setAttribute('aria-hidden','true');
+          targetMarker.style.cssText = 'position:absolute!important;inset:-4px!important;pointer-events:none!important;z-index:1!important';
+          targetMarker.attachShadow({mode:'open'}).innerHTML = `<style>:host{display:block!important;pointer-events:none!important}.frame{position:absolute;inset:0;border:2px solid #12c9bd;box-shadow:0 0 0 2px #171b20;box-sizing:border-box;pointer-events:none}.label{position:absolute;left:50%;top:-29px;transform:translateX(-50%);box-sizing:border-box;min-width:38px;height:18px;border:1px solid #12c9bd;background:#171b20;color:#12c9bd;font:bold 11px/16px Arial,sans-serif;text-align:center;white-space:nowrap}.arrow{position:absolute;left:50%;top:-10px;transform:translateX(-50%);width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:7px solid #12c9bd}</style><span class="frame"></span><span class="label">CEL</span><span class="arrow"></span>`;
+          el.append(targetMarker);
+        }
+      }
       return;
     }
+    clearMarker();
     const manager = engine().others;
     if (drawableHooks.has(manager) || typeof manager.getDrawableList !== 'function') return;
     drawableHooks.add(manager);
@@ -109,15 +144,14 @@ GogatkiRuntime.register({
     manager.getDrawableList = function (...args) {
       const list = original.apply(this, args);
       const master = target && manager.getById(target);
-      if (master && Array.isArray(list)) list.push({
+      if (master && markerVisible(master.d) && Array.isArray(list)) return list.concat({
         d: master.d,
-        getOrder: () => master.ry + 0.1,
+        getOrder: () => Number(master.ry ?? master.d.y) + 0.1,
         draw(ctx) {
-          const map = engine().map, width = master.fw + 4, height = master.fh + 4;
-          const x = (master.rx - 0.025) * 32 + 16 - width / 2 - map.offset[0];
-          let y = master.ry * 32 - height + 32 - map.offset[1];
-          if (map.water?.[Math.round(master.rx) + Math.round(master.ry) * 256] != null) y += master.waterTopModify || 0;
-          ctx.save(); ctx.strokeStyle = 'red'; ctx.lineWidth = 2; ctx.strokeRect(x, y, width, height); ctx.restore();
+          const current = engine();
+          // A cached frame must not draw an old target after Stop, a map change, or a switch.
+          if (current?.others !== manager || !markerVisible(master.d)) return;
+          drawMarker(ctx,master,current.map);
         }
       });
       return list;
@@ -200,7 +234,9 @@ GogatkiRuntime.register({
     timer = setTimeout(poll, 200 + Math.floor(Math.random() * 151));
   }
   poll();
+  window.addEventListener('pagehide', () => { clearTimeout(timer); ready = false; stop(); }, {once:true});
 })();
 
   }
 });
+
