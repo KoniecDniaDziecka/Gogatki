@@ -1,4 +1,3 @@
-// Anty X 1.0.1 — adaptacja Peacekeeper (Maddonz, Barlag), moduł Gogatki.
 GogatkiRuntime.register({id:"anty-x",name:"Anty X",description:"Filtr ataków PvP według relacji, poziomów i listy chronionych graczy.",start() {
     // Keep checkbox styling consistent in already installed Gogatki panels.
     const gogatkiRoot = document.querySelector('#gogatek-panel')?.shadowRoot;
