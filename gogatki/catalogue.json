@@ -54,7 +54,12 @@
       "name": "QF",
       "description": "Szybka walka według typu potworów, wielkości grupy i poziomów.",
       "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/qf.js?v=1.0.4"
+    },
+    {
+      "id": "better-x",
+      "name": "Better X",
+      "description": "Atakowanie i dobijanie graczy; domyślny skrót X, próby co 200–350 ms.",
+      "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/better-x.js?v=1.0.0"
     }
   ]
 }
-
