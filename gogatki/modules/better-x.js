@@ -1,4 +1,4 @@
-// Better X 1.0.1 — samodzielna adaptacja Wild Hunt (Maddonz, Barlag) dla Gogatków.
+// Better X 1.0.2 — samodzielna adaptacja Wild Hunt (Maddonz, Barlag) dla Gogatków.
 GogatkiRuntime.register({
   id: 'better-x', name: 'Better X',
   description: 'Atakowanie i dobijanie graczy; domyślny skrót X, próby co 200–350 ms.',
@@ -102,23 +102,24 @@ GogatkiRuntime.register({
   }
   function drawMarker(ctx, master, map) {
     const rx = Number(master.rx ?? master.d.x), ry = Number(master.ry ?? master.d.y);
-    const fw = Number(master.fw) || 32, fh = Number(master.fh) || 48;
-    const x = rx * 32 + 16 - fw / 2 - (Number(map.offset?.[0]) || 0) - 4;
-    let y = ry * 32 - fh + 32 - (Number(map.offset?.[1]) || 0) - 4;
+    const fh = Number(master.fh) || 48;
+    const x = rx * 32 + 16 - (Number(map.offset?.[0]) || 0);
+    let y = ry * 32 - fh / 2 + 32 - (Number(map.offset?.[1]) || 0);
     if (map.water?.[Math.round(rx) + Math.round(ry) * 256] != null) y += Number(master.waterTopModify) || 0;
-    if (![x,y,fw,fh].every(Number.isFinite)) return;
-    const width = fw + 8, height = fh + 8, center = x + width / 2;
+    if (![x,y,fh].every(Number.isFinite)) return;
     ctx.save();
     try {
       ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
       ctx.setLineDash([]); ctx.shadowBlur = 0;
-      ctx.strokeStyle = '#171b20'; ctx.lineWidth = 5; ctx.strokeRect(x,y,width,height);
-      ctx.strokeStyle = '#12c9bd'; ctx.lineWidth = 2; ctx.strokeRect(x,y,width,height);
-      ctx.fillStyle = '#12c9bd'; ctx.strokeStyle = '#171b20'; ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.moveTo(center - 6,y - 10); ctx.lineTo(center + 6,y - 10); ctx.lineTo(center,y - 3); ctx.closePath(); ctx.fill(); ctx.stroke();
-      ctx.fillStyle = '#171b20'; ctx.fillRect(center - 19,y - 29,38,16);
-      ctx.strokeStyle = '#12c9bd'; ctx.lineWidth = 1; ctx.strokeRect(center - 19,y - 29,38,16);
-      ctx.font = 'bold 11px Arial,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#12c9bd'; ctx.fillText('CEL',center,y - 21);
+      ctx.translate(x,y); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+      // Dark and light outlines keep the red reticle visible over outfits and map textures.
+      for (const [color,width] of [['#11151a',6],['#f4f7fa',4],['#ff3b45',2.5]]) {
+        ctx.strokeStyle = color; ctx.lineWidth = width;
+        ctx.beginPath(); ctx.arc(0,0,13,0,Math.PI * 2);
+        ctx.moveTo(0,-20); ctx.lineTo(0,-10); ctx.moveTo(0,10); ctx.lineTo(0,20);
+        ctx.moveTo(-20,0); ctx.lineTo(-10,0); ctx.moveTo(10,0); ctx.lineTo(20,0); ctx.stroke();
+      }
+      ctx.fillStyle = '#ff3b45'; ctx.beginPath(); ctx.arc(0,0,2,0,Math.PI * 2); ctx.fill();
     } finally { ctx.restore(); }
   }
   function installMarker() {
@@ -129,8 +130,9 @@ GogatkiRuntime.register({
         if (el) {
           markedElement = el; targetMarker = document.createElement('span');
           targetMarker.id = 'gogatki-better-x-target'; targetMarker.setAttribute('aria-hidden','true');
-          targetMarker.style.cssText = 'position:absolute!important;inset:-4px!important;pointer-events:none!important;z-index:1!important';
-          targetMarker.attachShadow({mode:'open'}).innerHTML = `<style>:host{display:block!important;pointer-events:none!important}.frame{position:absolute;inset:0;border:2px solid #12c9bd;box-shadow:0 0 0 2px #171b20;box-sizing:border-box;pointer-events:none}.label{position:absolute;left:50%;top:-29px;transform:translateX(-50%);box-sizing:border-box;min-width:38px;height:18px;border:1px solid #12c9bd;background:#171b20;color:#12c9bd;font:bold 11px/16px Arial,sans-serif;text-align:center;white-space:nowrap}.arrow{position:absolute;left:50%;top:-10px;transform:translateX(-50%);width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:7px solid #12c9bd}</style><span class="frame"></span><span class="label">CEL</span><span class="arrow"></span>`;
+          targetMarker.style.cssText = 'position:absolute!important;inset:0!important;pointer-events:none!important;z-index:1!important';
+          const shape = '<circle cx="22" cy="22" r="13"/><path d="M22 2v10m0 20v10M2 22h10m20 0h10"/>';
+          targetMarker.attachShadow({mode:'open'}).innerHTML = `<style>:host{display:block!important;pointer-events:none!important}svg{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:44px;height:44px;overflow:visible;pointer-events:none}</style><svg viewBox="0 0 44 44" aria-hidden="true" fill="none" stroke-linecap="round" stroke-linejoin="round"><g stroke="#11151a" stroke-width="6">${shape}</g><g stroke="#f4f7fa" stroke-width="4">${shape}</g><g stroke="#ff3b45" stroke-width="2.5">${shape}</g><circle cx="22" cy="22" r="2" fill="#ff3b45"/></svg>`;
           el.append(targetMarker);
         }
       }
@@ -239,4 +241,5 @@ GogatkiRuntime.register({
 
   }
 });
+
 

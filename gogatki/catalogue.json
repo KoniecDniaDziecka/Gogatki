@@ -59,9 +59,10 @@
       "id": "better-x",
       "name": "Better X",
       "description": "Atakowanie i dobijanie graczy; domyślny skrót X, próby co 200–350 ms.",
-      "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/better-x.js?v=1.0.1"
+      "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/better-x.js?v=1.0.2"
     }
   ]
 }
+
 
 
