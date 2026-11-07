@@ -1,4 +1,3 @@
-// Auto TP 1.0.2 — adaptacja EmergencyItem z Maddonz (Barlag).
 GogatkiRuntime.register({
   id: 'auto-tp',
   name: 'Auto TP',
