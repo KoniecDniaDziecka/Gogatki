@@ -1,4 +1,3 @@
-// QF 1.0.4 — samodzielna adaptacja Smart Autofight z Maddonz (Barlag).
 GogatkiRuntime.register({
   id: 'qf', name: 'QF',
   description: 'Szybka walka według typu potworów, wielkości grupy i poziomów.',
