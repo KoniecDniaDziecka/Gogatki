@@ -11,7 +11,8 @@
             {id:'wolacz-global-panel', name:'Wołacz Kolosy', control:'[aria-label="Uchwyt do przesuwania przycisku"]', icon:'megaphone'},
             {id:'pvp-clan-notificator', name:'PVP Info', control:'[data-settings]'},
             {id:'anty-x', name:'Anty X', control:'.gear', shadow:true, clickToOpen:true},
-            {id:'emergency-item-standalone', name:'Auto TP', control:'.gear', shadow:true}
+            {id:'emergency-item-standalone', name:'Auto TP', control:'.gear', shadow:true},
+            {id:'smart-autofight-standalone', name:'QF', control:'.q-control', shadow:true, click:true, activeControl:true, text:'Q'}
         ];
         const selector = specs.map(s => '#' + s.id).join(',');
         const entries = new Map();
@@ -69,6 +70,8 @@
             :root #gogatki-tile-dock > [data-gogatki-docked]:not(#standalone-free-gift){display:none!important}
             :root #gogatki-tile-dock > #standalone-free-gift[data-gogatki-docked]{max-width:none!important}
             :root #gogatki-tile-dock > .gogatki-dock-toggle{all:initial;box-sizing:border-box!important;display:flex!important;align-items:center!important;justify-content:center!important;flex:0 0 auto!important;align-self:center!important;width:var(--tile,28px)!important;height:var(--tile,28px)!important;padding:0!important;margin:0!important;border:1px solid #668298!important;border-radius:4px!important;background:#252b31!important;color:#12c9bd!important;opacity:1!important;filter:none!important;box-shadow:none!important;font:12px/1 Arial,sans-serif!important;text-shadow:none!important;-webkit-text-stroke:0!important;cursor:pointer;touch-action:manipulation}
+            :root #gogatki-tile-dock > .gogatki-dock-toggle[data-active="false"]{color:#74838d!important}
+            :root #gogatki-tile-dock > .gogatki-dock-toggle[data-active]{font-weight:bold!important;font-size:16px!important}
             :root #gogatki-tile-dock > .gogatki-dock-toggle[aria-expanded="true"]{border-color:#12c9bd!important;background:#173838!important}
             :root #gogatki-tile-dock > .gogatki-dock-toggle:focus-visible{outline:2px solid #12c9bd!important;outline-offset:2px}
             :root #gogatki-tile-dock > .gogatki-dock-toggle::before,:root #gogatki-tile-dock > .gogatki-dock-toggle::after{content:none!important;display:none!important}
@@ -187,7 +190,8 @@
                 bag:'<path d="m8 3 2 4h4l2-4H8ZM8 8h8M9 8c-2 3-5 5-5 9a4 4 0 0 0 4 4h8a4 4 0 0 0 4-4c0-4-3-6-5-9"/><circle cx="12" cy="15.5" r="2.5"/>',
                 megaphone:'<path d="M3 10v4h4l12 5V5L7 10H3Z"/><path d="m7 14 2 7h4l-2-5M7 10v4M22 9v6"/>'
             };
-            if (entry.spec.icon) button.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + icons[entry.spec.icon] + '</svg>';
+            if (entry.spec.text) button.textContent = entry.spec.text;
+            else if (entry.spec.icon) button.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + icons[entry.spec.icon] + '</svg>';
             else {
                 const svg = control(entry)?.querySelector('svg');
                 if (svg) button.append(svg.cloneNode(true));
@@ -199,7 +203,8 @@
                 release(entry);
                 const target = control(entry);
                 if (target) {
-                    if (entry.spec.click || (entry.spec.clickToOpen && compact(entry))) target.click();
+                    if (entry.spec.activeControl && event.type === 'contextmenu') target.dispatchEvent(new MouseEvent('contextmenu', {bubbles:true, cancelable:true}));
+                    else if (entry.spec.click || (entry.spec.clickToOpen && compact(entry))) target.click();
                     else target.dispatchEvent(new MouseEvent('contextmenu', {bubbles:true, cancelable:true}));
                 }
                 sync();
@@ -231,7 +236,10 @@
                 if (compact(entry)) dock(entry); else release(entry);
                 if (entry.button) {
                     const expanded = !compact(entry);
-                    const title = spec.name + (expanded ? ' — zwiń' : ' — rozwiń');
+                    const enabled = spec.activeControl && control(entry)?.classList.contains('active');
+                    if (spec.activeControl) entry.button.dataset.active = String(Boolean(enabled));
+                    const title = spec.name + (expanded ? ' — zwiń' : ' — rozwiń') +
+                        (spec.activeControl ? ` · ${enabled ? 'włączony' : 'wyłączony'} · PPM: włącz/wyłącz` : '');
                     entry.button.title = title; entry.button.setAttribute('aria-label', title);
                     entry.button.setAttribute('aria-expanded', String(expanded));
                 } else entry.node.dataset.gogatkiDockItem = spec.id;
@@ -362,6 +370,7 @@
     }
     GogatkiDockRuntime.register({apiVersion:2, create:createTileDock});
 })();
+
 
 
 
