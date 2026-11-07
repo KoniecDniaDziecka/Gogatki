@@ -13,6 +13,13 @@ GogatkiRuntime.register({id:"wolacz",name:"Wo\u0142acz Kolosy",description:"Wo\u
     const tileHeight = 28;
     const tileStyle = document.createElement('style');
     tileStyle.textContent = ":root #wolacz-global-panel[data-compact=\"true\"]{box-sizing:border-box;height:__TILE_HEIGHT__;min-height:0}:root #wolacz-global-panel[data-compact=\"true\"] > div:first-child{box-sizing:border-box;height:100%;min-height:0;padding:0 5px!important}:root #wolacz-global-panel[data-compact=\"true\"] > div:first-child > div{box-sizing:border-box;height:100%;line-height:calc(__TILE_HEIGHT__ - 2px)!important;font-size:16px!important}:root #wolacz-global-panel{background:#171b20!important;color:#dce6ee!important;opacity:1!important;filter:none!important;mix-blend-mode:normal!important;isolation:isolate;font-family:Arial,sans-serif!important;font-weight:400!important;font-style:normal!important}\n:root #wolacz-global-panel,:root #wolacz-global-panel *{font-family:Arial,sans-serif!important;text-shadow:none!important;-webkit-text-stroke:0!important;-webkit-text-fill-color:currentColor!important;letter-spacing:normal!important}\n:root #wolacz-global-panel header{background:#252b31!important}\n:root #wolacz-global-panel{color:#dce6ee!important}\n:root #wolacz-global-panel label,:root #wolacz-global-panel .slot-label{color:#c0ced8!important}\n:root #wolacz-global-panel legend,:root #wolacz-global-panel strong,:root #wolacz-global-panel header b{color:#edf3f7!important}\n:root #wolacz-global-panel small{color:#b1c0cb!important}\n:root #wolacz-global-panel input:not([type=\"checkbox\"]),:root #wolacz-global-panel select,:root #wolacz-global-panel textarea{color:#dce6ee!important}\n:root #wolacz-global-panel input::placeholder,:root #wolacz-global-panel textarea::placeholder{color:#8fa2b0!important;opacity:1}\n:root #wolacz-global-panel button{color:#dce6ee!important}\n:root #wolacz-global-panel header button:has(svg),:root #wolacz-global-panel button:has(svg){display:inline-flex;align-items:center;justify-content:center;color:#12c9bd!important}\n:root #wolacz-global-panel [aria-label^=\"Uchwyt\"]{color:#b1c0cb!important}\n:root #wolacz-global-panel button svg{display:block;max-width:100%;max-height:100%;flex-shrink:0}\n:root #standalone-fullmetal [data-status]{color:#b1c0cb!important}\n:root #standalone-fullmetal [data-usage]{color:#c0ced8!important}\n:root #e2-caller-panel .e2-ide{color:#12c9bd!important}\n\n:root #wolacz-global-panel label{font-size:12px!important;font-weight:400!important}\n:root #wolacz-global-panel legend,:root #wolacz-global-panel strong,:root #wolacz-global-panel header b{font-weight:600!important}\n:root #wolacz-global-panel input:not([type=\"checkbox\"]),:root #wolacz-global-panel select,:root #wolacz-global-panel textarea{font-size:12px!important;background:#1b242c}\n:root #e2-caller-panel,:root #wolacz-global-panel > div:first-child{background:#252b31!important}\n:root #e2-caller-panel .e2-auto{font-size:11px!important}\n\n:root #wolacz-global-panel input[type=\"checkbox\"]{-webkit-appearance:none!important;appearance:none!important;box-sizing:border-box!important;position:relative!important;transform:none!important;filter:none!important;display:grid!important;place-content:center!important;width:14px!important;height:14px!important;min-width:14px!important;min-height:14px!important;flex:none!important;padding:0!important;margin:0!important;border:1px solid #668298!important;border-radius:3px!important;background:#252b31!important;background-image:none!important;box-shadow:none!important;cursor:pointer;font:12px Arial,sans-serif!important;text-shadow:none!important;-webkit-text-stroke:0!important}\n:root #wolacz-global-panel input[type=\"checkbox\"]:checked{border-color:#668298!important;background:#252b31!important;background-image:none!important}\n:root #wolacz-global-panel input[type=\"checkbox\"]::before{content:none!important;display:none!important}\n:root #wolacz-global-panel input[type=\"checkbox\"]::after{content:none!important;display:none!important}\n:root #wolacz-global-panel input[type=\"checkbox\"]:checked::after{content:'✓'!important;display:block!important;position:static!important;width:auto!important;height:auto!important;margin:0!important;padding:0!important;border:0!important;transform:none!important;background:none!important;box-shadow:none!important;color:#12c9bd!important;-webkit-text-fill-color:#12c9bd!important;-webkit-text-stroke:0!important;text-shadow:none!important;font:12px/12px Arial,sans-serif!important}\n:root #wolacz-global-panel input[type=\"checkbox\"]:focus-visible{outline:2px solid #12c9bd;outline-offset:1px}\n:root #wolacz-global-panel input[type=\"checkbox\"]:disabled{opacity:.45;cursor:not-allowed}\n\n:root #wolacz-global-panel[data-compact=\"true\"]{width:__TILE_HEIGHT__;overflow:hidden}\n:root #wolacz-global-panel[data-compact=\"true\"] > div:first-child{padding:0!important}\n:root #wolacz-global-panel[data-compact=\"true\"] [aria-label=\"Uchwyt do przesuwania przycisku\"]{width:100%;height:100%;padding:0;cursor:pointer;color:#12c9bd!important}\n:root #wolacz-global-panel[data-compact=\"true\"] [aria-label=\"Uchwyt do przesuwania przycisku\"]:focus-visible{outline:2px solid #12c9bd;outline-offset:-3px}\n".replaceAll('__TILE_HEIGHT__', tileHeight + 'px');
+    tileStyle.textContent += `
+        :root div#wolacz-global-panel > div:first-child{background:#171b20!important}
+        :root div#wolacz-global-panel button{color:#12c9bd!important}
+        :root div#wolacz-global-panel button:hover:not(:disabled){background:#173838!important;border-color:#12c9bd!important}
+        :root div#wolacz-global-panel button:disabled{color:#74838d!important;opacity:1!important}
+        :root div#wolacz-global-panel button:focus-visible{outline:2px solid #12c9bd;outline-offset:2px}
+    `;
     document.head.appendChild(tileStyle);
     // Centre the existing panel grip without replacing its button or event handlers.
     const panelGrip = document.querySelector('#gogatek-panel')?.shadowRoot?.querySelector('.move');
@@ -68,16 +75,16 @@ GogatkiRuntime.register({id:"wolacz",name:"Wo\u0142acz Kolosy",description:"Wo\u
         position: 'fixed', top: '20px', left: '20px', zIndex: '10000',
         display: 'flex', flexDirection: 'column', alignItems: 'stretch',
         gap: '0', maxWidth: '260px', font: '12px/1.3 Arial',
-        background: '#171719ed', color: '#eee', border: '1px solid #668298',
-        borderRadius: '4px', boxShadow: '0 6px 22px #0009', overflow: 'hidden',
+        background: '#171b20', color: '#c7d0d9', border: '1px solid #668298',
+        borderRadius: '4px', boxShadow: '0 4px 16px #0006', overflow: 'hidden',
     });
 
     const button = document.createElement('button');
     button.type = 'button';
     Object.assign(button.style, {
-        padding: '3px 8px', border: '1px solid #6d879a', borderRadius: '3px',
-        background: '#38566c', color: '#12c9bd', font: '12px/18px Arial',
-        minHeight: '24px', flex: '1', whiteSpace: 'normal',
+        boxSizing: 'border-box', padding: '0 8px', border: '1px solid #668298', borderRadius: '4px',
+        background: '#252b31', color: '#12c9bd', font: '12px/1 Arial',
+        height: '28px', minHeight: '28px', flex: '1', whiteSpace: 'normal', cursor: 'pointer',
     });
     const status = document.createElement('div');
     status.setAttribute('role', 'status');
@@ -88,17 +95,18 @@ GogatkiRuntime.register({id:"wolacz",name:"Wo\u0142acz Kolosy",description:"Wo\u
     const controls = document.createElement('div');
     Object.assign(controls.style, {
         display: 'flex', alignItems: 'center', gap: '4px',
-        padding: '3px 5px', background: '#25272a',
+        padding: '4px', background: '#171b20',
     });
     const handle = document.createElement('div');
     handle.innerHTML = "<svg viewBox=\"0 0 12 18\" width=\"10\" height=\"16\" aria-hidden=\"true\" focusable=\"false\" style=\"display:block;pointer-events:none;flex-shrink:0;fill:currentColor\"><circle cx=\"4\" cy=\"4\" r=\"1\"/><circle cx=\"8\" cy=\"4\" r=\"1\"/><circle cx=\"4\" cy=\"9\" r=\"1\"/><circle cx=\"8\" cy=\"9\" r=\"1\"/><circle cx=\"4\" cy=\"14\" r=\"1\"/><circle cx=\"8\" cy=\"14\" r=\"1\"/></svg>";
     handle.title = 'Przeciągnij, aby zmienić pozycję. Pozycja zapisuje się automatycznie.';
     handle.setAttribute('aria-label', 'Uchwyt do przesuwania przycisku');
     Object.assign(handle.style, {
-        padding: '0 3px', color: '#aaa', flexShrink: '0',
+        padding: '0', color: '#b1c0cb', flexShrink: '0',
+        width: '18px', height: '28px', background: '#252b31', borderRadius: '3px',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         cursor: 'grab', userSelect: 'none', touchAction: 'none',
-        font: '18px/24px Arial',
+        font: '12px/1 Arial',
     });
     controls.append(handle, button);
     panel.append(controls, status);
@@ -117,6 +125,8 @@ GogatkiRuntime.register({id:"wolacz",name:"Wo\u0142acz Kolosy",description:"Wo\u
         dragged = false;
         panel.dataset.compact = String(compact);
         handle.innerHTML = compact ? megaphoneIcon : gripIcon;
+        handle.style.width = compact ? '100%' : '18px';
+        handle.style.height = compact ? '100%' : '28px';
         if (compact) { handle.setAttribute('role', 'button'); handle.tabIndex = 0; }
         else { handle.removeAttribute('role'); handle.removeAttribute('tabindex'); }
         button.style.display = compact ? 'none' : '';
@@ -254,7 +264,7 @@ GogatkiRuntime.register({id:"wolacz",name:"Wo\u0142acz Kolosy",description:"Wo\u
             button.title = error.message;
             button.disabled = true;
         }
-        button.style.opacity = button.disabled ? '0.55' : '1';
+        button.style.opacity = '1';
         button.style.cursor = button.disabled ? 'default' : 'pointer';
     }
 
@@ -301,6 +311,7 @@ GogatkiRuntime.register({id:"wolacz",name:"Wo\u0142acz Kolosy",description:"Wo\u
 })();
 
 }});
+
 
 
 
