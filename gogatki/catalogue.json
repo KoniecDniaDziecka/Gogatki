@@ -23,7 +23,7 @@
       "id": "gift",
       "name": "Gift",
       "description": "Odbieranie darmowych nagród z aktualności i kalendarza.",
-      "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/gift.js?v=1.0.17"
+      "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/gift.js?v=1.0.18"
     },
     {
       "id": "wolacz-ide",
@@ -57,3 +57,4 @@
     }
   ]
 }
+

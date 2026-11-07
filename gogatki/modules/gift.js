@@ -257,7 +257,7 @@ GogatkiRuntime.register({id:"gift",name:"Gift",description:"Odbieranie darmowych
     }
     function mount() {
         const style = document.createElement('style');
-        style.textContent = '#standalone-free-gift{position:fixed;right:24px;top:240px;z-index:99999;background:#171719ed;border:1px solid #668298;border-radius:4px;overflow:hidden;box-shadow:0 6px 22px #0009}#standalone-free-gift header{padding:3px;background:#25272a;cursor:move;touch-action:none;user-select:none}#standalone-free-gift button{display:block;background:#38566c;color:#eee;border:1px solid #6d879a;border-radius:3px;cursor:pointer;padding:3px 7px;margin:0;font:18px/1.4 Arial}#standalone-free-gift button:disabled{opacity:.55;filter:none;pointer-events:none}';
+        style.textContent = '#standalone-free-gift{position:fixed;right:24px;top:240px;z-index:99999;background:#171719ed;border:1px solid #668298;border-radius:4px;overflow:hidden;box-shadow:0 6px 22px #0009}#standalone-free-gift header{padding:3px;background:#25272a;user-select:none}#standalone-free-gift button{display:block;background:#38566c;color:#eee;border:1px solid #6d879a;border-radius:3px;cursor:pointer;padding:3px 7px;margin:0;font:18px/1.4 Arial}#standalone-free-gift button:disabled{opacity:.55;filter:none;pointer-events:none}';
         panel = document.createElement('section'); panel.id = 'standalone-free-gift';
         panel.innerHTML = '<header><button type="button" data-check disabled title="Gift" aria-label="Gift"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false" style="display:block;pointer-events:none;flex-shrink:0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M5 12v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-8M12 8v13M12 8H7.5A2.5 2.5 0 1 1 10 5.5L12 8Zm0 0h4.5A2.5 2.5 0 1 0 14 5.5L12 8Z"/></svg></button></header>';
         style.textContent += `
@@ -268,56 +268,6 @@ GogatkiRuntime.register({id:"gift",name:"Gift",description:"Odbieranie darmowych
             @media(prefers-reduced-motion:reduce){:root #standalone-free-gift[data-reward="true"] button svg{animation:none}}
         `;
         document.head.append(style); document.body.append(panel);
-        const positionKey = 'gift-panel-position-v1';
-        let position = { right: 24, top: 240 };
-        try {
-            const saved = JSON.parse(localStorage.getItem(positionKey));
-            if (saved && Number.isFinite(saved.right) && Number.isFinite(saved.top)) position = saved;
-        } catch { /* Use the default position when storage is unavailable. */ }
-        function place() {
-        if (window.__gogatkiTileDock?.isDocked(panel)) return;
-            const bounds = panel.getBoundingClientRect();
-            panel.style.right = `${Math.max(0, Math.min(position.right, innerWidth - bounds.width))}px`;
-            panel.style.top = `${Math.max(0, Math.min(position.top, innerHeight - bounds.height))}px`;
-        }
-        const header = panel.querySelector('header');
-        let drag, suppressClick = false;
-        header.onpointerdown = event => {
-            if (event.button !== 0) return;
-            suppressClick = false;
-            drag = { id: event.pointerId, x: event.clientX, y: event.clientY,
-                right: parseFloat(panel.style.right), top: parseFloat(panel.style.top), moved: false, capture: event.target };
-            drag.capture.setPointerCapture(event.pointerId);
-        };
-        header.onpointermove = event => {
-            if (!drag || drag.id !== event.pointerId) return;
-            const dx = event.clientX - drag.x, dy = event.clientY - drag.y;
-            if (Math.hypot(dx, dy) > 4) drag.moved = true;
-            if (!drag.moved) return;
-            event.preventDefault();
-            position = { right: drag.right - dx, top: drag.top + dy };
-            place();
-        };
-        function endDrag(event) {
-            if (!drag || drag.id !== event.pointerId) return;
-            suppressClick = drag.moved;
-            if (drag.moved) {
-                position = { right: parseFloat(panel.style.right), top: parseFloat(panel.style.top) };
-                try { localStorage.setItem(positionKey, JSON.stringify(position)); } catch { /* Keep the position for this session. */ }
-            }
-            const capture = drag.capture;
-            drag = null;
-            if (capture.hasPointerCapture(event.pointerId)) capture.releasePointerCapture(event.pointerId);
-        }
-        header.onpointerup = header.onpointercancel = endDrag;
-        header.addEventListener('click', event => {
-            if (suppressClick && event.detail !== 0) {
-                suppressClick = false; event.preventDefault(); event.stopPropagation();
-            }
-        }, true);
-        window.addEventListener('resize', place);
-        new ResizeObserver(place).observe(panel);
-        place();
         const button = panel.querySelector('[data-check]');
         const rewards = new Set();
         let busy = false;
@@ -394,6 +344,7 @@ GogatkiRuntime.register({id:"gift",name:"Gift",description:"Odbieranie darmowych
 })();
 
 }});
+
 
 
 
