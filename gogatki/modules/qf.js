@@ -22,17 +22,29 @@ GogatkiRuntime.register({
   // These rules follow SmartAutofight.vue in the archived Maddonz source.
   function createCore(settings, game) {
     let initiated = false, requestedFast = false;
+    const npcSnapshot = new Map();
+    let snapshotMap = game.mapId?.();
+    function refreshNpcs() {
+      const currentMap = game.mapId?.();
+      if (currentMap !== snapshotMap) { npcSnapshot.clear(); snapshotMap = currentMap; }
+      const now = Date.now();
+      for (const [id, entry] of npcSnapshot) if (now - entry.seen > 20000) npcSnapshot.delete(id);
+      for (const npc of game.npcs()) if (npc?.id != null) npcSnapshot.set(String(npc.id), { npc: { ...npc }, seen: now });
+    }
+    function findNpc(id) { return game.npc(id) || npcSnapshot.get(String(id))?.npc; }
     const group = npc => {
-      const members = npc.grp ? game.npcs().filter(n => n.grp === npc.grp) : [npc];
+      const live = game.npcs();
+      const source = live.some(n => String(n.id) === String(npc.id)) ? live : [...npcSnapshot.values()].map(entry => entry.npc);
+      const members = npc.grp ? source.filter(n => n.grp === npc.grp) : [npc];
       return members.length ? members : [npc];
     };
-    function kind(npc) {
-      const wt = Math.max(...group(npc).map(n => Number(n.wt) || 0));
+    function groupKind(members) {
+      const wt = Math.max(...members.map(n => Number(n.wt) || 0));
       return wt > 99 ? 'titan' : wt > 89 ? 'colossus' : wt > 79 ? 'hero' :
         wt > 29 ? 'elite3' : wt > 19 ? 'elite2' : wt > 9 ? 'elite' : 'common';
     }
-    function allowed(npc) {
-      const members = group(npc);
+    function kind(npc) { refreshNpcs(); return groupKind(group(npc)); }
+    function allowedGroup(members) {
       if (settings.maxGrp !== '' && members.length > Number(settings.maxGrp)) return false;
       if (settings.lvlDiff !== '') {
         const heroLevel = Number(game.hero().lvl);
@@ -42,9 +54,11 @@ GogatkiRuntime.register({
       }
       return true;
     }
+    function allowed(npc) { refreshNpcs(); return allowedGroup(group(npc)); }
     function attack(query) {
       if (!settings.active || typeof query !== 'string' || !query.startsWith('fight&a=attack')) return query;
       initiated = requestedFast = false;
+      refreshNpcs();
       const params = new URLSearchParams(query);
       const npc = game.npc(Math.abs(Number(params.get('id'))));
       if (!npc || !allowed(npc)) return query;
@@ -57,11 +71,22 @@ GogatkiRuntime.register({
     function battle(f) {
       if (!settings.active || !f?.init || f.endBattle) return false;
       const warriors = Object.entries(f.w || {});
+      refreshNpcs();
       let fast = false;
       if (!initiated || (requestedFast && String(f.auto) === '0')) {
         const entry = warriors.find(([, n]) => n.npc);
-        const npc = entry && game.npc(Math.abs(Number(entry[0])));
+        const npc = entry && findNpc(Math.abs(Number(entry[0])));
         fast = Boolean(npc && allowed(npc) && settings[kind(npc)]);
+        if (entry && !npc) {
+          // A party member may enter after the monsters have left the map's NPC list.
+          // Use battle metadata only when every monster's type and level are known.
+          const monsters = warriors.filter(([, n]) => n.npc).map(([id,n]) => {
+            const wt = n.wt ?? n.warrior_type, lvl = n.lvl ?? n.level;
+            return wt != null && lvl != null && Number.isFinite(Number(wt)) && Number.isFinite(Number(lvl)) ?
+              { id: Math.abs(Number(id)), wt: Number(wt), lvl: Number(lvl) } : null;
+          });
+          fast = monsters.every(Boolean) && allowedGroup(monsters) && Boolean(settings[groupKind(monsters)]);
+        }
       }
       if (String(f.auto) === '0' && warriors.length <= 2) {
         const opponent = warriors.map(([, n]) => n).find(n => n.team !== f.myteam);
@@ -70,7 +95,8 @@ GogatkiRuntime.register({
       }
       return fast;
     }
-    return { attack, battle, kind, allowed, reset() { initiated = requestedFast = false; } };
+    return { attack, battle, kind, allowed, refreshNpcs,
+      reset() { initiated = requestedFast = false; npcSnapshot.clear(); } };
   }
   if (typeof module === 'object' && module.exports) {
     module.exports = { defaults, createCore };
@@ -121,8 +147,8 @@ GogatkiRuntime.register({
       return;
     }
     const hero = () => ni ? engine.hero.d : window.hero;
-    const npcs = () => Object.values(ni ? engine.npcs.check() : engine.npc || {})
-      .map(n => normalize(ni ? n.d : n));
+    const npcs = () => Object.entries(ni ? engine.npcs.check() : engine.npc || {})
+      .map(([id,n]) => { const data = ni ? n.d : n; return normalize({ ...data, id: data.id ?? id }); });
     const npc = id => {
       const data = ni ? engine.npcs.getById(id)?.d : engine.npc?.[id];
       return data ? normalize(data) : null;
@@ -156,7 +182,8 @@ GogatkiRuntime.register({
         else localStorage.setItem(storageKey, JSON.stringify(value));
       } catch (error) { report(error); }
     };
-    core = createCore(settings, { hero, npcs, npc });
+    core = createCore(settings, { hero, npcs, npc, mapId: () => ni ? engine.map?.d?.id : window.map?.id });
+    core.refreshNpcs();
     function askMode() {
       if (settings.active && settings.turnOnAskAboutBattleMode &&
           [false, 0].includes(engine.settingsStorage?.getValue(4)))
@@ -176,17 +203,20 @@ GogatkiRuntime.register({
     hook(parserOwner, parserKey, args => {
       const packet = args[0];
       if (packet?.f?.endBattle || packet?.town) resetBattle();
-      decisions.set(args, { fast: core.battle(packet?.f), generation });
+      if (!packet?.town) core.refreshNpcs();
+      const frame = packet?.f?.init ? { ...packet.f, w: Object.fromEntries(Object.entries(packet.f.w || {}).map(([id,n]) => [id,{ ...n }])) } : null;
+      decisions.set(args, { fast: core.battle(frame), frame, generation });
       if (packet?.f?.init) status(settings.active ? 'Odebrano początek walki' : 'QF jest wyłączony');
     }, args => {
       const decision = decisions.get(args);
-      if (!decision?.fast) return;
+      core.refreshNpcs();
+      if (!decision || generation !== decision.generation || !(decision.fast || core.battle(decision.frame))) return;
       // Let all parser wrappers finish before sending a game request.
       setTimeout(() => {
         if (lifecycle.stopped || !settings.active || generation !== decision.generation) return;
-        const members = ni ? Array.from(engine.party?.getMembers?.()?.values?.() || []) :
+        const members = ni ? Array.from(engine.party?.getMembers?.()?.entries?.() || []).map(([id,m]) => ({ ...m, id: m?.id ?? id })) :
           Object.entries(engine.party || {}).map(([id, m]) => ({ ...m, id: Number(id), leader: m.r }));
-        const leader = members.some(m => m.leader && Number(m.id) === Number(hero().id));
+        const leader = members.some(m => [true, 1, '1'].includes(m.leader) && Number(m.id) === Number(hero().id));
         window._g(leader ? 'fight&a=auto' : 'fight&a=f&enabled=1', () => {});
         status('Wysłano szybką walkę');
       }, 0);
@@ -306,3 +336,4 @@ GogatkiRuntime.register({
 
   }
 });
+
