@@ -1,4 +1,3 @@
-// PVP Info 1.0.6 — samodzielna adaptacja modułu Maddonz (Barlag).
 GogatkiRuntime.register({id:"pvp-info",name:"PVP Info",description:"Powiadomienia o walkach PvP i ich wynikach na czacie klanowym.",start() {
     // Keep checkbox styling consistent in already installed Gogatki panels.
     const gogatkiRoot = document.querySelector('#gogatek-panel')?.shadowRoot;
