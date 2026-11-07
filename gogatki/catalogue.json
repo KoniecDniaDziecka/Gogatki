@@ -48,8 +48,12 @@
       "name": "Auto TP",
       "description": "Użycie przedmiotu po walce, przy wrogu lub z ucieczką.",
       "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/auto-tp.js?v=1.0.4"
+    },
+    {
+      "id": "qf",
+      "name": "QF",
+      "description": "Szybka walka według typu potworów, wielkości grupy i poziomów.",
+      "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/qf.js?v=1.0.4"
     }
   ]
 }
-
-
