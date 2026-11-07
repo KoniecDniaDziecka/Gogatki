@@ -1,4 +1,4 @@
-// Better X 1.0.2 — samodzielna adaptacja Wild Hunt (Maddonz, Barlag) dla Gogatków.
+// Better X 1.0.3 — samodzielna adaptacja Wild Hunt (Maddonz, Barlag) dla Gogatków.
 GogatkiRuntime.register({
   id: 'better-x', name: 'Better X',
   description: 'Atakowanie i dobijanie graczy; domyślny skrót X, próby co 200–350 ms.',
@@ -96,6 +96,8 @@ GogatkiRuntime.register({
     }
   }
   const drawableHooks = new WeakSet();
+  const rendererHooks = new WeakMap(), rendering = new WeakSet(), rendererRemovers = [];
+  const rendererReady = renderer => typeof renderer?.draw === 'function' && typeof renderer?.add === 'function';
   function markerVisible(o) {
     return ready && !!target && !!o && String(o.id) === target && eligible(o) && !inBattle() &&
       !(engine()?.dead || window.g?.dead) && (engine()?.map?.d?.id ?? window.map?.id) === mapId;
@@ -122,6 +124,43 @@ GogatkiRuntime.register({
       ctx.fillStyle = '#ff3b45'; ctx.beginPath(); ctx.arc(0,0,2,0,Math.PI * 2); ctx.fill();
     } finally { ctx.restore(); }
   }
+  function nativeMarker() {
+    const current = engine(), manager = current?.others;
+    if (!target || !manager) return null;
+    const master = manager.getById?.(target) || manager.getById?.(Number(target)) ||
+      Object.values(manager.check?.() || {}).find(other => String(other.d?.id) === target);
+    if (!master || !markerVisible(master.d)) return null;
+    return {
+      d: master.d, rx: master.rx ?? master.d.x, ry: master.ry ?? master.d.y,
+      collider: null, tip: null,
+      // NI's supported highest overlay order, also used by Gargonem's renderer adapters.
+      getOrder: () => 20005,
+      draw(ctx) {
+        if (engine()?.others !== manager || !markerVisible(master.d)) return;
+        drawMarker(ctx,master,current.map);
+      }
+    };
+  }
+  function installRenderer(renderer) {
+    if (rendererHooks.get(renderer) === renderer.draw) return;
+    const original = renderer.draw;
+    function wrapped(...args) {
+      // Another addon can wrap our wrapper; enqueue exactly one marker in that frame.
+      if (rendering.has(renderer)) return original.apply(this,args);
+      rendering.add(renderer);
+      try {
+        try {
+          if (engine()?.renderer === renderer) {
+            const marker = nativeMarker();
+            if (marker) renderer.add(marker);
+          }
+        } catch (error) { console.warn('[Better X] Oznaczenie celu:', error); }
+        return original.apply(this,args);
+      } finally { rendering.delete(renderer); }
+    }
+    renderer.draw = wrapped; rendererHooks.set(renderer,wrapped);
+    rendererRemovers.push(() => { if (renderer.draw === wrapped) renderer.draw = original; });
+  }
   function installMarker() {
     if (!engine()) {
       const el = markerVisible(target && find(target)) && document.getElementById('other' + target);
@@ -139,23 +178,18 @@ GogatkiRuntime.register({
       return;
     }
     clearMarker();
+    const renderer = engine().renderer;
+    // Use the actual render queue even when NI cached its player-list getter earlier.
+    if (rendererReady(renderer)) { installRenderer(renderer); return; }
     const manager = engine().others;
     if (drawableHooks.has(manager) || typeof manager.getDrawableList !== 'function') return;
     drawableHooks.add(manager);
     const original = manager.getDrawableList;
     manager.getDrawableList = function (...args) {
       const list = original.apply(this, args);
-      const master = target && manager.getById(target);
-      if (master && markerVisible(master.d) && Array.isArray(list)) return list.concat({
-        d: master.d,
-        getOrder: () => Number(master.ry ?? master.d.y) + 0.1,
-        draw(ctx) {
-          const current = engine();
-          // A cached frame must not draw an old target after Stop, a map change, or a switch.
-          if (current?.others !== manager || !markerVisible(master.d)) return;
-          drawMarker(ctx,master,current.map);
-        }
-      });
+      if (engine()?.others !== manager || rendererReady(engine()?.renderer)) return list;
+      const marker = nativeMarker();
+      if (marker && Array.isArray(list)) return list.concat(marker);
       return list;
     };
   }
@@ -236,10 +270,14 @@ GogatkiRuntime.register({
     timer = setTimeout(poll, 200 + Math.floor(Math.random() * 151));
   }
   poll();
-  window.addEventListener('pagehide', () => { clearTimeout(timer); ready = false; stop(); }, {once:true});
+  window.addEventListener('pagehide', () => {
+    clearTimeout(timer); ready = false; stop();
+    for (const remove of rendererRemovers.reverse()) remove();
+  }, {once:true});
 })();
 
   }
 });
+
 
 
