@@ -10,6 +10,7 @@
             {id:'standalone-loot-filter', name:'Lootfilter', control:'[data-settings]', click:true, icon:'bag'},
             {id:'wolacz-global-panel', name:'Wołacz Kolosy', control:'[aria-label="Uchwyt do przesuwania przycisku"]', icon:'megaphone'},
             {id:'pvp-clan-notificator', name:'PVP Info', control:'[data-settings]'},
+            {id:'spell-trigger-standalone', name:'Strategy', control:'[aria-label="Ustawienia Strategy"]', shadow:true, clickToOpen:true},
             {id:'wild-hunt-standalone', name:'Better X', control:'#gear', shadow:true, clickToOpen:true},
             {id:'anty-x', name:'Anty X', control:'.gear', shadow:true, clickToOpen:true},
             {id:'emergency-item-standalone', name:'Auto TP', control:'.gear', shadow:true},
@@ -371,6 +372,7 @@
     }
     GogatkiDockRuntime.register({apiVersion:2, create:createTileDock});
 })();
+
 
 
 
