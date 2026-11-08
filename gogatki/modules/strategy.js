@@ -1,4 +1,4 @@
-// Strategy 2.0.0 — battle queue inspired by Spell Trigger (Maddonz, Barlag).
+// Strategy 2.0.1 — battle queue inspired by Spell Trigger (Maddonz, Barlag).
 GogatkiRuntime.register({
  id:'strategy',name:'Strategy',description:'Kolejka ruchów z ikonami, wykonywana w Twojej turze.',
  start(){
@@ -7,7 +7,7 @@ GogatkiRuntime.register({
    'use strict';
    if(window.top!==window.self||window.SpellTriggerStandalone)return;
    const KEY='strategy:global:v1';
-   const defaults={paused:false,showBattleQueue:true,minimized:false,right:20,top:140,battleQueueRight:290,battleQueueTop:140};
+   const defaults={paused:false,showBattleQueue:true,battleQueueDefaultApplied:true,minimized:false,right:20,top:140,battleQueueRight:290,battleQueueTop:140};
    const state={inBattle:false,auto:false,current:null,currentKnown:false,warriors:{},turn:0,usedTurn:-1,domTurn:false};
    const skills=new Map([[-1,{name:'Zwykły atak'}],[-2,{name:'Krok'}]]);
    const cleanups=[];let config,host,root,battleHost,battleRoot,queue=[],pending=null,disposed=false,started=false,optionsOpen=false,scheduled=false,sequence=0,awaitingTurn=false,lastStatus='Dodaj ruchy PPM na umiejętnościach.';
@@ -177,6 +177,9 @@ GogatkiRuntime.register({
     const legacy=`spell-trigger:1:${location.hostname}:${hero().id}`;
     let stored={};try{stored=record(GM_getValue(KEY,null))??record(GM_getValue(legacy,null))??record(localStorage.getItem(legacy))??{};}catch{}
     config={...defaults};for(const key of Object.keys(defaults))if(typeof stored[key]===typeof defaults[key])config[key]=stored[key];
+    // Apply the enabled default once, including settings saved by older versions.
+    if(stored.battleQueueDefaultApplied!==true)config.showBattleQueue=true;
+    config.battleQueueDefaultApplied=true;
     host=node('div',null,{id:'spell-trigger-standalone'});host.style.cssText='position:fixed;z-index:2147483000';root=host.attachShadow({mode:'open'});document.body.append(host);
     if(!wrapParser(owner,parser))return;
     const battle=current?.battle;if(typeof battle?.close==='function'){const original=battle.close;function wrapped(...args){const result=original.apply(this,args);resetBattle();return result;}battle.close=wrapped;cleanups.push(()=>{if(battle.close===wrapped)battle.close=original;});}
@@ -185,7 +188,7 @@ GogatkiRuntime.register({
     const resize=()=>{placeHost(host,'right','top');placeHost(battleHost,'battleQueueRight','battleQueueTop');save();};window.addEventListener('resize',resize);cleanups.push(()=>window.removeEventListener('resize',resize));
     started=true;save();render();
     const initial=current?.battle?.warriorsList||window.g?.battle?.f;if(initial&&Object.keys(initial).length&&((current?.lock||window.g?.lock)?.check?.('battle')))receive({f:{init:1,w:Object.fromEntries(Object.entries(initial).map(([id,value])=>[id,{...(value.d||value)}]))}});
-    window.SpellTriggerStandalone={version:'2.0.0',enqueue:addMove,clear:clearQueue,get queue(){return queue.map(move=>({...move}));},destroy};
+    window.SpellTriggerStandalone={version:'2.0.1',enqueue:addMove,clear:clearQueue,get queue(){return queue.map(move=>({...move}));},destroy};
    }
    function pulse(){
     if(disposed)return;
