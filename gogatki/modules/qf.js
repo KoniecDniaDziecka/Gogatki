@@ -258,7 +258,7 @@ GogatkiRuntime.register({
       .field{display:grid;grid-template-columns:1fr 65px;gap:8px}textarea{resize:vertical;min-height:62px}.section{border-top:1px solid #668298;margin-top:10px;padding-top:8px}
       [hidden]{display:none!important}.panel.collapsed{width:var(--tile);height:var(--tile)}.collapsed header{padding:0;width:100%;height:100%;justify-content:center}
       .collapsed .q-control{border:0;background:none;width:100%;height:100%}.collapsed .title{display:none}
-    </style><div class="panel"><header><span class="title">QF</span><button class="q-control" type="button" aria-label="QF" title="LPM: rozwiń lub zwiń · PPM: włącz lub wyłącz">Q</button></header><main><p class="status" role="status">Gotowy</p><p>Szybka walka z:</p><div class="types"></div><div class="options"></div><label class="field">Max grupa potworów<input type="number" min="1" step="1" data-key="maxGrp"></label><label class="field">Przewaga poziomów<input type="number" step="1" data-key="lvlDiff"></label><p>Puste pole oznacza brak limitu. Przewaga: Twój poziom minus najwyższy poziom w grupie.</p><div class="section"><label for="players">Szybka walka z graczami:</label><textarea id="players" placeholder="Jeden nick w wierszu" spellcheck="false"></textarea><p>Dokładne nicki. Opcja PvP obejmuje wszystkie pojedynki 1 na 1. USTAWKI włączają szybką walkę w grupowym PvP.</p></div></main></div>`;
+    </style><div class="panel"><header><span class="title">QF</span><button class="q-control" type="button" aria-label="QF" title="LPM: rozwiń lub zwiń · PPM: włącz lub wyłącz">Q</button></header><main><p class="status" role="status">Gotowy</p><p>Szybka walka z:</p><div class="types"></div><div class="options"></div><label class="field">Max grupa potworów<input type="number" min="1" step="1" data-key="maxGrp"></label><label class="field">Przewaga poziomów<input type="number" step="1" data-key="lvlDiff"></label><p>Puste pole oznacza brak limitu. Przewaga: Twój poziom minus najwyższy poziom w grupie.</p><div class="section"><label for="players">Szybka walka z graczami:</label><textarea id="players" placeholder="Jeden nick w wierszu" spellcheck="false"></textarea><p>Dokładne nicki. Opcja PvP obejmuje wszystkie pojedynki 1 na 1.</p></div></main></div>`;
     document.body.appendChild(host);
     status(lastStatus);
     const panel = root.querySelector('.panel'), header = root.querySelector('header');
@@ -273,7 +273,7 @@ GogatkiRuntime.register({
       elite3: 'Elity III', hero: 'Herosi', titan: 'Tytani', colossus: 'Kolosy' }))
       addCheck(key, name, root.querySelector('.types'));
     for (const [key, name] of Object.entries({ turnOnAskAboutBattleMode: 'Nadpisuj, kiedy potwór atakuje',
-      override: 'Nadpisuj szybką walkę', pvp: 'PvP', groupPvp: 'USTAWKI — grupowe PvP' })) addCheck(key, name, root.querySelector('.options'));
+      override: 'Nadpisuj szybką walkę', pvp: 'PvP', groupPvp: 'USTAWKI' })) addCheck(key, name, root.querySelector('.options'));
     root.querySelectorAll('input[type=number]').forEach(input => {
       input.value = settings[input.dataset.key];
       input.addEventListener('change', () => {
