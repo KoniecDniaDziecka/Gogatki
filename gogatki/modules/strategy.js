@@ -1,4 +1,4 @@
-// Strategy 1.2.1 — adapted from Spell Trigger (Maddonz, Barlag).
+// Strategy 1.2.2 — adapted from Spell Trigger (Maddonz, Barlag).
 GogatkiRuntime.register({
  id:'strategy', name:'Strategy',
  description:'Kolejka umiejętności i warunkowe zestawy ruchów w walce.',
@@ -205,8 +205,18 @@ function render(){
 }
 function start(){
  if(!B.id||typeof window._g!=='function'||(!window.Engine?.battle&&!window.g?.battle)||typeof (window.Engine?.communication||window).parseJSON!=='function')return false;
- storageKey=`spell-trigger:1:${location.hostname}:${B.id}`;
- try{config={...defaults,...(GM_getValue(storageKey,null) ?? JSON.parse(window.localStorage.getItem(storageKey)||'{}'))};}catch{config=Fc(defaults);}
+ storageKey='strategy:global:v1';
+ const legacyKey=`spell-trigger:1:${location.hostname}:${B.id}`;
+ function storedConfig(value){
+  if(typeof value==='string'){try{value=JSON.parse(value);}catch{return null;}}
+  return value&&typeof value==='object'&&!Array.isArray(value)?value:null;
+ }
+ try{
+  // The first character migrates its config once; later characters use the shared copy.
+  const stored=storedConfig(GM_getValue(storageKey,null)) ??
+   storedConfig(GM_getValue(legacyKey,null)) ?? storedConfig(window.localStorage.getItem(legacyKey)) ?? {};
+  config=Fc({...defaults,...stored});
+ }catch{config=Fc(defaults);}
  if(!Array.isArray(config.moveSets))config.moveSets=[];
  rg().initStore();
  const communication=window.Engine?.communication||window;
@@ -214,7 +224,8 @@ function start(){
  wrap(window.Engine?.battle||window,'close',()=>{V.emit('battle_close',[]);reset();renderQueue();});
  if(!window.Engine)wrap(window,'battle_close',()=>{V.emit('battle_close',[]);reset();renderQueue();});
  host=node('div',null,{id:'spell-trigger-standalone'});Object.assign(host.style,{position:'fixed',zIndex:'2147483000'});root=host.attachShadow({mode:'open'});document.body.append(host);
- window.SpellTriggerStandalone={version:'1.2.1',conditions:oT,targetResolvers:sT};
+ save();
+ window.SpellTriggerStandalone={version:'1.2.2',conditions:oT,targetResolvers:sT};
  hookMenu();render();addEventListener('resize',()=>{clamp();clampBattleQueue();save();});
  if(Jc.inBattle)status('Uruchomiono podczas walki. Pełny stan będzie dostępny od następnej walki.');
  return true;
@@ -224,4 +235,5 @@ let attempts=0;const timer=setInterval(()=>{if(start()||++attempts>=120)clearInt
 
  }
 });
+
 
