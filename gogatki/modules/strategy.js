@@ -1,4 +1,4 @@
-// Strategy 2.0.2 — battle queue inspired by Spell Trigger (Maddonz, Barlag).
+// Strategy 2.1.0 — battle queue inspired by Spell Trigger (Maddonz, Barlag).
 GogatkiRuntime.register({
  id:'strategy',name:'Strategy',description:'Kolejka ruchów z ikonami, wykonywana w Twojej turze.',
  start(){
@@ -7,10 +7,10 @@ GogatkiRuntime.register({
    'use strict';
    if(window.top!==window.self||window.SpellTriggerStandalone)return;
    const KEY='strategy:global:v1';
-   const defaults={paused:false,showBattleQueue:true,battleQueueDefaultApplied:true,minimized:false,right:20,top:140,battleQueueRight:290,battleQueueTop:140};
+   const defaults={paused:false,showBattleQueue:true,battleQueueDefaultApplied:true,right:20,top:140,battleQueueRight:290,battleQueueTop:140};
    const state={inBattle:false,auto:false,current:null,currentKnown:false,warriors:{},turn:0,usedTurn:-1,domTurn:false};
    const skills=new Map([[-1,{name:'Zwykły atak'}],[-2,{name:'Krok'}]]);
-   const cleanups=[];let config,host,root,battleHost,battleRoot,queue=[],pending=null,disposed=false,started=false,optionsOpen=false,scheduled=false,sequence=0,awaitingTurn=false,lastStatus='Dodaj ruchy PPM na umiejętnościach.';
+   const cleanups=[];let config,host,root,battleHost,battleRoot,queue=[],pending=null,disposed=false,started=false,scheduled=false,sequence=0,awaitingTurn=false,lastStatus='Dodaj ruchy PPM na umiejętnościach.';
    const engine=()=>window.Engine?.hero?.d?window.Engine:null;
    const hero=()=>engine()?.hero.d||window.hero;
    const clone=value=>JSON.parse(JSON.stringify(value));
@@ -135,10 +135,10 @@ GogatkiRuntime.register({
    const bolt='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m13 2-8 11h6l-1 9 9-13h-6z"/></svg>';
    const actionIcons={pause:'<path d="M7 5h3v14H7zM14 5h3v14h-3z"/>',play:'<path d="m8 5 11 7-11 7z"/>',trash:'<path d="M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7"/>'};
    const actionIcon=name=>'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+actionIcons[name]+'</svg>';
-   const css=`:host{all:initial;font:12px Arial,sans-serif;color:#c7d0d9}:host([hidden]){display:none!important}*{box-sizing:border-box}section{width:250px;max-width:100vw;background:#171b20;border:1px solid #668298;border-radius:4px;overflow:hidden}header{height:28px;background:#252b31;display:flex;align-items:center;gap:6px;padding:0 5px;color:#12c9bd;cursor:move;touch-action:none}header strong{flex:1}button,input{font:inherit;color:#c7d0d9}button{background:#38566c;border:1px solid #6d879a;border-radius:3px;padding:4px 7px;cursor:pointer}button:focus-visible,input:focus-visible{outline:2px solid #12c9bd}header button{display:grid;place-items:center;padding:0;width:24px;height:24px;color:#12c9bd;background:#252b31}main{padding:8px}.toolbar{display:flex;gap:5px;margin-bottom:8px}.toolbar button{flex:1}.icon-toolbar button{flex:none;display:grid;place-items:center;width:28px;height:28px;padding:0;color:#12c9bd}.icon-toolbar svg{display:block}.queue{display:grid;gap:5px;max-height:240px;overflow:auto;scrollbar-width:thin;scrollbar-color:#668298 #171b20}.move{display:flex;align-items:center;gap:7px;text-align:left;padding:5px;background:#252b31;border-color:#668298;width:100%;min-width:0}.number{color:#12c9bd;flex:none;width:14px;text-align:center}.skill-icon{display:block;width:32px;height:32px;flex:none;background-repeat:no-repeat}.skill-icon img{width:100%;height:100%;object-fit:contain}.skill-icon svg{width:32px;height:32px;display:block}.names{min-width:0;overflow-wrap:anywhere}.names strong{display:block;font-size:11px;color:#12c9bd;margin-bottom:3px}.names small{font-size:11px;color:#c7d0d9}p,.empty{font-size:11px;line-height:1.4;color:#b1c0cb;margin:7px 0}label{display:flex;align-items:center;gap:6px;font-size:11px;margin:8px 0}input{appearance:none;display:grid;place-content:center;width:14px;height:14px;flex:none;margin:0;border:1px solid #668298;border-radius:3px;background:#252b31}input:checked:after{content:'✓';color:#12c9bd}[hidden]{display:none!important}.collapsed{width:28px;height:28px}.collapsed header{height:100%;padding:0;justify-content:center}.collapsed header strong,.collapsed main{display:none}.collapsed header button{width:100%;height:100%;border:0}`;
+   const css=`:host{all:initial;font:12px Arial,sans-serif;color:#c7d0d9}:host([hidden]){display:none!important}*{box-sizing:border-box}section{width:250px;max-width:100vw;background:#171b20;border:1px solid #668298;border-radius:4px;overflow:hidden}header{height:28px;background:#252b31;display:flex;align-items:center;gap:6px;padding:0 5px;color:#12c9bd;cursor:move;touch-action:none}header strong{flex:1}button,input{font:inherit;color:#c7d0d9}button{background:#38566c;border:1px solid #6d879a;border-radius:3px;padding:4px 7px;cursor:pointer}button:focus-visible,input:focus-visible{outline:2px solid #12c9bd}header button{display:grid;place-items:center;padding:0;width:24px;height:24px;color:#12c9bd;background:#252b31}header .strategy-control{color:#74838d}header .strategy-control.active{color:#12c9bd}main{padding:8px}.toolbar{display:flex;gap:5px;margin-bottom:8px}.toolbar button{flex:1}.icon-toolbar{justify-content:flex-end}.icon-toolbar button{flex:none;display:grid;place-items:center;width:28px;height:28px;padding:0;color:#12c9bd}.icon-toolbar svg{display:block}.queue{display:grid;gap:5px;max-height:240px;overflow:auto;scrollbar-width:thin;scrollbar-color:#668298 #171b20}.move{display:flex;align-items:center;gap:7px;text-align:left;padding:5px;background:#252b31;border-color:#668298;width:100%;min-width:0}.number{color:#12c9bd;flex:none;width:14px;text-align:center}.skill-icon{display:block;width:32px;height:32px;flex:none;background-repeat:no-repeat}.skill-icon img{width:100%;height:100%;object-fit:contain}.skill-icon svg{width:32px;height:32px;display:block}.names{min-width:0;overflow-wrap:anywhere}.names strong{display:block;font-size:11px;color:#12c9bd;margin-bottom:3px}.names small{font-size:11px;color:#c7d0d9}p,.empty{font-size:11px;line-height:1.4;color:#b1c0cb;margin:7px 0}label{display:flex;align-items:center;gap:6px;font-size:11px;margin:8px 0}input{appearance:none;display:grid;place-content:center;width:14px;height:14px;flex:none;margin:0;border:1px solid #668298;border-radius:3px;background:#252b31}input:checked:after{content:'✓';color:#12c9bd}[hidden]{display:none!important}.collapsed{width:28px;height:28px}.collapsed header{height:100%;padding:0;justify-content:center}.collapsed header strong,.collapsed main{display:none}.collapsed header button{width:100%;height:100%;border:0}`;
    function node(tag,text,attrs={}){const el=document.createElement(tag);if(text!=null)el.textContent=text;for(const [key,value] of Object.entries(attrs))el.setAttribute(key,value);return el;}
    function fillQueue(view){
-    const list=view.querySelector('.queue');list.replaceChildren();
+    const list=view.querySelector('.queue');if(!list)return;list.replaceChildren();
     if(!queue.length){list.append(node('div','Planowane ruchy: brak',{class:'empty'}));return;}
     queue.forEach((move,index)=>{
      const row=node('button',null,{type:'button',class:'move',title:move.name+' → '+move.targetName+'. PPM: usuń; Alt+PPM: na koniec.'});row.dataset.moveId=move.uid;
@@ -166,13 +166,17 @@ GogatkiRuntime.register({
     if(!battleHost){battleHost=node('div',null,{id:'spell-trigger-battle-queue'});battleHost.style.cssText='position:fixed;z-index:2147483001';battleRoot=battleHost.attachShadow({mode:'open'});battleRoot.innerHTML='<style>'+css+'</style><section aria-label="Kolejka ruchów w walce"><header><strong>Kolejka ruchów</strong></header></section>';addContent(battleRoot,true);document.body.append(battleHost);dragHandle(battleRoot.querySelector('header'),config,'battleQueueRight','battleQueueTop',()=>placeHost(battleHost,'battleQueueRight','battleQueueTop'));}
     battleHost.hidden=false;fillQueue(battleRoot);renderPause();placeHost(battleHost,'battleQueueRight','battleQueueTop');
    }
+   function renderControl(){
+    const control=root?.querySelector('.strategy-control');if(!control)return;
+    control.classList.toggle('active',config.showBattleQueue);control.setAttribute('aria-pressed',String(config.showBattleQueue));
+    control.title='Strategy — okno kolejki '+(config.showBattleQueue?'włączone':'wyłączone')+' · PPM: pokaż/ukryj okno w walce';
+   }
    function render(){
-    root.innerHTML='<style>'+css+'</style><section class="panel'+(config.minimized?' collapsed':'')+'"><header><strong>Strategy</strong></header></section>';
-    host.dataset.compact=String(config.minimized);
-    const header=root.querySelector('header'),control=node('button',null,{type:'button','aria-label':'Ustawienia Strategy',title:'LPM: opcje; PPM: zwiń'});control.innerHTML=bolt;
-    control.onclick=()=>{if(config.minimized)config.minimized=false;else optionsOpen=!optionsOpen;save();render();};control.oncontextmenu=event=>{event.preventDefault();config.minimized=!config.minimized;save();render();};header.append(control);
-    const main=addContent(root);const options=node('div',null,{id:'settings'});options.hidden=!optionsOpen;const label=node('label','Pokazuj kolejkę w oknie walki'),input=node('input',null,{type:'checkbox'});input.checked=config.showBattleQueue;input.onchange=()=>{config.showBattleQueue=input.checked;save();renderBattleQueue();};label.append(input);options.append(label);main.append(options);
-    dragHandle(header,config,'right','top',()=>placeHost(host,'right','top'));renderPause();renderQueue();placeHost(host,'right','top');
+    root.innerHTML='<style>'+css+'</style><section class="panel collapsed"><header></header></section>';
+    host.dataset.compact='true';
+    const control=node('button',null,{type:'button',class:'strategy-control','aria-label':'Strategy — okno kolejki'});control.innerHTML=bolt;
+    control.oncontextmenu=event=>{event.preventDefault();event.stopPropagation();config.showBattleQueue=!config.showBattleQueue;save();renderControl();renderBattleQueue();};
+    root.querySelector('header').append(control);renderControl();renderBattleQueue();placeHost(host,'right','top');
    }
    function start(){
     const current=engine(),owner=current?.communication||window,parser=current?'parseJSON':typeof window.parseInput==='function'?'parseInput':'parseJSON';
@@ -191,7 +195,7 @@ GogatkiRuntime.register({
     const resize=()=>{placeHost(host,'right','top');placeHost(battleHost,'battleQueueRight','battleQueueTop');save();};window.addEventListener('resize',resize);cleanups.push(()=>window.removeEventListener('resize',resize));
     started=true;save();render();
     const initial=current?.battle?.warriorsList||window.g?.battle?.f;if(initial&&Object.keys(initial).length&&((current?.lock||window.g?.lock)?.check?.('battle')))receive({f:{init:1,w:Object.fromEntries(Object.entries(initial).map(([id,value])=>[id,{...(value.d||value)}]))}});
-    window.SpellTriggerStandalone={version:'2.0.2',enqueue:addMove,clear:clearQueue,get queue(){return queue.map(move=>({...move}));},destroy};
+    window.SpellTriggerStandalone={version:'2.1.0',enqueue:addMove,clear:clearQueue,get queue(){return queue.map(move=>({...move}));},destroy};
    }
    function pulse(){
     if(disposed)return;
@@ -206,3 +210,4 @@ GogatkiRuntime.register({
   })();
  }
 });
+

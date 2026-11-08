@@ -65,10 +65,11 @@
       "id": "strategy",
       "name": "Strategy",
       "description": "Kolejka ruchów z ikonami, wykonywana w Twojej turze.",
-      "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/strategy.js?v=2.0.2"
+      "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/strategy.js?v=2.1.0"
     }
   ]
 }
+
 
 
 

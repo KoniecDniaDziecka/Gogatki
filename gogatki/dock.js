@@ -10,7 +10,7 @@
             {id:'standalone-loot-filter', name:'Lootfilter', control:'[data-settings]', click:true, icon:'bag'},
             {id:'wolacz-global-panel', name:'Wołacz Kolosy', control:'[aria-label="Uchwyt do przesuwania przycisku"]', icon:'megaphone'},
             {id:'pvp-clan-notificator', name:'PVP Info', control:'[data-settings]'},
-            {id:'spell-trigger-standalone', name:'Strategy', control:'[aria-label="Ustawienia Strategy"]', shadow:true, clickToOpen:true},
+            {id:'spell-trigger-standalone', name:'Strategy', control:'.strategy-control', shadow:true, activeControl:true, toggleOnly:true, activeLabel:'okno kolejki', icon:'bolt'},
             {id:'wild-hunt-standalone', name:'Better X', control:'#gear', shadow:true, clickToOpen:true},
             {id:'anty-x', name:'Anty X', control:'.gear', shadow:true, clickToOpen:true},
             {id:'emergency-item-standalone', name:'Auto TP', control:'.gear', shadow:true},
@@ -78,6 +78,7 @@
             :root #gogatki-tile-dock > .gogatki-dock-toggle:focus-visible{outline:2px solid #12c9bd!important;outline-offset:2px}
             :root #gogatki-tile-dock > .gogatki-dock-toggle::before,:root #gogatki-tile-dock > .gogatki-dock-toggle::after{content:none!important;display:none!important}
             :root #gogatki-tile-dock > .gogatki-dock-toggle svg{display:block!important;width:18px!important;height:18px!important;color:#12c9bd!important;pointer-events:none!important}
+            :root #gogatki-tile-dock > .gogatki-dock-toggle[data-active="false"] svg{color:#74838d!important}
         `;
         const giftSlot = root.querySelector('.gift-slot');
         const otherTiles = root.querySelector('.tiles');
@@ -189,6 +190,7 @@
             button.dataset.gogatkiDockItem = entry.spec.id;
             button.setAttribute('aria-controls', entry.spec.id);
             const icons = {
+                bolt:'<path d="m13 2-8 11h6l-1 9 9-13h-6z"/>',
                 bag:'<path d="m8 3 2 4h4l2-4H8ZM8 8h8M9 8c-2 3-5 5-5 9a4 4 0 0 0 4 4h8a4 4 0 0 0 4-4c0-4-3-6-5-9"/><circle cx="12" cy="15.5" r="2.5"/>',
                 megaphone:'<path d="M3 10v4h4l12 5V5L7 10H3Z"/><path d="m7 14 2 7h4l-2-5M7 10v4M22 9v6"/>'
             };
@@ -201,6 +203,10 @@
             function toggle(event) {
                 event.preventDefault(); event.stopPropagation();
                 if (!entry.node.isConnected) return;
+                if (entry.spec.toggleOnly) {
+                    if (event.type === 'contextmenu') control(entry)?.dispatchEvent(new MouseEvent('contextmenu', {bubbles:true, cancelable:true}));
+                    sync(); return;
+                }
                 // Measure and save the module's floating coordinates, never its dock coordinates.
                 release(entry);
                 const target = control(entry);
@@ -240,10 +246,11 @@
                     const expanded = !compact(entry);
                     const enabled = spec.activeControl && control(entry)?.classList.contains('active');
                     if (spec.activeControl) entry.button.dataset.active = String(Boolean(enabled));
-                    const title = spec.name + (expanded ? ' — zwiń' : ' — rozwiń') +
-                        (spec.activeControl ? ` · ${enabled ? 'włączony' : 'wyłączony'} · PPM: włącz/wyłącz` : '');
+                    const title = spec.name + (spec.toggleOnly ? '' : expanded ? ' — zwiń' : ' — rozwiń') +
+                        (spec.activeControl ? spec.activeLabel ? ` · ${spec.activeLabel}: ${enabled ? 'włączone' : 'wyłączone'} · PPM: pokaż/ukryj w walce` : ` · ${enabled ? 'włączony' : 'wyłączony'} · PPM: włącz/wyłącz` : '');
                     entry.button.title = title; entry.button.setAttribute('aria-label', title);
-                    entry.button.setAttribute('aria-expanded', String(expanded));
+                    if (spec.toggleOnly) entry.button.setAttribute('aria-pressed', String(Boolean(enabled)));
+                    else entry.button.setAttribute('aria-expanded', String(expanded));
                 } else entry.node.dataset.gogatkiDockItem = spec.id;
             }
             // Keep a permanent button for each module; its compact UI is parked out of sight.
@@ -372,6 +379,7 @@
     }
     GogatkiDockRuntime.register({apiVersion:2, create:createTileDock});
 })();
+
 
 
 
