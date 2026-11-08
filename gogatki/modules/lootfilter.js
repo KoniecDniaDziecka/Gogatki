@@ -167,7 +167,7 @@ GogatkiRuntime.register({id:"lootfilter",name:"Lootfilter",description:"Filtry \
         for (const list of ['whiteList', 'blackList']) if (!Array.isArray(config[list])) config[list] = [];
         save();
         panel = document.createElement('section'); panel.id = 'standalone-loot-filter';
-        panel.innerHTML = `<header><label><input type="checkbox" data-enabled> <span data-name title="Lootfilter">LootFilter</span></label><button type="button" data-settings title="Ustawienia" aria-label="Ustawienia Lootfiltera"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false" style="display:block;pointer-events:none;flex-shrink:0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12.00,4.20 13.95,2.19 15.83,2.76 16.33,5.51 17.52,6.48 20.31,6.44 21.24,8.17 19.65,10.48 19.80,12.00 21.81,13.95 21.24,15.83 18.49,16.33 17.52,17.52 17.56,20.31 15.83,21.24 13.52,19.65 12.00,19.80 10.05,21.81 8.17,21.24 7.67,18.49 6.48,17.52 3.69,17.56 2.76,15.83 4.35,13.52 4.20,12.00 2.19,10.05 2.76,8.17 5.51,7.67 6.48,6.48 6.44,3.69 8.17,2.76 10.48,4.35"/><circle cx="12" cy="12" r="3"/></svg></button></header>
+        panel.innerHTML = `<header><label><input type="checkbox" data-enabled> <span data-name title="Lootfilter">LootFilter</span></label><button type="button" data-settings title="Ustawienia" aria-label="Ustawienia Lootfiltera"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false" style="display:block;pointer-events:none;flex-shrink:0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m8 3 2 4h4l2-4H8ZM8 8h8M9 8c-2 3-5 5-5 9a4 4 0 0 0 4 4h8a4 4 0 0 0 4-4c0-4-3-6-5-9"/><circle cx="12" cy="15.5" r="2.5"/></svg></button></header>
             <main hidden><div data-filters></div><div data-modes></div>
             <label>Minimalna cena <input type="number" min="0" data-minPrice placeholder="Bez progu"></label>
             <label>Minimalne leczenie <input type="number" min="0" data-minHealing placeholder="Bez progu"></label>
@@ -296,6 +296,7 @@ GogatkiRuntime.register({id:"lootfilter",name:"Lootfilter",description:"Filtry \
 })();
 
 }});
+
 
 
 

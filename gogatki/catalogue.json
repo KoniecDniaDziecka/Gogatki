@@ -11,7 +11,7 @@
       "id": "lootfilter",
       "name": "Lootfilter",
       "description": "Filtry łupu po walce",
-      "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/lootfilter.js?v=1.0.19"
+      "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/lootfilter.js?v=1.0.20"
     },
     {
       "id": "wolacz",
@@ -65,7 +65,8 @@
       "id": "strategy",
       "name": "Strategy",
       "description": "Kolejka umiejętności i warunkowe zestawy ruchów w walce.",
-      "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/strategy.js?v=1.2.0"
+      "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/strategy.js?v=1.2.1"
     }
   ]
 }
+

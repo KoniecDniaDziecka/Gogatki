@@ -1,4 +1,4 @@
-// Strategy 1.2.0 — adapted from Spell Trigger (Maddonz, Barlag).
+// Strategy 1.2.1 — adapted from Spell Trigger (Maddonz, Barlag).
 GogatkiRuntime.register({
  id:'strategy', name:'Strategy',
  description:'Kolejka umiejętności i warunkowe zestawy ruchów w walce.',
@@ -189,7 +189,7 @@ function renderSets(parent){
 function clamp(){if(!host||window.__gogatkiTileDock?.isDocked(host))return;const rect=host.getBoundingClientRect();config.right=Math.max(0,Math.min(Number(config.right)||0,Math.max(0,innerWidth-rect.width)));config.top=Math.max(0,Math.min(Number(config.top)||0,Math.max(0,innerHeight-rect.height)));host.style.right=config.right+'px';host.style.top=config.top+'px';}
 function render(){
  host.dataset.compact=String(!!config.minimized);
- root.replaceChildren();const style=node('style');style.textContent=`:host{all:initial;font:12px Arial,sans-serif;color:#c7d0d9}*{box-sizing:border-box}section{width:300px;max-width:100vw;background:#171b20;border:1px solid #668298;border-radius:4px;overflow:hidden}header{height:28px;background:#252b31;display:flex;align-items:center;gap:6px;cursor:move;padding:0 5px;color:#12c9bd;touch-action:none}header strong{flex:1}button,input,select{font:inherit;color:#c7d0d9;border:1px solid #6d879a;border-radius:3px;background:#252b31;min-height:24px}button{background:#38566c;cursor:pointer;padding:3px 6px}button:disabled{cursor:default;color:#b1c0cb}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid #12c9bd}header button{display:grid;place-items:center;padding:0;width:24px;height:24px;color:#12c9bd}main{padding:8px;max-height:calc(100vh - 50px);overflow:auto}label{display:flex;align-items:center;justify-content:space-between;gap:6px;margin:6px 0}input,select{min-width:0;width:145px;padding:3px}input[type=checkbox]{appearance:auto;accent-color:#12c9bd;width:14px;height:14px;min-height:14px;margin:0}#queue{display:grid;gap:4px;margin:8px 0;color:#b1c0cb}#queue button{text-align:left}.row{display:flex;gap:3px;margin:5px 0}.row button:first-child{flex:1}#status,p{font-size:11px;color:#b1c0cb}#settings{border-top:1px solid #668298;margin-top:8px;padding-top:6px}`;root.append(style);
+ root.replaceChildren();const style=node('style');style.textContent=`:host{all:initial;font:12px Arial,sans-serif;color:#c7d0d9}*{box-sizing:border-box}section{width:250px;max-width:100vw;background:#171b20;border:1px solid #668298;border-radius:4px;overflow:hidden}header{height:28px;background:#252b31;display:flex;align-items:center;gap:6px;cursor:move;padding:0 5px;color:#12c9bd;touch-action:none}header strong{flex:1}button,input,select{font:inherit;color:#c7d0d9;border:1px solid #6d879a;border-radius:3px;background:#252b31;min-height:24px}button{background:#38566c;cursor:pointer;padding:3px 6px}button:disabled{cursor:default;color:#b1c0cb}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid #12c9bd}header button{display:grid;place-items:center;padding:0;width:24px;height:24px;color:#12c9bd}main{padding:8px;max-height:calc(100vh - 50px);overflow:auto}label{display:flex;align-items:center;justify-content:space-between;gap:6px;margin:6px 0}input,select{min-width:0;width:145px;padding:3px}input[type=checkbox]{appearance:auto;accent-color:#12c9bd;width:14px;height:14px;min-height:14px;margin:0}#queue{display:grid;gap:4px;margin:8px 0;color:#b1c0cb}#queue button{text-align:left}.row{display:flex;gap:3px;margin:5px 0}.row button:first-child{flex:1}#status,p{font-size:11px;color:#b1c0cb}#settings{border-top:1px solid #668298;margin-top:8px;padding-top:6px}`;root.append(style);
  const panel=node('section',null,{class:config.minimized?'panel collapsed':'panel'}),header=node('header');const gear=button('',()=>{if(config.minimized){config.minimized=false;}else settings=!settings;save();render();});gear.innerHTML=svg('bolt');gear.title='LPM: ustawienia; PPM: zwiń';gear.setAttribute('aria-label','Ustawienia Strategy');gear.oncontextmenu=e=>{e.preventDefault();config.minimized=!config.minimized;save();render();};
  if(config.minimized){const size=document.querySelector('#gogatek-panel')?.shadowRoot?.querySelector('.launcher')?.getBoundingClientRect().height||28;panel.style.width=size+'px';header.style.height=(size-2)+'px';header.style.padding='0';header.style.justifyContent='center';header.append(gear);}else{header.append(node('strong','Strategy'),gear);}
  panel.append(header);root.append(panel);
@@ -214,7 +214,7 @@ function start(){
  wrap(window.Engine?.battle||window,'close',()=>{V.emit('battle_close',[]);reset();renderQueue();});
  if(!window.Engine)wrap(window,'battle_close',()=>{V.emit('battle_close',[]);reset();renderQueue();});
  host=node('div',null,{id:'spell-trigger-standalone'});Object.assign(host.style,{position:'fixed',zIndex:'2147483000'});root=host.attachShadow({mode:'open'});document.body.append(host);
- window.SpellTriggerStandalone={version:'1.2.0',conditions:oT,targetResolvers:sT};
+ window.SpellTriggerStandalone={version:'1.2.1',conditions:oT,targetResolvers:sT};
  hookMenu();render();addEventListener('resize',()=>{clamp();clampBattleQueue();save();});
  if(Jc.inBattle)status('Uruchomiono podczas walki. Pełny stan będzie dostępny od następnej walki.');
  return true;
@@ -224,3 +224,4 @@ let attempts=0;const timer=setInterval(()=>{if(start()||++attempts>=120)clearInt
 
  }
 });
+
