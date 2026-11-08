@@ -17,7 +17,7 @@ GogatkiRuntime.register({
   'use strict';
   const defaults = () => ({ active: false, common: false, elite: false, elite2: false,
     elite3: false, hero: false, titan: false, colossus: false, pvp: false, groupPvp: false,
-    override: false, turnOnAskAboutBattleMode: true, maxGrp: '', lvlDiff: '', players: [] });
+    maxGrp: '', lvlDiff: '', players: [] });
 
   // Base rules follow SmartAutofight.vue; group PvP has its own opt-in setting.
   function createCore(settings, game) {
@@ -63,7 +63,6 @@ GogatkiRuntime.register({
       const npc = game.npc(Math.abs(Number(params.get('id'))));
       if (!npc || !allowed(npc)) return query;
       initiated = true;
-      if (settings.override) params.delete('ff');
       requestedFast = Boolean(settings[kind(npc)]);
       if (requestedFast) params.set('ff', '1');
       return params.toString().replace(/^fight=/, 'fight');
@@ -189,11 +188,6 @@ GogatkiRuntime.register({
     };
     core = createCore(settings, { hero, npcs, npc, mapId: () => ni ? engine.map?.d?.id : window.map?.id });
     core.refreshNpcs();
-    function askMode() {
-      if (settings.active && settings.turnOnAskAboutBattleMode &&
-          [false, 0].includes(engine.settingsStorage?.getValue(4)))
-        window._g('settings&action=update&id=4&v=1');
-    }
     hook(window, '_g', args => {
       const previous = args[0];
       args[0] = core.attack(previous);
@@ -228,14 +222,13 @@ GogatkiRuntime.register({
     });
     if (ni && typeof engine.battle?.close === 'function') hook(engine.battle, 'close', resetBattle);
     if (!ni && typeof window.closeBattle === 'function') hook(window, 'closeBattle', resetBattle);
-    buildPanel(ui, askMode);
-    askMode();
+    buildPanel(ui);
     lifecycle.settings = settings;
   }
   let timer;
   removers.push(() => clearTimeout(timer));
 
-  function buildPanel(ui, askMode) {
+  function buildPanel(ui) {
     host = document.createElement('div');
     host.id = 'smart-autofight-standalone';
     // Isolate the entire panel from game styles, including inherited text effects.
@@ -267,13 +260,12 @@ GogatkiRuntime.register({
       const label = document.createElement('label'), input = document.createElement('input');
       input.type = 'checkbox'; input.checked = settings[key];
       label.append(input, document.createTextNode(name)); container.append(label);
-      input.addEventListener('change', () => { settings[key] = input.checked; core.reset(); save(); askMode(); });
+      input.addEventListener('change', () => { settings[key] = input.checked; core.reset(); save(); });
     };
     for (const [key, name] of Object.entries({ common: 'Zwykłe', elite: 'Elity', elite2: 'Elity II',
       elite3: 'Elity III', hero: 'Herosi', titan: 'Tytani', colossus: 'Kolosy' }))
       addCheck(key, name, root.querySelector('.types'));
-    for (const [key, name] of Object.entries({ turnOnAskAboutBattleMode: 'Nadpisuj, kiedy potwór atakuje',
-      override: 'Nadpisuj szybką walkę', pvp: 'PvP', groupPvp: 'USTAWKI' })) addCheck(key, name, root.querySelector('.options'));
+    for (const [key, name] of Object.entries({ pvp: 'PvP', groupPvp: 'USTAWKI' })) addCheck(key, name, root.querySelector('.options'));
     root.querySelectorAll('input[type=number]').forEach(input => {
       input.value = settings[input.dataset.key];
       input.addEventListener('change', () => {
@@ -315,7 +307,7 @@ GogatkiRuntime.register({
     control.addEventListener('contextmenu', event => {
       event.preventDefault();
       settings.active = !settings.active;
-      core.reset(); askMode(); refresh();
+      core.reset(); refresh();
     });
     let drag;
     header.addEventListener('pointerdown', event => {
@@ -341,5 +333,6 @@ GogatkiRuntime.register({
 
   }
 });
+
 
 
