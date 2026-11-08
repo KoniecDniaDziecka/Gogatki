@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Gogatki — panel dodatków
 // @namespace    gogatek.local
-// @version      0.9.4
+// @version      0.9.5
 // @description  Wspólny panel i przełączniki dodatków do Margonem.
 // @match        https://*.margonem.pl/*
 // @match        https://*.margonem.com/*
@@ -81,10 +81,14 @@
         :host([data-native-widget="true"]) section{pointer-events:auto!important}
         :host([data-native-widget="true"]) header{cursor:default}
         .native-status{display:block;margin:4px 0;color:#b1c0cb;font:11px/1.4 Arial,sans-serif}
-        section{position:absolute;top:calc(100% + 5px);right:0;width:280px;max-width:calc(100vw - 16px);overflow-y:auto;background:#171b20!important;border:1px solid #668298;border-radius:4px;box-shadow:0 6px 22px #0009;overflow-x:hidden}
+        section{position:absolute;top:calc(100% + 5px);right:0;width:540px;max-width:calc(100vw - 16px);overflow-y:auto;background:#171b20!important;border:1px solid #668298;border-radius:4px;box-shadow:0 6px 22px #0009;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:#668298 #171b20}
+        section::-webkit-scrollbar{width:8px;height:8px}section::-webkit-scrollbar-track,section::-webkit-scrollbar-corner{background:#171b20}
+        section::-webkit-scrollbar-thumb{background:#668298;border:2px solid #171b20;border-radius:4px}section::-webkit-scrollbar-thumb:hover{background:#12c9bd}
         [hidden]{display:none!important}header{padding:5px 8px;background:#252b31;display:flex;align-items:center;justify-content:space-between}
         h2{margin:0;font-size:14px;font-weight:600;color:#edf3f7}small{font-size:11px;color:#b1c0cb;line-height:1.4}header button{display:flex;align-items:center;justify-content:center;border:0;background:none;color:#12c9bd;padding:3px}
-        .list{padding:0 8px}.row{display:flex;gap:10px;padding:11px 0;align-items:center;border-bottom:1px solid #ffffff12}.row:last-child{border:0}.info{flex:1}strong{display:block;margin-bottom:4px;font-size:13px;font-weight:600;color:#12c9bd}p{font-size:12px;line-height:1.45;font-weight:400;color:#c7d0d9;margin:0}
+        .list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:8px}.entry{display:flex;flex-direction:column;gap:6px;min-width:0}.row{display:flex;flex:1;gap:10px;padding:9px;align-items:center;border:1px solid #66829866;border-radius:4px;background:#252b31;cursor:pointer}.info{flex:1;min-width:0;overflow-wrap:anywhere}strong{display:block;margin-bottom:4px;font-size:13px;font-weight:600;color:#12c9bd}p{font-size:12px;line-height:1.45;font-weight:400;color:#c7d0d9;margin:0}
+        .retry{background:#38566c;border:1px solid #6d879a;border-radius:3px;padding:4px 7px;font:12px Arial,sans-serif}
+        @media(max-width:420px){.list{grid-template-columns:minmax(0,1fr)}}
         input{width:14px;height:14px;accent-color:#21bd69;cursor:pointer}.error{color:#ffbd89}
         footer{font-weight:400;padding:7px 8px;border-top:1px solid #66829855;font-size:11px;color:#12c9bd}.refresh-list{background:#252b31;color:#dce6ee;border:1px solid #668298;border-radius:3px;padding:4px 7px;font-size:12px}.apply{display:block;width:100%;margin-top:7px;padding:5px;background:#38566c;border:1px solid #6d879a;border-radius:3px}
         :focus-visible{outline:2px solid #12c9bd;outline-offset:2px}
@@ -194,6 +198,7 @@ input[type="checkbox"]:disabled{opacity:.45;cursor:not-allowed}
         const list = root.querySelector('.list');
         list.replaceChildren();
         for (const mod of modules) {
+            const entry = document.createElement('div'); entry.className = 'entry';
             const row = document.createElement('label'); row.className = 'row';
             const info = document.createElement('div'); info.className = 'info';
             const title = document.createElement('strong'); title.textContent = mod.name;
@@ -210,12 +215,13 @@ input[type="checkbox"]:disabled{opacity:.45;cursor:not-allowed}
                 if (preferences[mod.id] === true) start(mod);
                 render();
             });
-            row.append(info, toggle); list.appendChild(row);
+            row.append(info, toggle); entry.appendChild(row); list.appendChild(entry);
             if (errors.has(mod.id) && preferences[mod.id]) {
                 const retry = document.createElement('button');
+                retry.className = 'retry';
                 retry.textContent = 'Ponów pobieranie';
                 retry.addEventListener('click', () => start(mod));
-                list.appendChild(retry);
+                entry.appendChild(retry);
             }
         }
         const pending = modules.some(mod => active.has(mod.id) && preferences[mod.id] !== true);
@@ -658,6 +664,7 @@ const fallbackCatalogue = {"schemaVersion":1,"modules":[{"id":"ulepa","name":"Ul
         window.addEventListener('pagehide', () => clearInterval(wait), {once:true});
     }
 })();
+
 
 
 
