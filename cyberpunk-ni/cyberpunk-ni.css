@@ -1,4 +1,4 @@
-/* Cyberpunk NI 0.1.0 — motyw dla nowego interfejsu Margonem.
+/* Cyberpunk NI 0.2.1 — motyw dla nowego interfejsu Margonem.
  * Skrypt .user.js włącza go atrybutem data-cyberpunk-ni="on" na <html>.
  * Zmienne poniżej sterują paletą. Nie wymaga zewnętrznych grafik ani fontów.
  * Najlepiej używać z wyłączonym DarknessNI i innymi motywami całego NI.
@@ -24,14 +24,14 @@ html[data-cyberpunk-ni="on"] .layer.interface-layer :is(
   .bottom-panel,
   .bottom-panel.end-game,
   .bottom-panel .glass,
-  .main-column.left-column > .border,
-  .main-column.right-column > .border,
+  .main-column.left-column .border,
+  .main-column.right-column .border,
   .main-column.right-column,
   .main-column .extended-stats
 ) {
   background:
     linear-gradient(90deg, var(--cp-cyan), var(--cp-violet)) top / 100% 1px no-repeat,
-    repeating-linear-gradient(90deg, #202c35 0 1px, transparent 1px 32px),
+    linear-gradient(120deg, #1c262e, var(--cp-panel) 65%),
     var(--cp-panel) !important;
   box-shadow: inset 0 0 0 1px #354956 !important;
 }
@@ -192,25 +192,25 @@ html[data-cyberpunk-ni="on"] .layer.interface-layer .game-window-positioner :is(
 
 /* Przyciski: bez zmiany paddingu, rozmiarów, ikon i stanu disabled. */
 html[data-cyberpunk-ni="on"] .layer.interface-layer :is(
-  .button.green, .button.black, .widget-button.green, .widget-button.black
+  .button:not(.red):not(.danger), .widget-button
 ) {
-  background-image: linear-gradient(var(--cp-button), #253e50) !important;
+  background-image: linear-gradient(135deg, #264450, #1b2b39 75%, #352a49) !important;
   background-color: var(--cp-button) !important;
   color: #edf5fa !important;
   border-radius: 4px !important;
-  box-shadow: inset 0 0 0 1px var(--cp-button-border), inset 0 -2px #152530 !important;
+  box-shadow: inset 0 0 0 1px var(--cp-button-border), inset 0 -2px var(--cp-cyan) !important;
   text-shadow: none !important;
 }
 
 html[data-cyberpunk-ni="on"] .layer.interface-layer :is(
-  .button.green, .button.black, .widget-button.green, .widget-button.black
+  .button:not(.red):not(.danger), .widget-button
 ):not(.disabled):not([disabled]):not([aria-disabled="true"]):not(.no-hover):hover {
   background-image: linear-gradient(#41657a, #285e65) !important;
   box-shadow: inset 0 0 0 1px var(--cp-cyan), inset 0 -2px #152530 !important;
 }
 
 html[data-cyberpunk-ni="on"] .layer.interface-layer :is(
-  .button.green, .button.black, .widget-button.green, .widget-button.black
+  .button:not(.red):not(.danger), .widget-button
 ):is(.active, .pressed):not(.disabled):not([disabled]):not([aria-disabled="true"]) {
   background-image: linear-gradient(#304150, #24454a) !important;
   color: var(--cp-cyan) !important;
@@ -218,7 +218,7 @@ html[data-cyberpunk-ni="on"] .layer.interface-layer :is(
 }
 
 html[data-cyberpunk-ni="on"] .layer.interface-layer :is(
-  .button.green, .button.black, .widget-button.green, .widget-button.black
+  .button:not(.red):not(.danger), .widget-button
 ):is(.disabled, [disabled], [aria-disabled="true"]) {
   background-image: linear-gradient(#292f35, #20262b) !important;
   color: #8e9aa4 !important;
@@ -226,9 +226,13 @@ html[data-cyberpunk-ni="on"] .layer.interface-layer :is(
 }
 
 html[data-cyberpunk-ni="on"] .layer.interface-layer :is(
-  .button.green, .button.black, .widget-button.green, .widget-button.black
+  .button:not(.red):not(.danger), .widget-button
 )::before {
   box-shadow: none !important;
+}
+
+html[data-cyberpunk-ni="on"] .layer.interface-layer .widget-button::after {
+  box-shadow: 0 1px 0 1px var(--cp-bg) !important;
 }
 
 html[data-cyberpunk-ni="on"] .layer.interface-layer :is(
@@ -288,4 +292,95 @@ html[data-cyberpunk-ni="on"] .layer.interface-layer .battle-controller .graphics
 html[data-cyberpunk-ni="on"] .layer.interface-layer .additional-skill-panel {
   background: var(--cp-raised) !important;
   box-shadow: inset 0 0 0 1px var(--cp-violet) !important;
+}
+
+/* Pozostałe części HUD mają osobne sprite'y, niezależne od tła panelu. */
+html[data-cyberpunk-ni="on"] .layer.interface-layer :is(
+  .positioner.bottom .bg-additional-widget-left,
+  .positioner.bottom .bg-additional-widget-right,
+  .main-column .extended-stats .border
+) {
+  background: var(--cp-panel) !important;
+  box-shadow: inset 0 0 0 1px #354956 !important;
+}
+
+/* Środkowa osłona dolnego paska: zastępuje srebrną grafikę, nie jej zawartość. */
+html[data-cyberpunk-ni="on"] .layer.interface-layer .bottom-panel .bottom-panel-pointer-bg {
+  background:
+    linear-gradient(90deg, var(--cp-cyan), var(--cp-violet)) top / 100% 2px no-repeat,
+    linear-gradient(135deg, #26363f, #111a23 55%, #30263e) !important;
+  border-radius: 12px 12px 0 0 !important;
+  box-shadow: inset 0 0 0 1px var(--cp-line) !important;
+}
+
+/* Część motywów dokłada dawne grafiki przez pseudo-elementy tych osłon. */
+html[data-cyberpunk-ni="on"] .layer.interface-layer .bottom-panel::before,
+html[data-cyberpunk-ni="on"] .layer.interface-layer .bottom-panel .bottom-panel-pointer-bg::before {
+  background: none !important;
+  box-shadow: none !important;
+}
+
+/* Nakładki są ramkami. Nie ruszamy szerokości ani koloru wypełnień HP/XP. */
+html[data-cyberpunk-ni="on"] .layer.interface-layer .bottom-panel :is(
+  .exp-bar-wrapper .exp-progress .overlay,
+  .battle-bars-wrapper .battle-bar .overlay
+) {
+  background:
+    linear-gradient(90deg, var(--cp-cyan), var(--cp-violet)) top / 100% 1px no-repeat,
+    linear-gradient(90deg, #354956, var(--cp-line)) bottom / 100% 1px no-repeat !important;
+  box-shadow: inset 1px 0 #668298, inset -1px 0 #668298 !important;
+}
+
+html[data-cyberpunk-ni="on"] .layer.interface-layer .bottom-panel .battle-bars-wrapper .battle-bar .background {
+  background: var(--cp-bg) !important;
+  box-shadow: inset 0 0 0 1px #354956 !important;
+}
+
+html[data-cyberpunk-ni="on"] .layer.interface-layer .bottom-panel .exp-bar-wrapper .exp-progress .ribbon {
+  background: var(--cp-raised) !important;
+  box-shadow: inset 0 0 0 1px var(--cp-line) !important;
+  color: var(--cp-text) !important;
+  text-shadow: none !important;
+}
+
+/* Statystyki mają własne szare tło. Ikony statystyk są oddzielnymi elementami. */
+html[data-cyberpunk-ni="on"] .layer.interface-layer .game-window-positioner .character_wrapper .stats-wrapper {
+  background: var(--cp-panel) !important;
+  color: var(--cp-text);
+  text-shadow: none !important;
+}
+
+html[data-cyberpunk-ni="on"] .layer.interface-layer .game-window-positioner .inventory_wrapper .bags-navigation .item {
+  background: var(--cp-bg) !important;
+  box-shadow: inset 0 0 0 1px #354956 !important;
+}
+
+html[data-cyberpunk-ni="on"] .layer.interface-layer .game-window-positioner .inventory_wrapper .bags-navigation .item:is(.active, :hover) {
+  box-shadow: inset 0 0 0 1px var(--cp-cyan) !important;
+}
+
+html[data-cyberpunk-ni="on"] .layer.interface-layer .game-window-positioner .inventory_wrapper .bags-navigation .item.active .highlight {
+  background: none !important;
+  box-shadow: inset 0 0 0 1px var(--cp-cyan) !important;
+}
+
+/* Stary czat nie wszędzie dziedziczy font z kontenera. */
+html[data-cyberpunk-ni="on"] .layer.interface-layer :is(
+  .chat-tpl, .chat-tpl .chat-message, .chat-tpl .chat-message span,
+  .chat-tpl .chat-message a, .chat-tpl .chat-message b,
+  .new-chat-window, .new-chat-window .chat-message-wrapper
+) {
+  font-family: Arial, sans-serif !important;
+  text-shadow: none !important;
+}
+
+/* Skórka przewijania zachowuje wymiary, tor i działanie uchwytów gry. */
+html[data-cyberpunk-ni="on"] .layer.interface-layer .scroll-wrapper .scrollbar-wrapper .background {
+  background: var(--cp-bg) !important;
+}
+
+html[data-cyberpunk-ni="on"] .layer.interface-layer .scroll-wrapper .scrollbar-wrapper .track .handle {
+  background: var(--cp-button) !important;
+  border-radius: 3px !important;
+  box-shadow: inset 0 0 0 1px var(--cp-line) !important;
 }
