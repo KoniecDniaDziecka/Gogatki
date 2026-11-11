@@ -1,4 +1,4 @@
-/* Cyberpunk NI 0.2.9 — motyw dla nowego interfejsu Margonem.
+/* Cyberpunk NI 0.2.10 — motyw dla nowego interfejsu Margonem.
  * Skrypt .user.js włącza go atrybutem data-cyberpunk-ni="on" na <html>.
  * Zmienne poniżej sterują paletą. Nie wymaga zewnętrznych grafik ani fontów.
  * Najlepiej używać z wyłączonym DarknessNI i innymi motywami całego NI.
@@ -318,15 +318,15 @@ html[data-cyberpunk-ni="on"] .bottom-panel :is(
 /* Wypełnieniem .blood nadal steruje gra. Barwimy tylko jego widoczne piksele;
  * osobna ostrzegawcza .blood-frame zachowuje natywne kolory i animację. */
 html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator {
-  background: linear-gradient(var(--cp-raised), var(--cp-panel)) !important;
+  background: var(--cp-bg) !important;
   border-image: none !important;
   border-radius: 4px !important;
-  box-shadow: inset 0 0 0 1px var(--cp-line), inset 0 -2px var(--cp-cyan) !important;
+  box-shadow: inset 0 0 0 1px var(--cp-line) !important;
 }
 
 html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator .blood {
-  filter: var(--cp-sprite-tint) !important;
-  opacity: .32 !important;
+  filter: var(--cp-hp-meter-filter) !important;
+  opacity: 1 !important;
 }
 
 html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator-wrapper .glass {
@@ -1061,9 +1061,10 @@ html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .t
  * Filtr dotyczy tylko kategorii sklepu, nie grafik ofert ani ekwipunku. */
 html[data-cyberpunk-ni="on"] {
   --cp-premium-tint: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='premium' color-interpolation-filters='sRGB' x='0%25' y='0%25' width='100%25' height='100%25'%3E%3CfeColorMatrix type='matrix' values='.015 .0505 .0051 0 0 .1676 .5638 .0568 0 0 .1576 .5301 .0535 0 0 8 -5 -1 0 -.6' result='keyed'/%3E%3CfeComposite in='keyed' in2='SourceAlpha' operator='in' result='icons'/%3E%3CfeMorphology in='SourceAlpha' operator='erode' radius='1' result='inner'/%3E%3CfeComposite in='SourceAlpha' in2='inner' operator='out' result='edge'/%3E%3CfeFlood flood-color='%23668298' result='steel'/%3E%3CfeComposite in='steel' in2='edge' operator='in' result='frame'/%3E%3CfeFlood flood-color='%23171b20' result='panel'/%3E%3CfeComposite in='panel' in2='SourceAlpha' operator='in' result='base'/%3E%3CfeMerge%3E%3CfeMergeNode in='base'/%3E%3CfeMergeNode in='icons'/%3E%3CfeMergeNode in='frame'/%3E%3C/feMerge%3E%3C/filter%3E%3C/svg%3E#premium");
-  /* Środkowy pas natywnego sprite'a HP jest powtarzany w poziomie.
-   * Zachowuje poziom i animację krwi, daje prostokąt zamiast kuli. */
-  --cp-hp-meter-filter: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='hp-meter' filterUnits='userSpaceOnUse' primitiveUnits='userSpaceOnUse' color-interpolation-filters='sRGB' x='0' y='0' width='98' height='78'%3E%3CfeColorMatrix type='matrix' values='.0564704 .0564704 .0564704 0 0 .630588 .630588 .630588 0 0 .592941 .592941 .592941 0 0 0 0 0 1 0' result='tint'/%3E%3CfeOffset in='tint' dx='0' dy='0' x='46' y='0' width='6' height='78' result='strip'/%3E%3CfeTile in='strip' x='0' y='0' width='98' height='78'/%3E%3C/filter%3E%3C/svg%3E#hp-meter");
+  /* Poziom pobieramy ze środkowej kolumny sprite'a. Próg czerwieni usuwa
+   * teksturę i odróżnia krew od czarnych pustych klatek. Jednolity kolor
+   * jest nakładany dopiero na gotową maskę, bez powielania wzorów. */
+  --cp-hp-meter-filter: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='hp-meter' filterUnits='userSpaceOnUse' primitiveUnits='userSpaceOnUse' color-interpolation-filters='sRGB' x='0' y='0' width='98' height='78'%3E%3CfeColorMatrix in='SourceGraphic' type='matrix' values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0' result='level'/%3E%3CfeComponentTransfer in='level' result='mask'%3E%3CfeFuncA type='linear' slope='20' intercept='0'/%3E%3C/feComponentTransfer%3E%3CfeComposite in='mask' in2='SourceAlpha' operator='in' result='visible'/%3E%3CfeOffset in='visible' dx='0' dy='0' x='49' y='0' width='1' height='78' result='strip'/%3E%3CfeTile in='strip' x='0' y='0' width='98' height='78' result='flat'/%3E%3CfeFlood flood-color='%23c9363f' result='red'/%3E%3CfeComposite in='red' in2='flat' operator='in'/%3E%3C/filter%3E%3C/svg%3E#hp-meter");
 }
 
 html[data-cyberpunk-ni="on"] :is(.pre-premium-panel .tiles-wrapper, .premium-panel .product-kind) {
@@ -1085,12 +1086,12 @@ html[data-cyberpunk-ni="on"] .bottom-panel :is(.hp-indicator-wrapper, .hp-indica
 }
 
 html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator {
-  background: linear-gradient(var(--cp-raised), var(--cp-panel)) !important;
-  box-shadow: inset 0 0 0 1px var(--cp-line), inset 0 -2px var(--cp-cyan) !important;
+  background: var(--cp-bg) !important;
+  box-shadow: inset 0 0 0 1px var(--cp-line) !important;
 }
 
 html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator .blood {
   filter: var(--cp-hp-meter-filter) !important;
-  opacity: .32 !important;
+  opacity: 1 !important;
 }
 }
