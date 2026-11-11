@@ -1,4 +1,4 @@
-/* Cyberpunk NI 0.2.4 — motyw dla nowego interfejsu Margonem.
+/* Cyberpunk NI 0.2.5 — motyw dla nowego interfejsu Margonem.
  * Skrypt .user.js włącza go atrybutem data-cyberpunk-ni="on" na <html>.
  * Zmienne poniżej sterują paletą. Nie wymaga zewnętrznych grafik ani fontów.
  * Najlepiej używać z wyłączonym DarknessNI i innymi motywami całego NI.
@@ -344,45 +344,6 @@ html[data-cyberpunk-ni="on"] .layer.interface-layer :is(
   box-shadow: inset 0 0 0 1px #354956 !important;
 }
 
-/* Środkowa osłona dolnego paska: zastępuje srebrną grafikę, nie jej zawartość. */
-html[data-cyberpunk-ni="on"] .layer.interface-layer .bottom-panel .bottom-panel-pointer-bg {
-  background:
-    linear-gradient(90deg, var(--cp-cyan), var(--cp-violet)) top / 100% 2px no-repeat,
-    linear-gradient(135deg, #26363f, #111a23 55%, #30263e) !important;
-  border-radius: 12px 12px 0 0 !important;
-  box-shadow: inset 0 0 0 1px var(--cp-line) !important;
-}
-
-/* Część motywów dokłada dawne grafiki przez pseudo-elementy tych osłon. */
-html[data-cyberpunk-ni="on"] .layer.interface-layer .bottom-panel::before,
-html[data-cyberpunk-ni="on"] .layer.interface-layer .bottom-panel .bottom-panel-pointer-bg::before {
-  background: none !important;
-  box-shadow: none !important;
-}
-
-/* Nakładki są ramkami. Nie ruszamy szerokości ani koloru wypełnień HP/XP. */
-html[data-cyberpunk-ni="on"] .layer.interface-layer .bottom-panel :is(
-  .exp-bar-wrapper .exp-progress .overlay,
-  .battle-bars-wrapper .battle-bar .overlay
-) {
-  background:
-    linear-gradient(90deg, var(--cp-cyan), var(--cp-violet)) top / 100% 1px no-repeat,
-    linear-gradient(90deg, #354956, var(--cp-line)) bottom / 100% 1px no-repeat !important;
-  box-shadow: inset 1px 0 #668298, inset -1px 0 #668298 !important;
-}
-
-html[data-cyberpunk-ni="on"] .layer.interface-layer .bottom-panel .battle-bars-wrapper .battle-bar .background {
-  background: var(--cp-bg) !important;
-  box-shadow: inset 0 0 0 1px #354956 !important;
-}
-
-html[data-cyberpunk-ni="on"] .layer.interface-layer .bottom-panel .exp-bar-wrapper .exp-progress .ribbon {
-  background: var(--cp-raised) !important;
-  box-shadow: inset 0 0 0 1px var(--cp-line) !important;
-  color: var(--cp-text) !important;
-  text-shadow: none !important;
-}
-
 /* Statystyki mają własne szare tło. Ikony statystyk są oddzielnymi elementami. */
 html[data-cyberpunk-ni="on"] .game-window-positioner .character_wrapper .stats-wrapper {
   background: var(--cp-panel) !important;
@@ -425,38 +386,35 @@ html[data-cyberpunk-ni="on"] .layer.interface-layer .scroll-wrapper .scrollbar-w
   box-shadow: inset 0 0 0 1px var(--cp-line) !important;
 }
 
-/* Dolny HUD jest warstwowy. Tło jego kontenera musi pozostać przezroczyste,
- * bo górna część obramowania wystaje nad właściwy pasek na mapę. */
-html[data-cyberpunk-ni="on"] .bottom-panel {
-  background: none !important;
+html[data-cyberpunk-ni="on"] .game-window-positioner .character_wrapper .stats-wrapper .header-title {
+  background: linear-gradient(105deg, #163739, var(--cp-raised)) !important;
   border-image: none !important;
-  box-shadow: none !important;
+  box-shadow: inset 0 -1px var(--cp-cyan) !important;
+  color: var(--cp-text) !important;
+  text-shadow: none !important;
 }
 
-html[data-cyberpunk-ni="on"] .bottom-panel > .glass {
-  background: none !important;
-  border-image: none !important;
-  box-shadow: none !important;
-}
-
+/* Dolny HUD — warstwy potwierdzone odczytem z gry.
+ * Sprite ramy 590 × 100: .bottom-panel-graphic.
+ * Osobne grafiki etykiet 70 × 35: .pointer-exp-graphic i .pointer-ttl-graphic.
+ * Zachowujemy natywne położenie, rozmiary, zawartość i obsługę elementów. */
+html[data-cyberpunk-ni="on"] .bottom-panel,
 html[data-cyberpunk-ni="on"] .bottom-panel :is(
-  .exp-bar-wrapper,
-  .exp-bar-wrapper .exp-progress,
+  .bottom-panel-graphic,
+  .bottom-panel-pointer-bg,
+  .hp-indicator-wrapper-template,
   .hp-indicator-wrapper,
-  .hp-indicator-wrapper-template
+  .exp-bar-wrapper-template,
+  .exp-bar-wrapper,
+  .exp-progress,
+  .glass
 ) {
   background: none !important;
   border-image: none !important;
   box-shadow: none !important;
 }
 
-html[data-cyberpunk-ni="on"] .bottom-panel .exp-bar-wrapper .exp-progress .overlay {
-  border-image: none !important;
-  border-color: var(--cp-line) !important;
-}
-
-/* Nakładka wskaźnika HP jest niezależna od bottom-panel-pointer-bg.
- * Nie usuwamy .blood, .hpp, pasków .progress .inner ani ich wartości. */
+/* Czerwone wypełnienie .blood i ostrzegawcza .blood-frame należą do gry. */
 html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator {
   background: var(--cp-bg) !important;
   border-image: none !important;
@@ -464,42 +422,72 @@ html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator {
   box-shadow: inset 0 0 0 1px var(--cp-line) !important;
 }
 
-html[data-cyberpunk-ni="on"] .bottom-panel :is(
-  .hp-indicator-wrapper .glass,
-  .hp-indicator-wrapper-template .glass,
-  .hp-indicator .glass
-) {
-  background: none !important;
-  border-image: none !important;
+html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator-wrapper .glass {
   border-radius: 50% !important;
   box-shadow: inset 0 0 0 1px var(--cp-cyan) !important;
 }
 
-html[data-cyberpunk-ni="on"] .bottom-panel :is(
-  .hp-indicator-wrapper, .hp-indicator-wrapper-template, .hp-indicator,
-  .exp-bar-wrapper, .exp-bar-wrapper .exp-progress
-)::before,
-html[data-cyberpunk-ni="on"] .bottom-panel :is(
-  .hp-indicator-wrapper, .hp-indicator-wrapper-template, .hp-indicator,
-  .exp-bar-wrapper, .exp-bar-wrapper .exp-progress
-)::after {
+html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator :is(.hpp, .hpp .value) {
+  color: #f5f8fb !important;
+  text-shadow: none !important;
+}
+
+/* Środek kontenera etykiet pozostaje przezroczysty nad kulą HP. */
+html[data-cyberpunk-ni="on"] .bottom-panel .bottom-panel-pointer-bg :is(
+  .pointer-exp-graphic, .pointer-ttl-graphic
+) {
+  background: linear-gradient(var(--cp-raised), var(--cp-panel)) !important;
+  border-image: none !important;
+  border-radius: 4px !important;
+  box-shadow: inset 0 0 0 1px var(--cp-line), inset 0 -2px var(--cp-cyan) !important;
+}
+
+html[data-cyberpunk-ni="on"] .bottom-panel .bottom-panel-pointer-bg :is(.pointer-exp, .pointer-ttl) {
   background: none !important;
   border-image: none !important;
   box-shadow: none !important;
+  color: var(--cp-text) !important;
+  text-shadow: none !important;
 }
 
-html[data-cyberpunk-ni="on"] .bottom-panel :is(.pointer-exp, .pointer-ttl) {
-  background: var(--cp-raised) !important;
+/* Nakładki są przezroczyste, aby nie zasłaniały rzeczywistego postępu. */
+html[data-cyberpunk-ni="on"] .bottom-panel :is(
+  .exp-bar-wrapper .exp-progress .overlay,
+  .battle-bars-wrapper .battle-bar .overlay
+) {
+  background: none !important;
   border-image: none !important;
+  border-color: var(--cp-line) !important;
+  border-radius: 3px !important;
   box-shadow: inset 0 0 0 1px var(--cp-line) !important;
-  color: var(--cp-text) !important;
-  text-shadow: none !important;
 }
 
-html[data-cyberpunk-ni="on"] .game-window-positioner .character_wrapper .stats-wrapper .header-title {
-  background: linear-gradient(105deg, #163739, var(--cp-raised)) !important;
-  border-image: none !important;
-  box-shadow: inset 0 -1px var(--cp-cyan) !important;
-  color: var(--cp-text) !important;
-  text-shadow: none !important;
+html[data-cyberpunk-ni="on"] .bottom-panel .exp-bar-wrapper .exp-progress .progress,
+html[data-cyberpunk-ni="on"] .bottom-panel .battle-bars-wrapper .battle-bar .background {
+  background-color: var(--cp-bg) !important;
+}
+
+html[data-cyberpunk-ni="on"] .bottom-panel .battle-bars-wrapper .battle-bar .background {
+  background-image: none !important;
+  box-shadow: inset 0 0 0 1px var(--cp-line) !important;
+}
+
+html[data-cyberpunk-ni="on"] .bottom-panel .exp-bar-wrapper .exp-progress .progress .inner {
+  background: linear-gradient(#71ddd4, var(--cp-cyan)) !important;
+}
+
+html[data-cyberpunk-ni="on"] .bottom-panel .exp-bar-wrapper .exp-progress .progress.noexp .inner {
+  background: linear-gradient(#44616a, #253941) !important;
+}
+
+/* Kolor i obramowanie pól 39 × 39; obrazki przedmiotów i cooldowny pozostają. */
+html[data-cyberpunk-ni="on"] .bottom-panel :is(.usable-slot, .skill-usable-slot) {
+  background-color: var(--cp-bg) !important;
+  border-color: var(--cp-line) !important;
+  border-radius: 3px !important;
+  box-shadow: inset 0 0 0 1px var(--cp-line) !important;
+}
+
+html[data-cyberpunk-ni="on"] .bottom-panel :is(.usable-slot, .skill-usable-slot):not(.disabled):is(:hover, :focus-visible) {
+  box-shadow: inset 0 0 0 1px var(--cp-cyan) !important;
 }
