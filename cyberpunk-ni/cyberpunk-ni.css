@@ -1,0 +1,291 @@
+/* Cyberpunk NI 0.1.0 — motyw dla nowego interfejsu Margonem.
+ * Skrypt .user.js włącza go atrybutem data-cyberpunk-ni="on" na <html>.
+ * Zmienne poniżej sterują paletą. Nie wymaga zewnętrznych grafik ani fontów.
+ * Najlepiej używać z wyłączonym DarknessNI i innymi motywami całego NI.
+ */
+html[data-cyberpunk-ni="on"] {
+  --cp-bg: #0c1118;
+  --cp-panel: #171b20;
+  --cp-raised: #252b31;
+  --cp-line: #668298;
+  --cp-cyan: #12c9bd;
+  --cp-violet: #b08aff;
+  --cp-text: #c7d0d9;
+  --cp-muted: #b1c0cb;
+  --cp-button: #38566c;
+  --cp-button-border: #6d879a;
+}
+
+/* Wyłącznie powierzchnie NI: bez selektora *, zmian wymiarów i filtrów mapy. */
+html[data-cyberpunk-ni="on"] .layer.interface-layer :is(
+  .positioner.top .hud-container,
+  .positioner.top .bg,
+  .positioner.bottom .bg,
+  .bottom-panel,
+  .bottom-panel.end-game,
+  .bottom-panel .glass,
+  .main-column.left-column > .border,
+  .main-column.right-column > .border,
+  .main-column.right-column,
+  .main-column .extended-stats
+) {
+  background:
+    linear-gradient(90deg, var(--cp-cyan), var(--cp-violet)) top / 100% 1px no-repeat,
+    repeating-linear-gradient(90deg, #202c35 0 1px, transparent 1px 32px),
+    var(--cp-panel) !important;
+  box-shadow: inset 0 0 0 1px #354956 !important;
+}
+
+/* Ramy: zachowane szerokości obramowań, rozmiary i uchwyty gry. */
+html[data-cyberpunk-ni="on"] :is(
+  .layer.interface-layer, .alerts-layer, .mAlert-layer,
+  .mAlert-mobile-layer, .console-layer
+) .border-window {
+  border-image-source: linear-gradient(135deg, var(--cp-cyan), #354956 30%, #354956 75%, var(--cp-violet)) !important;
+  border-image-slice: 1 fill !important;
+  border-image-repeat: stretch !important;
+  color: var(--cp-text);
+}
+
+html[data-cyberpunk-ni="on"] :is(
+  .layer.interface-layer, .alerts-layer, .mAlert-layer,
+  .mAlert-mobile-layer, .console-layer
+) .border-window :is(.content, .border-image) {
+  background: var(--cp-panel) !important;
+  color: var(--cp-text);
+  text-shadow: none !important;
+}
+
+html[data-cyberpunk-ni="on"] .layer.interface-layer :is(
+  .border-window .header-label-positioner .header-label,
+  .dialogue-window header .h_content,
+  .trade-window header .h_background .middle,
+  .settings-window h2,
+  .clan .header-bar,
+  .mail-box .content-header,
+  .addons-panel .main-header,
+  .left-grouped-list-and-right-description-window .main-header
+) {
+  background: linear-gradient(105deg, #163739, var(--cp-raised) 60%, #352c47) !important;
+  border-image-source: linear-gradient(var(--cp-raised), var(--cp-raised)) !important;
+  border-image-slice: 1 fill !important;
+  color: var(--cp-cyan) !important;
+  font-family: Arial, sans-serif !important;
+  text-shadow: none !important;
+  box-shadow: inset 0 -1px var(--cp-line) !important;
+}
+
+/* Pozostawiamy dekoracje zamknięcia, strzałki oraz sprite'y ikon gry. */
+html[data-cyberpunk-ni="on"] .layer.interface-layer :is(
+  .border-window .header-label-positioner .header-label .left-decor,
+  .border-window .header-label-positioner .header-label .right-decor,
+  .trade-window header .h_background .left,
+  .trade-window header .h_background .right
+) {
+  background: var(--cp-raised) !important;
+  box-shadow: inset 0 -1px var(--cp-cyan) !important;
+}
+
+/* Wypełnienia okien. Obrazy przedmiotów i postaci pozostają osobnymi warstwami. */
+html[data-cyberpunk-ni="on"] .layer.interface-layer :is(
+  .quest-log .middle-graphics,
+  .loot-window .middle-graphics,
+  .loot-window .bottom-wrapper .bottom-graphic,
+  .auctions-summary .middle-graphics,
+  .auctions-summary .bottom-wrapper .bottom-graphic,
+  .friend-enemy-list .middle-graphics,
+  .recovery-item .middle-graphics,
+  .recovery-item .paper-graphics,
+  .settings-window .graphic-background,
+  .mail-box .middle-graphic,
+  .skills-window .left-column .middle-graphic,
+  .skills-window .right-column .middle-graphic,
+  .skills-window .board-graphic,
+  .depo .depo-graphic-background,
+  .gold-shop .middle-graphics,
+  .help-window2 .graphic-background,
+  .addons-panel .middle-left-column-graphics,
+  .addons-panel .middle-right-column-graphics,
+  .addons-panel .paper-graphics,
+  .clan .right-column,
+  .clan-list-find-panel,
+  .clan .green-box,
+  .showcase .card-content,
+  .dialogue-window .background :is(.left, .right, .top, .upper-left, .upper-right)
+) {
+  background: var(--cp-panel) !important;
+  border-image-source: linear-gradient(var(--cp-panel), var(--cp-panel)) !important;
+  border-image-slice: 1 fill !important;
+  color: var(--cp-text);
+}
+
+html[data-cyberpunk-ni="on"] .layer.interface-layer :is(
+  .border-window .bottom-bar,
+  .settings-window .bottom-bar,
+  .quest-box .info-wrapper,
+  .friend-enemy-list .bottom-friend-panel,
+  .clan .table-header,
+  .auctions .header-list,
+  .skills-window .table-header,
+  .mail-box .bottom-panel-graphics,
+  .addons-panel .bottom-panel-graphics
+) {
+  background: var(--cp-raised) !important;
+  border-image-source: linear-gradient(var(--cp-raised), var(--cp-raised)) !important;
+  border-image-slice: 1 fill !important;
+  color: var(--cp-text);
+  box-shadow: inset 0 1px #354956 !important;
+}
+
+/* Stary i nowy czat. Nie nadpisujemy kolorów nicków i jakości przedmiotów. */
+html[data-cyberpunk-ni="on"] .layer.interface-layer :is(
+  .chat-tpl .chat-pannel,
+  .chat-tpl .tabs-pannel,
+  .chat-tpl .messages-wrapper .under-tab-decor,
+  .chat-tpl .input-wrapper,
+  .new-chat-window,
+  .new-chat-window .chat-message-wrapper,
+  .chat-input-wrapper,
+  .chat-input-wrapper .magic-input-wrapper
+) {
+  background: var(--cp-bg) !important;
+  border-image-source: linear-gradient(var(--cp-bg), var(--cp-bg)) !important;
+  border-image-slice: 1 fill !important;
+  border-color: #354956 !important;
+  color: var(--cp-text);
+}
+
+html[data-cyberpunk-ni="on"] .layer.interface-layer :is(
+  .chat-channel-card-wrapper,
+  .chat-input-wrapper .control-wrapper .menu-card,
+  .chat-input-wrapper .control-wrapper .chat-config-wrapper,
+  .chat-tpl .tabs-wrapper .tab,
+  .chat-tpl .right-tabs-wrapper .tab
+) {
+  background: var(--cp-raised) !important;
+  border-color: #354956 !important;
+  color: var(--cp-muted);
+  text-shadow: none !important;
+}
+
+html[data-cyberpunk-ni="on"] .layer.interface-layer :is(
+  .chat-channel-card-wrapper.active,
+  .chat-tpl .tabs-wrapper .tab.active,
+  .chat-tpl .right-tabs-wrapper .tab.active
+) {
+  background: #193537 !important;
+  color: var(--cp-cyan) !important;
+  box-shadow: inset 0 -2px var(--cp-cyan) !important;
+}
+
+/* Ekwipunek: sprite'y gniazd zachowują położenie, neutralizujemy ich kolor. */
+html[data-cyberpunk-ni="on"] .layer.interface-layer .game-window-positioner :is(
+  .character_wrapper .equipment-wrapper,
+  .character_wrapper .stats-wrapper,
+  .inventory_wrapper .bags-navigation,
+  .inventory_wrapper .inventory-grid-bg
+) {
+  background-color: var(--cp-panel) !important;
+  background-blend-mode: luminosity !important;
+  box-shadow: inset 0 0 0 1px #354956 !important;
+}
+
+/* Przyciski: bez zmiany paddingu, rozmiarów, ikon i stanu disabled. */
+html[data-cyberpunk-ni="on"] .layer.interface-layer :is(
+  .button.green, .button.black, .widget-button.green, .widget-button.black
+) {
+  background-image: linear-gradient(var(--cp-button), #253e50) !important;
+  background-color: var(--cp-button) !important;
+  color: #edf5fa !important;
+  border-radius: 4px !important;
+  box-shadow: inset 0 0 0 1px var(--cp-button-border), inset 0 -2px #152530 !important;
+  text-shadow: none !important;
+}
+
+html[data-cyberpunk-ni="on"] .layer.interface-layer :is(
+  .button.green, .button.black, .widget-button.green, .widget-button.black
+):not(.disabled):not([disabled]):not([aria-disabled="true"]):not(.no-hover):hover {
+  background-image: linear-gradient(#41657a, #285e65) !important;
+  box-shadow: inset 0 0 0 1px var(--cp-cyan), inset 0 -2px #152530 !important;
+}
+
+html[data-cyberpunk-ni="on"] .layer.interface-layer :is(
+  .button.green, .button.black, .widget-button.green, .widget-button.black
+):is(.active, .pressed):not(.disabled):not([disabled]):not([aria-disabled="true"]) {
+  background-image: linear-gradient(#304150, #24454a) !important;
+  color: var(--cp-cyan) !important;
+  box-shadow: inset 0 0 0 1px var(--cp-cyan) !important;
+}
+
+html[data-cyberpunk-ni="on"] .layer.interface-layer :is(
+  .button.green, .button.black, .widget-button.green, .widget-button.black
+):is(.disabled, [disabled], [aria-disabled="true"]) {
+  background-image: linear-gradient(#292f35, #20262b) !important;
+  color: #8e9aa4 !important;
+  box-shadow: inset 0 0 0 1px #46515b !important;
+}
+
+html[data-cyberpunk-ni="on"] .layer.interface-layer :is(
+  .button.green, .button.black, .widget-button.green, .widget-button.black
+)::before {
+  box-shadow: none !important;
+}
+
+html[data-cyberpunk-ni="on"] .layer.interface-layer :is(
+  .border-window input.default,
+  .border-window textarea,
+  .chat-input-wrapper textarea,
+  .chat-tpl .input-wrapper input
+) {
+  background: var(--cp-bg) !important;
+  border-color: var(--cp-line) !important;
+  color: var(--cp-text) !important;
+  caret-color: var(--cp-cyan);
+  text-shadow: none !important;
+}
+
+html[data-cyberpunk-ni="on"] .layer.interface-layer :is(
+  button, input, textarea, select, [tabindex]
+):focus-visible {
+  outline: 2px solid var(--cp-cyan) !important;
+  outline-offset: -2px;
+}
+
+/* Menu i tooltipy, również w oddzielnych warstwach NI. */
+html[data-cyberpunk-ni="on"] :is(
+  .layer.interface-layer, .alerts-layer, .mAlert-layer,
+  .mAlert-mobile-layer, .console-layer
+) :is(.popup-menu, .tip-wrapper) {
+  background: var(--cp-panel) !important;
+  box-shadow: 0 0 0 1px var(--cp-line), 0 0 0 2px var(--cp-bg) !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(
+  .layer.interface-layer, .alerts-layer, .mAlert-layer,
+  .mAlert-mobile-layer, .console-layer
+) :is(.tip-wrapper .content, .popup-menu .menu-item, .menu-wrapper .option) {
+  background: var(--cp-panel) !important;
+  border-color: #354956 !important;
+  text-shadow: none !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(
+  .layer.interface-layer, .alerts-layer, .mAlert-layer,
+  .mAlert-mobile-layer, .console-layer
+) :is(.popup-menu .menu-item, .menu-wrapper .option):not(.disabled):not(.label):not(.cooldown-disabled):hover {
+  background: #233b42 !important;
+  border-color: var(--cp-cyan) !important;
+}
+
+/* Walki: wyłącznie dekoracyjne tła, bez pasków HP i wskaźników umiejętności. */
+html[data-cyberpunk-ni="on"] .layer.interface-layer .battle-controller .graphics :is(
+  .header-graphic, .middle-graphic, .bottom-graphic
+) {
+  background: var(--cp-panel) !important;
+  box-shadow: inset 0 0 0 1px #354956 !important;
+}
+
+html[data-cyberpunk-ni="on"] .layer.interface-layer .additional-skill-panel {
+  background: var(--cp-raised) !important;
+  box-shadow: inset 0 0 0 1px var(--cp-violet) !important;
+}
