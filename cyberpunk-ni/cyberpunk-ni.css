@@ -1,4 +1,4 @@
-/* Cyberpunk NI 0.2.8 — motyw dla nowego interfejsu Margonem.
+/* Cyberpunk NI 0.2.9 — motyw dla nowego interfejsu Margonem.
  * Skrypt .user.js włącza go atrybutem data-cyberpunk-ni="on" na <html>.
  * Zmienne poniżej sterują paletą. Nie wymaga zewnętrznych grafik ani fontów.
  * Najlepiej używać z wyłączonym DarknessNI i innymi motywami całego NI.
@@ -872,4 +872,225 @@ html[data-cyberpunk-ni="on"] .quest-bring-item .item-wrapper:not([style*="url(" 
 html[data-cyberpunk-ni="on"] .news-classic-tile .used-text,
 html[data-cyberpunk-ni="on"] .mails-window .new-message .footer .atachments .foot-item .send-item {
   filter: var(--cp-sprite-tint) !important;
+}
+
+/* Detale NI: ważne deklaracje w warstwie wygrywają z natywnym, niewarstwowym
+ * !important. Tylko wskazane dekoracje; bez resetu obrazków dzieci i układu.
+ * Pseudowarstwy ramek potrafią nadal rysować bitmapę nad tłem kontenera. */
+@layer cyberpunk-ni-window-details {
+
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) :is(.middle-graphics, .middle-graphic, .graphic-background, .middle-left-column-graphics, .middle-right-column-graphics, .top-left-column-graphics, .bottom-left-column-graphics, .location-graphics, .paper-graphics, .window-background, .board-graphic, .crafting__bg, .points-header-wrapper, .points-header, .skills-points-header, .skills-points-wrapper, .list-border, .header-background-graphic, .card-graphic) {
+  background: var(--cp-panel) !important;
+  border-image: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  color: var(--cp-text) !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) :is(.amound-wrapper, .amount-wrapper, .bottom-friend-panel, .bottom-part, .bottom-row-panel, .bottom-panel-graphics, .bottom-bar, .wood-bar, .maku-wood, .header-bar, .table-header-wrapper, .crazy-bar, .chests-bottom-panel, .promo-bottom-panel, .premium-bottom-panel, .bottom-mail-panel, .footer-graphics, .footer, .bottom-panel, .list-label-wrapper, .section-header, .content-header) {
+  background: var(--cp-raised) !important;
+  border-image: none !important;
+  border-color: transparent !important;
+  box-shadow: inset 0 1px #354956 !important;
+  color: var(--cp-text) !important;
+  text-shadow: none !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) :is(.middle-graphics, .middle-graphic, .graphic-background, .middle-left-column-graphics, .middle-right-column-graphics, .top-left-column-graphics, .bottom-left-column-graphics, .location-graphics, .paper-graphics, .window-background, .board-graphic, .crafting__bg, .points-header-wrapper, .points-header, .skills-points-header, .skills-points-wrapper, .list-border, .header-background-graphic, .card-graphic)::before,
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) :is(.middle-graphics, .middle-graphic, .graphic-background, .middle-left-column-graphics, .middle-right-column-graphics, .top-left-column-graphics, .bottom-left-column-graphics, .location-graphics, .paper-graphics, .window-background, .board-graphic, .crafting__bg, .points-header-wrapper, .points-header, .skills-points-header, .skills-points-wrapper, .list-border, .header-background-graphic, .card-graphic)::after,
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) :is(.amound-wrapper, .amount-wrapper, .bottom-friend-panel, .bottom-part, .bottom-row-panel, .bottom-panel-graphics, .bottom-bar, .wood-bar, .maku-wood, .header-bar, .table-header-wrapper, .crazy-bar, .chests-bottom-panel, .promo-bottom-panel, .premium-bottom-panel, .bottom-mail-panel, .footer-graphics, .footer, .bottom-panel, .list-label-wrapper, .section-header, .content-header)::before,
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) :is(.amound-wrapper, .amount-wrapper, .bottom-friend-panel, .bottom-part, .bottom-row-panel, .bottom-panel-graphics, .bottom-bar, .wood-bar, .maku-wood, .header-bar, .table-header-wrapper, .crazy-bar, .chests-bottom-panel, .promo-bottom-panel, .premium-bottom-panel, .bottom-mail-panel, .footer-graphics, .footer, .bottom-panel, .list-label-wrapper, .section-header, .content-header)::after {
+  background: none !important;
+  border-image: none !important;
+  box-shadow: none !important;
+}
+
+/* Nowsze panele mogą mieć grafikę przypisaną bezpośrednio do korzenia. */
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) :is(.quest-log, .skills-window, .friend-enemy-list, .world-window, .settings-window, .crafting, .crafting-window, .left-grouped-list-and-right-description-window) {
+  background: var(--cp-panel) !important;
+  border-image: none !important;
+  border-color: var(--cp-line) !important;
+}
+
+/* Kolumny także mogą same rysować drewnianą ramkę zamiast osobnej grafiki. */
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window) :is(.left-column, .right-column, .main-column, .column):not([style*="url(" i]) {
+  background: var(--cp-panel) !important;
+  border-image: none !important;
+  border-color: var(--cp-line) !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window) :is(input[type="checkbox"], input[type="radio"]) {
+  accent-color: var(--cp-cyan) !important;
+  color-scheme: dark !important;
+}
+
+/* Jasna otoczka wyszukiwarki jest niezależna od samego inputa. */
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) :is(.search-wrapper, .search-component, .ni-input) {
+  background: var(--cp-bg) !important;
+  border-image: none !important;
+  border-color: var(--cp-line) !important;
+  border-radius: 3px !important;
+  box-shadow: inset 0 0 0 1px var(--cp-line) !important;
+  color: var(--cp-text) !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) :is(.search-wrapper, .search-component, .ni-input)::before,
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) :is(.search-wrapper, .search-component, .ni-input)::after {
+  background: none !important;
+  border-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) :is(.search-wrapper, .search-component, .ni-input) input {
+  background-color: var(--cp-bg) !important;
+  border-color: var(--cp-line) !important;
+  color: var(--cp-text) !important;
+  box-shadow: none !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) :is(.search-wrapper, .search-component, .ni-input) input::placeholder {
+  color: var(--cp-muted) !important;
+  opacity: 1 !important;
+}
+
+/* Checkboxy gry i ich dekoracyjne pseudo-elementy mają własne reguły. */
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) :is(.checkbox, [role="checkbox"]):not(input):not(:has(input)) {
+  background: var(--cp-bg) !important;
+  border-image: none !important;
+  border-radius: 3px !important;
+  box-shadow: inset 0 0 0 1px var(--cp-line) !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) :is(.checkbox, [role="checkbox"]):not(input):not(:has(input)):is(.active, .checked, [aria-checked="true"]) {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='m3 8 3 3 7-7' fill='none' stroke='%2312c9bd' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important;
+  background-position: center !important;
+  background-size: 14px 14px !important;
+  background-repeat: no-repeat !important;
+  box-shadow: inset 0 0 0 1px var(--cp-cyan) !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) :is(.checkbox, [role="checkbox"]):not(input):not(:has(input))::before,
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) :is(.checkbox, [role="checkbox"]):not(input):not(:has(input))::after {
+  content: none !important;
+  background: none !important;
+  box-shadow: none !important;
+}
+
+/* Ramki umiejętności, bez nadpisania obrazka ustawionego inline przez grę. */
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) :is(.skills-wrapper, .skills-list) .skill:not([style*="url(" i]) {
+  background: var(--cp-raised) !important;
+  border-image: none !important;
+  border-color: var(--cp-line) !important;
+  box-shadow: inset 0 0 0 1px var(--cp-line) !important;
+}
+
+html[data-cyberpunk-ni="on"] .skills-window .left-column :is(.skills-header, .skill-group-header, .skills-group-header, .group-header, .list-label, .requirements) {
+  background: var(--cp-raised) !important;
+  border-color: var(--cp-line) !important;
+  color: var(--cp-text) !important;
+  text-shadow: none !important;
+}
+
+/* Tekst instrukcji nie może zostać czarny po przyciemnieniu papieru. */
+html[data-cyberpunk-ni="on"] :is(.skills-window .right-column, .c-window .right-column:has(.points-header-wrapper, .points-header, .skills-points-header, .skills-points-wrapper)),
+html[data-cyberpunk-ni="on"] :is(.skills-window .right-column, .c-window .right-column:has(.points-header-wrapper, .points-header, .skills-points-header, .skills-points-wrapper)) :is(.description-wrapper, .skill-description, .description, .help-info, .help-message, .help-text, .instruction, .instructions, .empty-description, .empty-info, .empty-text, .no-skill, .no-skill-selected) {
+  color: var(--cp-text) !important;
+  text-shadow: none !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(.skills-window .right-column, .c-window .right-column:has(.points-header-wrapper, .points-header, .skills-points-header, .skills-points-wrapper)) :is(p, b, strong):not([style*="color" i]):not(.red, .green, .warning, .error, .positive, .negative):not(:is(.red, .green, .warning, .error, .positive, .negative) *) {
+  color: var(--cp-text) !important;
+  text-shadow: none !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(.skills-window .right-column, .c-window .right-column:has(.points-header-wrapper, .points-header, .skills-points-header, .skills-points-wrapper)) :is([style*="color: black" i], [style*="color: #000" i], [style*="color: rgb(0, 0, 0)" i]) {
+  color: var(--cp-text) !important;
+}
+
+/* Rzemiosło: puste ramki przedmiotów i 32-pikselowa siatka składników. */
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) .enhance__item:not([style*="url(" i]) {
+  background: var(--cp-bg) !important;
+  border-image: none !important;
+  border-color: var(--cp-line) !important;
+  border-radius: 3px !important;
+  box-shadow: inset 0 0 0 1px var(--cp-line) !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) .enhance__progress-bg {
+  background: var(--cp-bg) !important;
+  border-image: none !important;
+  box-shadow: inset 0 0 0 1px var(--cp-line) !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) .enhance__progress--current {
+  background-color: var(--cp-cyan) !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) .enhance__reagents:not([style*="url(" i]) {
+  background:
+    repeating-linear-gradient(90deg, transparent 0 31px, #354956 31px 32px),
+    repeating-linear-gradient(0deg, transparent 0 31px, #354956 31px 32px),
+    var(--cp-bg) !important;
+  border-image: none !important;
+  border-color: var(--cp-line) !important;
+  box-shadow: inset 0 0 0 1px var(--cp-line) !important;
+}
+
+/* Strzałki i akcje aktualności są niezależne od promocyjnych ilustracji. */
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) :is(.right-arrow, .left-arrow, .right-news-btn, .left-news-btn, .news-arrow-element) {
+  filter: var(--cp-sprite-tint) !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) .news-time-promo-tile .buy-button {
+  background: linear-gradient(var(--cp-button), var(--cp-panel)) !important;
+  border-image: none !important;
+  border-color: var(--cp-line) !important;
+  border-radius: 3px !important;
+  box-shadow: inset 0 0 0 1px var(--cp-line) !important;
+  color: var(--cp-text) !important;
+  text-shadow: none !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) .news-time-promo-tile .buy-button:not(.disabled):hover {
+  background: #233b42 !important;
+  box-shadow: inset 0 0 0 1px var(--cp-cyan) !important;
+}
+
+/* Kafelek Premium ma tło i symbol w jednym atlasie. Usuwamy zielone tło
+ * kluczem koloru w alfie i barwimy ocalałe piksele, zachowując symbol i napis.
+ * Filtr dotyczy tylko kategorii sklepu, nie grafik ofert ani ekwipunku. */
+html[data-cyberpunk-ni="on"] {
+  --cp-premium-tint: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='premium' color-interpolation-filters='sRGB' x='0%25' y='0%25' width='100%25' height='100%25'%3E%3CfeColorMatrix type='matrix' values='.015 .0505 .0051 0 0 .1676 .5638 .0568 0 0 .1576 .5301 .0535 0 0 8 -5 -1 0 -.6' result='keyed'/%3E%3CfeComposite in='keyed' in2='SourceAlpha' operator='in' result='icons'/%3E%3CfeMorphology in='SourceAlpha' operator='erode' radius='1' result='inner'/%3E%3CfeComposite in='SourceAlpha' in2='inner' operator='out' result='edge'/%3E%3CfeFlood flood-color='%23668298' result='steel'/%3E%3CfeComposite in='steel' in2='edge' operator='in' result='frame'/%3E%3CfeFlood flood-color='%23171b20' result='panel'/%3E%3CfeComposite in='panel' in2='SourceAlpha' operator='in' result='base'/%3E%3CfeMerge%3E%3CfeMergeNode in='base'/%3E%3CfeMergeNode in='icons'/%3E%3CfeMergeNode in='frame'/%3E%3C/feMerge%3E%3C/filter%3E%3C/svg%3E#premium");
+  /* Środkowy pas natywnego sprite'a HP jest powtarzany w poziomie.
+   * Zachowuje poziom i animację krwi, daje prostokąt zamiast kuli. */
+  --cp-hp-meter-filter: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='hp-meter' filterUnits='userSpaceOnUse' primitiveUnits='userSpaceOnUse' color-interpolation-filters='sRGB' x='0' y='0' width='98' height='78'%3E%3CfeColorMatrix type='matrix' values='.0564704 .0564704 .0564704 0 0 .630588 .630588 .630588 0 0 .592941 .592941 .592941 0 0 0 0 0 1 0' result='tint'/%3E%3CfeOffset in='tint' dx='0' dy='0' x='46' y='0' width='6' height='78' result='strip'/%3E%3CfeTile in='strip' x='0' y='0' width='98' height='78'/%3E%3C/filter%3E%3C/svg%3E#hp-meter");
+}
+
+html[data-cyberpunk-ni="on"] :is(.pre-premium-panel .tiles-wrapper, .premium-panel .product-kind) {
+  background-color: var(--cp-panel) !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(.pre-premium-panel .pre-premium-panel-tile, .premium-panel .product-kind .premium-item) {
+  filter: var(--cp-premium-tint) !important;
+  box-shadow: inset 0 0 0 1px var(--cp-line) !important;
+  text-shadow: none !important;
+}
+
+/* Maski i clipping natywnej kuli nie mogą obcinać nowej ramki HP. */
+html[data-cyberpunk-ni="on"] .bottom-panel :is(.hp-indicator-wrapper, .hp-indicator, .blood) {
+  clip-path: none !important;
+  mask-image: none !important;
+  -webkit-mask-image: none !important;
+  border-radius: 4px !important;
+}
+
+html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator {
+  background: linear-gradient(var(--cp-raised), var(--cp-panel)) !important;
+  box-shadow: inset 0 0 0 1px var(--cp-line), inset 0 -2px var(--cp-cyan) !important;
+}
+
+html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator .blood {
+  filter: var(--cp-hp-meter-filter) !important;
+  opacity: .32 !important;
+}
 }
