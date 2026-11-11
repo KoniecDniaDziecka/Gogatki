@@ -8,7 +8,7 @@ BUNDLE = {"id": "cyberpunk-ni", "schema": 1, "version": "0.2.1", "css": CSS}
 HEADER = """// ==UserScript==
 // @name         Cyberpunk NI
 // @namespace    local.margonem.cyberpunk-ni
-// @version      0.2.0
+// @version      0.2.1
 // @description  Cyberpunk NI — najnowszy motyw pobierany przy każdym odświeżeniu gry.
 // @match        https://*.margonem.pl/*
 // @match        https://*.margonem.com/*
@@ -17,6 +17,7 @@ HEADER = """// ==UserScript==
 // @grant        GM_registerMenuCommand
 // @grant        GM_xmlhttpRequest
 // @connect      raw.githubusercontent.com
+// @connect      api.github.com
 // @updateURL    https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/cyberpunk-ni/cyberpunk-ni.user.js
 // @downloadURL  https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/cyberpunk-ni/cyberpunk-ni.user.js
 // @run-at       document-idle
