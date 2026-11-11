@@ -1,4 +1,4 @@
-/* Cyberpunk NI 0.2.15 — motyw dla nowego interfejsu Margonem.
+/* Cyberpunk NI 0.2.16 — motyw dla nowego interfejsu Margonem.
  * Skrypt .user.js włącza go atrybutem data-cyberpunk-ni="on" na <html>.
  * Zmienne poniżej sterują paletą. Nie wymaga zewnętrznych grafik ani fontów.
  * Najlepiej używać z wyłączonym DarknessNI i innymi motywami całego NI.
@@ -1125,11 +1125,16 @@ html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator .hpp .value {
 
 /* Górny panel postaci: własna obudowa, bez zmiany układu danych i przycisków. */
 @layer cyberpunk-ni-top-hud {
+html[data-cyberpunk-ni="on"] {
+  /* Biały plus pozostaje biały, zieleń tła jest przygaszona do turkusu. */
+  --cp-hud-button-tint: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='button' color-interpolation-filters='sRGB' x='0%25' y='0%25' width='100%25' height='100%25'%3E%3CfeColorMatrix type='matrix' values='1 0 0 0 0 0 .8 .2 0 0 0 .7 .3 0 0 0 0 0 1 0'/%3E%3C/filter%3E%3C/svg%3E#button");
+}
+
 html[data-cyberpunk-ni="on"] .layer.interface-layer .positioner.top .hud-container {
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 340 74' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='panel' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop stop-color='%2321323e'/%3E%3Cstop offset='.45' stop-color='%23171b20'/%3E%3Cstop offset='1' stop-color='%231b2932'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M7 .5H333L339.5 7v60l-6.5 6.5H7L.5 67V7Z' fill='url%28%23panel%29' stroke='%23668298'/%3E%3Cpath d='M1 18V7l6-6h25m276 0h25l6 6v11M1 56v11l6 6h25m276 0h25l6-6V56' fill='none' stroke='%2312c9bd' stroke-width='1.5'/%3E%3Cpath d='M39 1h19m224 0h19M11 70h68m182 0h68' stroke='%2338566c' stroke-width='1'/%3E%3Cpath d='M89 72h14m134 0h14' stroke='%2312c9bd' stroke-width='1.5'/%3E%3C/svg%3E") center / 100% 100% no-repeat !important;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 340 74' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='shell' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop stop-color='%236b8191'/%3E%3Cstop offset='.2' stop-color='%232b3a46'/%3E%3Cstop offset='.7' stop-color='%2317222b'/%3E%3Cstop offset='1' stop-color='%23425868'/%3E%3C/linearGradient%3E%3ClinearGradient id='panel' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop stop-color='%23252b31'/%3E%3Cstop offset='1' stop-color='%23171b20'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath id='wing' d='M1 1h22v13l-9 9H6v-8h6l5-5V6H1Z' fill='%2327343e' stroke='%23668298'/%3E%3Cuse href='%23wing' transform='translate%28340 0%29 scale%28-1 1%29'/%3E%3Cpath d='M3 4h13m308 0h13' stroke='%2312c9bd'/%3E%3Cpath d='M23 .5h294v46c0 17-9 27-26 27H49c-17 0-26-10-26-27Z' fill='url%28%23shell%29' stroke='%23668298'/%3E%3Cpath d='M26 3h288v43c0 16-8 24-23 24H49c-15 0-23-8-23-24Z' fill='url%28%23panel%29' stroke='%230c1118'/%3E%3Cpath d='M34 61c4 7 9 10 20 10h232c11 0 16-3 20-10' fill='none' stroke='%2312c9bd' stroke-opacity='.55'/%3E%3Crect x='37' y='3' width='266' height='18' rx='1' fill='%23171b20' stroke='%23425868'/%3E%3Cg transform='translate%2843 47%29' stroke='%23e5c85a' stroke-width='.8'%3E%3Cellipse cx='10' cy='14' rx='8.5' ry='5.5' fill='%23866222'/%3E%3Cpath d='M1.5 10v4c0 3 17 3 17 0v-4' fill='%23b18b2e'/%3E%3Cellipse cx='10' cy='10' rx='8.5' ry='5.5' fill='%23e1bc43'/%3E%3Cellipse cx='10' cy='10' rx='5.5' ry='3.2' fill='%23bd922b'/%3E%3Cpath d='m9 7 3 1-2 2 1 2-3-1 2-2Z' fill='%23f4de84' stroke='none'/%3E%3C/g%3E%3Cg transform='translate%28166 47%29' stroke='%23b6c86c' stroke-width='.8'%3E%3Cpath d='m10 0 8 6-1 10-8 5-7-6L3 5Z' fill='%233f7837'/%3E%3Cpath d='m10 2 6 5-7 4-4-5Zm-1 10 6-3-1 6-5 4-4-5Z' fill='%2377a849' stroke-width='.5'/%3E%3Cpath d='m10 2-1 9v8' fill='none' stroke='%23284e2a'/%3E%3C/g%3E%3C/svg%3E") center / 100% 100% no-repeat !important;
   border-image: none !important;
   border-color: transparent !important;
-  border-radius: 5px !important;
+  border-radius: 0 !important;
   box-shadow: none !important;
   color: var(--cp-text) !important;
   font-family: Arial, sans-serif !important;
@@ -1162,7 +1167,7 @@ html[data-cyberpunk-ni="on"] .layer.interface-layer .positioner.top .hud-contain
   box-shadow: inset 0 0 0 1px var(--cp-line) !important;
   color: #f5f8fb !important;
   text-shadow: none !important;
-  filter: var(--cp-sprite-tint) !important;
+  filter: var(--cp-hud-button-tint) !important;
 }
 
 html[data-cyberpunk-ni="on"] .layer.interface-layer .positioner.top .hud-container .btn-min:not(.disabled):not([disabled]):not([aria-disabled="true"]):hover {
@@ -1173,6 +1178,36 @@ html[data-cyberpunk-ni="on"] .layer.interface-layer .positioner.top .hud-contain
   outline: 2px solid var(--cp-cyan) !important;
   outline-offset: 1px;
 }
+/* Natywne prostokąty zachowują rozmiary, pozycje, wyrównanie i wartości. */
+html[data-cyberpunk-ni="on"] .layer.interface-layer .positioner.top .hud-container :is(.location, .coords, .world-name, .herogold, .herocredits) {
+  background-color: var(--cp-bg) !important;
+  border-image: none !important;
+  border-radius: 2px !important;
+  box-shadow: inset 0 0 0 1px #425868 !important;
+  color: var(--cp-text) !important;
+  text-shadow: none !important;
+}
+
+/* Oryginalny atlas nadal wybiera kolor statusu. Przycinamy tylko jego kształt. */
+html[data-cyberpunk-ni="on"] .layer.interface-layer .positioner.top .hud-container .map_ball {
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%) !important;
+  border-radius: 0 !important;
+}
+
+html[data-cyberpunk-ni="on"] .layer.interface-layer .positioner.top .hud-container .map_ball::after {
+  content: "" !important;
+  position: absolute !important;
+  left: 15% !important;
+  top: 15% !important;
+  width: 70% !important;
+  height: 70% !important;
+  box-sizing: border-box !important;
+  transform: rotate(45deg) !important;
+  border: 1px solid var(--cp-line) !important;
+  background: none !important;
+  pointer-events: none !important;
+}
+
 }
 
 /* Loader >= 0.2.2 podaje procent z licznika gry. Koło korzysta z pełnego
