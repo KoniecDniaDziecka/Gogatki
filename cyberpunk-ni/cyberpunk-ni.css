@@ -1,4 +1,4 @@
-/* Cyberpunk NI 0.2.6 — motyw dla nowego interfejsu Margonem.
+/* Cyberpunk NI 0.2.7 — motyw dla nowego interfejsu Margonem.
  * Skrypt .user.js włącza go atrybutem data-cyberpunk-ni="on" na <html>.
  * Zmienne poniżej sterują paletą. Nie wymaga zewnętrznych grafik ani fontów.
  * Najlepiej używać z wyłączonym DarknessNI i innymi motywami całego NI.
@@ -39,107 +39,6 @@ html[data-cyberpunk-ni="on"] .layer.interface-layer :is(
     linear-gradient(120deg, #1c262e, var(--cp-panel) 65%),
     var(--cp-panel) !important;
   box-shadow: inset 0 0 0 1px #354956 !important;
-}
-
-/* Ramy: zachowane szerokości obramowań, rozmiary i uchwyty gry. */
-html[data-cyberpunk-ni="on"] :is(
-  .layer.interface-layer, .alerts-layer, .mAlert-layer,
-  .mAlert-mobile-layer, .console-layer
-) .border-window {
-  border-image-source: linear-gradient(135deg, var(--cp-cyan), #354956 30%, #354956 75%, var(--cp-violet)) !important;
-  border-image-slice: 1 fill !important;
-  border-image-repeat: stretch !important;
-  color: var(--cp-text);
-}
-
-html[data-cyberpunk-ni="on"] :is(
-  .layer.interface-layer, .alerts-layer, .mAlert-layer,
-  .mAlert-mobile-layer, .console-layer
-) .border-window :is(.content, .border-image) {
-  background: var(--cp-panel) !important;
-  color: var(--cp-text);
-  text-shadow: none !important;
-}
-
-html[data-cyberpunk-ni="on"] .layer.interface-layer :is(
-  .border-window .header-label-positioner .header-label,
-  .dialogue-window header .h_content,
-  .trade-window header .h_background .middle,
-  .settings-window h2,
-  .clan .header-bar,
-  .mail-box .content-header,
-  .addons-panel .main-header,
-  .left-grouped-list-and-right-description-window .main-header
-) {
-  background: linear-gradient(105deg, #163739, var(--cp-raised) 60%, #352c47) !important;
-  border-image-source: linear-gradient(var(--cp-raised), var(--cp-raised)) !important;
-  border-image-slice: 1 fill !important;
-  color: var(--cp-cyan) !important;
-  font-family: Arial, sans-serif !important;
-  text-shadow: none !important;
-  box-shadow: inset 0 -1px var(--cp-line) !important;
-}
-
-/* Pozostawiamy dekoracje zamknięcia, strzałki oraz sprite'y ikon gry. */
-html[data-cyberpunk-ni="on"] .layer.interface-layer :is(
-  .border-window .header-label-positioner .header-label .left-decor,
-  .border-window .header-label-positioner .header-label .right-decor,
-  .trade-window header .h_background .left,
-  .trade-window header .h_background .right
-) {
-  background: var(--cp-raised) !important;
-  box-shadow: inset 0 -1px var(--cp-cyan) !important;
-}
-
-/* Wypełnienia okien. Obrazy przedmiotów i postaci pozostają osobnymi warstwami. */
-html[data-cyberpunk-ni="on"] .layer.interface-layer :is(
-  .quest-log .middle-graphics,
-  .loot-window .middle-graphics,
-  .loot-window .bottom-wrapper .bottom-graphic,
-  .auctions-summary .middle-graphics,
-  .auctions-summary .bottom-wrapper .bottom-graphic,
-  .friend-enemy-list .middle-graphics,
-  .recovery-item .middle-graphics,
-  .recovery-item .paper-graphics,
-  .settings-window .graphic-background,
-  .mail-box .middle-graphic,
-  .skills-window .left-column .middle-graphic,
-  .skills-window .right-column .middle-graphic,
-  .skills-window .board-graphic,
-  .depo .depo-graphic-background,
-  .gold-shop .middle-graphics,
-  .help-window2 .graphic-background,
-  .addons-panel .middle-left-column-graphics,
-  .addons-panel .middle-right-column-graphics,
-  .addons-panel .paper-graphics,
-  .clan .right-column,
-  .clan-list-find-panel,
-  .clan .green-box,
-  .showcase .card-content,
-  .dialogue-window .background :is(.left, .right, .top, .upper-left, .upper-right)
-) {
-  background: var(--cp-panel) !important;
-  border-image-source: linear-gradient(var(--cp-panel), var(--cp-panel)) !important;
-  border-image-slice: 1 fill !important;
-  color: var(--cp-text);
-}
-
-html[data-cyberpunk-ni="on"] .layer.interface-layer :is(
-  .border-window .bottom-bar,
-  .settings-window .bottom-bar,
-  .quest-box .info-wrapper,
-  .friend-enemy-list .bottom-friend-panel,
-  .clan .table-header,
-  .auctions .header-list,
-  .skills-window .table-header,
-  .mail-box .bottom-panel-graphics,
-  .addons-panel .bottom-panel-graphics
-) {
-  background: var(--cp-raised) !important;
-  border-image-source: linear-gradient(var(--cp-raised), var(--cp-raised)) !important;
-  border-image-slice: 1 fill !important;
-  color: var(--cp-text);
-  box-shadow: inset 0 1px #354956 !important;
 }
 
 /* Stary i nowy czat. Nie nadpisujemy kolorów nicków i jakości przedmiotów. */
@@ -513,4 +412,226 @@ html[data-cyberpunk-ni="on"] .bottom-panel :is(.usable-slot, .skill-usable-slot)
 
 html[data-cyberpunk-ni="on"] .bottom-panel :is(.usable-slot, .skill-usable-slot):not(.disabled):is(:hover, :focus-visible) {
   box-shadow: inset 0 0 0 1px var(--cp-cyan) !important;
+}
+
+/* Wspólna skórka okien. C-window może być w alerts-layer, poza interface-layer.
+ * Rozmiary, border-width, pozycje, warstwy i uchwyty pozostają natywne. */
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) {
+  background: var(--cp-panel) !important;
+  border-image: none !important;
+  border-color: transparent !important;
+  border-radius: 4px !important;
+  box-shadow: 0 0 0 1px var(--cp-line) !important;
+  color: var(--cp-text) !important;
+  font-family: Arial, sans-serif;
+  text-shadow: none !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) :is(.content, .inner-content, .border-image) {
+  background: var(--cp-panel) !important;
+  border-image: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  color: var(--cp-text) !important;
+  text-shadow: none !important;
+}
+
+/* Cały pasek tytułu, również w oknach przezroczystych i przypiętych. */
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) .header-label-positioner {
+  background: var(--cp-raised) !important;
+  border-radius: 4px 4px 0 0 !important;
+  box-shadow: inset 0 -1px var(--cp-line) !important;
+  color: var(--cp-cyan) !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) .header-label {
+  background: none !important;
+  border-image: none !important;
+  color: var(--cp-cyan) !important;
+  text-shadow: none !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window) .header-label :is(.left-decor, .right-decor),
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) .close-button-corner-decor,
+html[data-cyberpunk-ni="on"] .dialogue-window .background :is(.left, .right, .top, .upper-left, .upper-right) {
+  background: none !important;
+  border-image: none !important;
+  box-shadow: none !important;
+}
+
+/* X i krzyżyk wyszukiwarki są osobnymi .ie-icon/.clear-cross — zostają. */
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) .close-button {
+  background-color: var(--cp-raised) !important;
+  border-radius: 3px !important;
+  box-shadow: inset 0 0 0 1px var(--cp-line) !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) .close-button:hover {
+  background-color: #233b42 !important;
+  box-shadow: inset 0 0 0 1px var(--cp-cyan) !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) :is(.increase-opacity, .manage-configuration-button) {
+  filter: var(--cp-sprite-tint) !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window) .window-resize-handle--corner {
+  background-image: linear-gradient(135deg, transparent 45%, var(--cp-line) 45% 55%, transparent 55% 70%, var(--cp-cyan) 70% 80%, transparent 80%) !important;
+}
+
+/* Pola NI rysują sprite ramki w ::before. Ikona clear-cross jest niezależna. */
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) .ni-input {
+  background: var(--cp-bg) !important;
+  border-image: none !important;
+  border-radius: 3px !important;
+  box-shadow: inset 0 0 0 1px var(--cp-line) !important;
+  color: var(--cp-text) !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) .ni-input::before {
+  background: none !important;
+  border-image: none !important;
+  box-shadow: none !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) :is(input:not([type="checkbox"]):not([type="radio"]), textarea, select) {
+  background-color: var(--cp-bg) !important;
+  border-color: var(--cp-line) !important;
+  color: var(--cp-text) !important;
+  caret-color: var(--cp-cyan);
+  text-shadow: none !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) :is(button, input, textarea, select, [tabindex]):focus-visible {
+  outline: 2px solid var(--cp-cyan) !important;
+  outline-offset: -2px;
+}
+
+/* Tła dekoracyjne wnętrz. Bez obrazków przedmiotów, ikon umiejętności,
+ * portretów i ilustracji aktualności. Nazwy pochodzą ze źródeł dodatków NI. */
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .loot-window, .quest-log, .quest-box, .skills-window, .friend-enemy-list, .news-panel, .news-window) :is(
+  .middle-graphics, .middle-graphic, .paper-graphics, .graphic-background,
+  .background-graphic, .window-background, .board-graphic, .brown-background,
+  .premium-graphic, .depo-graphic-background, .middle-wood,
+  .middle-left-column-graphics, .middle-right-column-graphics,
+  .bottom-left-column-graphics, .list-border, .points-header-wrapper
+) {
+  background: var(--cp-panel) !important;
+  border-image: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  color: var(--cp-text);
+}
+
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .loot-window, .quest-log, .quest-box, .skills-window, .friend-enemy-list, .news-panel, .news-window) :is(
+  .header-bar, .content-header, .main-header, .table-header, .header-list,
+  .section-header, .wood-bar, .maku-wood, .bottom-bar, .bottom-panel-graphics,
+  .bottom-graphic, .recover-bottom-panel, .premium-bottom-panel,
+  .bottom-friend-panel, .window-controlls, .crazy-bar
+) {
+  background: var(--cp-raised) !important;
+  border-image: none !important;
+  border-color: transparent !important;
+  box-shadow: inset 0 1px #354956 !important;
+  color: var(--cp-text);
+  text-shadow: none !important;
+}
+
+html[data-cyberpunk-ni="on"] .quest-box .quest-content,
+html[data-cyberpunk-ni="on"] .quest-box .info-wrapper,
+html[data-cyberpunk-ni="on"] .skills-window .right-column .maku-wood,
+html[data-cyberpunk-ni="on"] .friend-enemy-list .amound-wrapper {
+  background: var(--cp-panel) !important;
+  border-image: none !important;
+  border-color: transparent !important;
+  color: var(--cp-text);
+}
+
+/* Część papierowych ramek jest przypisana bezpośrednio do kolumny. */
+html[data-cyberpunk-ni="on"] :is(.clan, .clan-list-find-panel, .showcase, .auctions) :is(.right-column, .card-content),
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window) .green-box {
+  background: var(--cp-panel) !important;
+  border-image: none !important;
+  border-color: transparent !important;
+  color: var(--cp-text);
+}
+
+/* Przewijanie zachowuje natywny tor, strzałki i uchwyty. */
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) .scrollbar-wrapper :is(.background, .track) {
+  background: var(--cp-bg) !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) .scrollbar-wrapper .track .handle {
+  background: var(--cp-button) !important;
+  border-radius: 3px !important;
+  box-shadow: inset 0 0 0 1px var(--cp-line) !important;
+}
+
+/* Przyciski tekstowe; ich ikony pozostają w osobnych elementach. */
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) .button:not(.widget-button):not(.mz-widget):not(.red):not(.danger):not([style*="url(" i]):has(.label) {
+  background: linear-gradient(var(--cp-raised), var(--cp-panel)) !important;
+  border-radius: 3px !important;
+  box-shadow: inset 0 0 0 1px var(--cp-line) !important;
+  color: var(--cp-text) !important;
+  text-shadow: none !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) .button:not(.widget-button):not(.mz-widget):not(.red):not(.danger):not([style*="url(" i]):has(.label):not(.disabled):not([disabled]):not([aria-disabled="true"]):not(.active):not(.pressed):hover {
+  background: linear-gradient(#233b42, var(--cp-panel)) !important;
+  box-shadow: inset 0 0 0 1px var(--cp-cyan) !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) .button:not(.widget-button):not(.mz-widget):not(.red):not(.danger):not([style*="url(" i]):has(.label):is(.active, .pressed):not(.disabled):not([disabled]):not([aria-disabled="true"]) {
+  background: linear-gradient(#1b3037, var(--cp-panel)) !important;
+  box-shadow: inset 0 0 0 1px var(--cp-cyan) !important;
+  color: var(--cp-cyan) !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) .button:not(.widget-button):not(.mz-widget):not(.red):not(.danger):not([style*="url(" i]):has(.label):is(.disabled, [disabled], [aria-disabled="true"]) {
+  background: linear-gradient(var(--cp-raised), var(--cp-panel)) !important;
+  box-shadow: inset 0 0 0 1px #46515b !important;
+  color: #8e9aa4 !important;
+}
+
+/* Slot łupu ma własne tło pod obrazkiem przedmiotu i ramką jego jakości. */
+html[data-cyberpunk-ni="on"] .loot-window .items-wrapper .loot-item-wrapper {
+  background-color: var(--cp-bg) !important;
+}
+
+html[data-cyberpunk-ni="on"] .loot-window .items-wrapper .loot-item-wrapper:not([style*="url(" i]) {
+  background-image: none !important;
+}
+
+html[data-cyberpunk-ni="on"] .settings-window h2 {
+  background: var(--cp-raised) !important;
+  color: var(--cp-cyan) !important;
+  text-shadow: none !important;
+}
+
+html[data-cyberpunk-ni="on"] .news-panel .news-content :is(.right-arrow, .left-arrow, .right-news-btn, .left-news-btn) {
+  filter: var(--cp-sprite-tint) !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) .header-label :is(.text, .label, span):not(.ie-icon):not(.icon) {
+  color: var(--cp-cyan) !important;
+  text-shadow: none !important;
+}
+
+html[data-cyberpunk-ni="on"] .dialogue-window header .h_content,
+html[data-cyberpunk-ni="on"] .trade-window header .h_background .middle {
+  background: var(--cp-raised) !important;
+  border-image: none !important;
+  border-color: transparent !important;
+  color: var(--cp-cyan) !important;
+  text-shadow: none !important;
+}
+
+html[data-cyberpunk-ni="on"] .trade-window header .h_background :is(.left, .right) {
+  background: none !important;
+  border-image: none !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) .button .label {
+  color: inherit !important;
+  text-shadow: none !important;
 }
