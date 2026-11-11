@@ -1,4 +1,4 @@
-/* Cyberpunk NI 0.2.14 — motyw dla nowego interfejsu Margonem.
+/* Cyberpunk NI 0.2.15 — motyw dla nowego interfejsu Margonem.
  * Skrypt .user.js włącza go atrybutem data-cyberpunk-ni="on" na <html>.
  * Zmienne poniżej sterują paletą. Nie wymaga zewnętrznych grafik ani fontów.
  * Najlepiej używać z wyłączonym DarknessNI i innymi motywami całego NI.
@@ -1188,5 +1188,152 @@ html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator[data-cp-hp] .blood {
   clip-path: circle(31px at 49px 39px) !important;
   transform: none !important;
   opacity: 1 !important;
+}
+}
+
+/* Pola EXP/wyczerpania i wskaźnik połączenia obok okrągłego HP.
+ * Klasy i rozmiary płyt pochodzą z odczytu HUD: 70 × 35, kontener 243 × 35.
+ * Gra nadal steruje tekstem wartości, postępem EXP i klasami .lag-N. */
+@layer cyberpunk-ni-bottom-meters {
+html[data-cyberpunk-ni="on"] {
+  --cp-exp-plate: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 70 35' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='metal' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop stop-color='%23263642'/%3E%3Cstop offset='.45' stop-color='%23171b20'/%3E%3Cstop offset='1' stop-color='%231b2932'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M5 .5h57.5l7 7v20l-7 7H5L.5 30V5Z' fill='url%28%23metal%29' stroke='%23668298'/%3E%3Cpath d='M1 12V5l4-4h13' fill='none' stroke='%2312c9bd' stroke-width='1.5'/%3E%3Cpath d='M12 33h46' stroke='%2338566c' stroke-width='1'/%3E%3C/svg%3E");
+  --cp-fatigue-plate: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 70 35' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='metal' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop stop-color='%23263642'/%3E%3Cstop offset='.45' stop-color='%23171b20'/%3E%3Cstop offset='1' stop-color='%231b2932'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M7.5 .5H65L69.5 5v25l-4.5 4.5H7.5l-7-7v-20Z' fill='url%28%23metal%29' stroke='%23668298'/%3E%3Cpath d='M52 1h13l4 4v7' fill='none' stroke='%23b08aff' stroke-width='1.5'/%3E%3Cpath d='M12 33h46' stroke='%2338566c' stroke-width='1'/%3E%3C/svg%3E");
+  --cp-signal-healthy: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 16'%3E%3Crect x='2' y='11' width='3' height='4' rx='.65' fill='%2312c9bd'/%3E%3Crect x='7' y='8' width='3' height='7' rx='.65' fill='%2312c9bd'/%3E%3Crect x='12' y='5' width='3' height='10' rx='.65' fill='%2312c9bd'/%3E%3Crect x='17' y='2' width='3' height='13' rx='.65' fill='%2312c9bd'/%3E%3C/svg%3E");
+  --cp-signal-warning: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 16'%3E%3Crect x='2' y='11' width='3' height='4' rx='.65' fill='%23f4bf63'/%3E%3Crect x='7' y='8' width='3' height='7' rx='.65' fill='%23f4bf63'/%3E%3Crect x='12' y='5' width='3' height='10' rx='.65' fill='%23405362'/%3E%3Crect x='17' y='2' width='3' height='13' rx='.65' fill='%23405362'/%3E%3C/svg%3E");
+  --cp-signal-poor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 16'%3E%3Crect x='2' y='11' width='3' height='4' rx='.65' fill='%23f1747d'/%3E%3Crect x='7' y='8' width='3' height='7' rx='.65' fill='%23405362'/%3E%3Crect x='12' y='5' width='3' height='10' rx='.65' fill='%23405362'/%3E%3Crect x='17' y='2' width='3' height='13' rx='.65' fill='%23405362'/%3E%3C/svg%3E");
+  --cp-signal-unknown: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 16'%3E%3Crect x='2' y='11' width='3' height='4' rx='.65' fill='%23405362'/%3E%3Crect x='7' y='8' width='3' height='7' rx='.65' fill='%23405362'/%3E%3Crect x='12' y='5' width='3' height='10' rx='.65' fill='%23405362'/%3E%3Crect x='17' y='2' width='3' height='13' rx='.65' fill='%23405362'/%3E%3C/svg%3E");
+}
+
+html[data-cyberpunk-ni="on"] .bottom-panel .bottom-panel-pointer-bg :is(.pointer-exp-graphic, .pointer-ttl-graphic) {
+  position: absolute !important;
+  top: 0 !important;
+  background-position: center !important;
+  background-size: 100% 100% !important;
+  background-repeat: no-repeat !important;
+  background-color: transparent !important;
+  border-image: none !important;
+  border-color: transparent !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+html[data-cyberpunk-ni="on"] .bottom-panel .bottom-panel-pointer-bg .pointer-exp-graphic {
+  left: 0 !important;
+  right: auto !important;
+  background-image: var(--cp-exp-plate) !important;
+}
+
+html[data-cyberpunk-ni="on"] .bottom-panel .bottom-panel-pointer-bg .pointer-ttl-graphic {
+  left: auto !important;
+  right: 0 !important;
+  background-image: var(--cp-fatigue-plate) !important;
+  anchor-name: --cp-fatigue-plate !important;
+}
+
+html[data-cyberpunk-ni="on"] .bottom-panel .bottom-panel-pointer-bg :is(.pointer-exp-graphic, .pointer-ttl-graphic)::before {
+  position: absolute !important;
+  top: 4px !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 10px !important;
+  font: 700 8px/10px Arial, sans-serif !important;
+  letter-spacing: .8px !important;
+  text-align: center !important;
+  text-shadow: none !important;
+  pointer-events: none !important;
+  background: none !important;
+}
+
+html[data-cyberpunk-ni="on"] .bottom-panel .bottom-panel-pointer-bg .pointer-exp-graphic::before {
+  content: "EXP" !important;
+  color: var(--cp-cyan) !important;
+}
+
+html[data-cyberpunk-ni="on"] .bottom-panel .bottom-panel-pointer-bg .pointer-ttl-graphic::before {
+  content: "WYCZ." !important;
+  color: var(--cp-violet) !important;
+}
+
+html[data-cyberpunk-ni="on"] .bottom-panel .bottom-panel-pointer-bg :is(.pointer-exp, .pointer-ttl) {
+  position: absolute !important;
+  top: 17px !important;
+  width: 70px !important;
+  height: 14px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+  color: #edf5fa !important;
+  font: 600 11px/14px Arial, sans-serif !important;
+  text-align: center !important;
+  text-shadow: none !important;
+  background: none !important;
+}
+
+html[data-cyberpunk-ni="on"] .bottom-panel .bottom-panel-pointer-bg .pointer-exp {
+  left: 0 !important;
+  right: auto !important;
+}
+
+html[data-cyberpunk-ni="on"] .bottom-panel .bottom-panel-pointer-bg .pointer-ttl {
+  left: auto !important;
+  right: 0 !important;
+}
+
+/* Wolne miejsce pod prawą płytą. Podstawowe położenie działa bez CSS anchors. */
+html[data-cyberpunk-ni="on"] .bottom-panel .lagmeter {
+  position: absolute !important;
+  left: calc(50% + 72.5px) !important;
+  right: auto !important;
+  top: 48px !important;
+  bottom: auto !important;
+  width: 28px !important;
+  height: 20px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+  transform: none !important;
+  background: var(--cp-panel) !important;
+  border-image: none !important;
+  border-radius: 4px !important;
+  box-shadow: inset 0 0 0 1px var(--cp-line) !important;
+  z-index: 3 !important;
+}
+
+html[data-cyberpunk-ni="on"] .bottom-panel .lagmeter .lag {
+  position: absolute !important;
+  left: 3px !important;
+  top: 2px !important;
+  width: 22px !important;
+  height: 16px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: var(--cp-signal-unknown) center / 22px 16px no-repeat !important;
+  filter: none !important;
+}
+
+html[data-cyberpunk-ni="on"] .bottom-panel .lagmeter .lag.lag-0 {
+  background-image: var(--cp-signal-healthy) !important;
+}
+
+html[data-cyberpunk-ni="on"] .bottom-panel .lagmeter .lag.lag-1 {
+  background-image: var(--cp-signal-warning) !important;
+}
+
+html[data-cyberpunk-ni="on"] .bottom-panel .lagmeter .lag.lag-2 {
+  background-image: var(--cp-signal-poor) !important;
+}
+
+/* Kotwica dopasowuje położenie do rzeczywistej płyty także przy zmianie skali. */
+@supports (position-anchor: --cp-fatigue-plate) {
+  html[data-cyberpunk-ni="on"] .bottom-panel {
+    anchor-scope: --cp-fatigue-plate !important;
+  }
+
+  html[data-cyberpunk-ni="on"] .bottom-panel .lagmeter {
+    position-anchor: --cp-fatigue-plate !important;
+    left: anchor(center, calc(50% + 86.5px)) !important;
+    top: calc(anchor(bottom, 44px) + 4px) !important;
+    transform: translateX(-50%) !important;
+  }
 }
 }
