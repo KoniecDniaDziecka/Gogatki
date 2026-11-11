@@ -10,6 +10,7 @@
   let enabled = GM_getValue(ENABLED_KEY, true) !== false;
   let request;
   let started = false;
+  let hpObserver;
 
   function valid(theme) {
     return theme && theme.id === 'cyberpunk-ni' && theme.schema === 1 &&
@@ -19,13 +20,39 @@
   }
 
   const cached = GM_getValue(CACHE_KEY, null);
-  let theme = valid(cached) ? cached : EMBEDDED_THEME;
+  let theme = EMBEDDED_THEME;
+  if (valid(cached) && !isOlder(cached)) theme = cached;
+
+  function syncHp() {
+    document.querySelectorAll('.bottom-panel .hp-indicator').forEach(indicator => {
+      // Licznik gry jest źródłem poziomu. Sprite krwi zawiera marginesy i cienie.
+      const label = indicator.querySelector('.hpp');
+      const text = label?.textContent.trim() || '';
+      const match = enabled && (text.match(/(-?\d+(?:[.,]\d+)?)\s*%/) ||
+        text.match(/^(-?\d+(?:[.,]\d+)?)$/));
+      if (!match) {
+        indicator.removeAttribute('data-cp-hp');
+        indicator.style.removeProperty('--cp-hp-level');
+        return;
+      }
+      const percent = Math.max(0, Math.min(100, Number(match[1].replace(',', '.'))));
+      if (!Number.isFinite(percent)) return;
+      const value = `${percent}%`;
+      if (indicator.style.getPropertyValue('--cp-hp-level') !== value) {
+        indicator.style.setProperty('--cp-hp-level', value);
+      }
+      if (indicator.getAttribute('data-cp-hp') !== String(percent)) {
+        indicator.setAttribute('data-cp-hp', String(percent));
+      }
+    });
+  }
 
   function apply() {
     let style = document.getElementById(STYLE_ID);
     if (!enabled || !document.querySelector('.layer.interface-layer')) {
       document.documentElement.removeAttribute(ATTRIBUTE);
       style?.remove();
+      syncHp();
       return;
     }
     if (!style) {
@@ -36,6 +63,7 @@
     style.textContent = theme.css;
     style.dataset.version = theme.version;
     document.documentElement.setAttribute(ATTRIBUTE, 'on');
+    syncHp();
   }
 
   function failed(reason) {
@@ -107,6 +135,8 @@
     if (started) return;
     started = true;
     apply();
+    hpObserver = new MutationObserver(syncHp);
+    hpObserver.observe(document.documentElement, { childList: true, subtree: true, characterData: true });
     refresh();
   }
 
@@ -127,6 +157,7 @@
 
   window.addEventListener('pagehide', () => {
     observer.disconnect();
+    hpObserver?.disconnect();
     request?.abort?.();
   }, { once: true });
 })();
