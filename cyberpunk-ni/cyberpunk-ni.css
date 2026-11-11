@@ -1,4 +1,4 @@
-/* Cyberpunk NI 0.2.2 — motyw dla nowego interfejsu Margonem.
+/* Cyberpunk NI 0.2.3 — motyw dla nowego interfejsu Margonem.
  * Skrypt .user.js włącza go atrybutem data-cyberpunk-ni="on" na <html>.
  * Zmienne poniżej sterują paletą. Nie wymaga zewnętrznych grafik ani fontów.
  * Najlepiej używać z wyłączonym DarknessNI i innymi motywami całego NI.
@@ -193,11 +193,13 @@ html[data-cyberpunk-ni="on"] .game-window-positioner :is(
   box-shadow: inset 0 0 0 1px #354956 !important;
 }
 
-/* Przyciski: bez zmiany paddingu, rozmiarów, ikon i stanu disabled. */
+/* Widget może mieć logo w swoim background-image zamiast w dziecku .icon.
+ * Obrazków widgetów nie zastępujemy. Kafelki menedżerów zachowują własną skórkę. */
 html[data-cyberpunk-ni="on"] .layer.interface-layer :is(
-  .button:not(.red):not(.danger), .widget-button:not(.red):not(.danger):has(.icon, .label, img, svg)
+  .button:not(.widget-button):not(.mz-widget):not(.red):not(.danger):not([data-gogatki-native-launcher]),
+  .widget-button:not(.mz-widget):not(.widget-maddonz_addonsManager):not(.widget-gogatki_addonsManager):not([data-gogatki-native-launcher]):not(.red):not(.danger):has(.icon, .label, img, svg)
 ) {
-  background-image: linear-gradient(135deg, #264450, #1b2b39 75%, #352a49) !important;
+  --cp-button-gradient: linear-gradient(135deg, #264450, #1b2b39 75%, #352a49);
   background-color: var(--cp-button) !important;
   color: #edf5fa !important;
   border-radius: 4px !important;
@@ -206,36 +208,41 @@ html[data-cyberpunk-ni="on"] .layer.interface-layer :is(
 }
 
 html[data-cyberpunk-ni="on"] .layer.interface-layer :is(
-  .button:not(.red):not(.danger), .widget-button:not(.red):not(.danger):has(.icon, .label, img, svg)
+  .button:not(.widget-button):not(.mz-widget):not(.red):not(.danger):not([data-gogatki-native-launcher]),
+  .widget-button:not(.mz-widget):not(.widget-maddonz_addonsManager):not(.widget-gogatki_addonsManager):not([data-gogatki-native-launcher]):not(.red):not(.danger):has(.icon, .label, img, svg)
 ):not(.disabled):not([disabled]):not([aria-disabled="true"]):not(.no-hover):hover {
-  background-image: linear-gradient(#41657a, #285e65) !important;
+  --cp-button-gradient: linear-gradient(#41657a, #285e65);
   box-shadow: inset 0 0 0 1px var(--cp-cyan), inset 0 -2px #152530 !important;
 }
 
 html[data-cyberpunk-ni="on"] .layer.interface-layer :is(
-  .button:not(.red):not(.danger), .widget-button:not(.red):not(.danger):has(.icon, .label, img, svg)
+  .button:not(.widget-button):not(.mz-widget):not(.red):not(.danger):not([data-gogatki-native-launcher]),
+  .widget-button:not(.mz-widget):not(.widget-maddonz_addonsManager):not(.widget-gogatki_addonsManager):not([data-gogatki-native-launcher]):not(.red):not(.danger):has(.icon, .label, img, svg)
 ):is(.active, .pressed):not(.disabled):not([disabled]):not([aria-disabled="true"]) {
-  background-image: linear-gradient(#304150, #24454a) !important;
+  --cp-button-gradient: linear-gradient(#304150, #24454a);
   color: var(--cp-cyan) !important;
   box-shadow: inset 0 0 0 1px var(--cp-cyan) !important;
 }
 
 html[data-cyberpunk-ni="on"] .layer.interface-layer :is(
-  .button:not(.red):not(.danger), .widget-button:not(.red):not(.danger):has(.icon, .label, img, svg)
+  .button:not(.widget-button):not(.mz-widget):not(.red):not(.danger):not([data-gogatki-native-launcher]),
+  .widget-button:not(.mz-widget):not(.widget-maddonz_addonsManager):not(.widget-gogatki_addonsManager):not([data-gogatki-native-launcher]):not(.red):not(.danger):has(.icon, .label, img, svg)
 ):is(.disabled, [disabled], [aria-disabled="true"]) {
-  background-image: linear-gradient(#292f35, #20262b) !important;
+  --cp-button-gradient: linear-gradient(#292f35, #20262b);
   color: #8e9aa4 !important;
   box-shadow: inset 0 0 0 1px #46515b !important;
 }
 
-html[data-cyberpunk-ni="on"] .layer.interface-layer :is(
-  .button:not(.red):not(.danger), .widget-button:not(.red):not(.danger):has(.icon, .label, img, svg)
-)::before {
+html[data-cyberpunk-ni="on"] .layer.interface-layer .button:not(.widget-button):not(.mz-widget):not(.red):not(.danger):not([data-gogatki-native-launcher]) {
+  background-image: var(--cp-button-gradient) !important;
+}
+
+html[data-cyberpunk-ni="on"] .layer.interface-layer .button:not(.widget-button):not(.mz-widget):not(.red):not(.danger):not([data-gogatki-native-launcher])::before {
   background: none !important;
   box-shadow: none !important;
 }
 
-html[data-cyberpunk-ni="on"] .layer.interface-layer .widget-button:not(.red):not(.danger):has(.icon, .label, img, svg)::after {
+html[data-cyberpunk-ni="on"] .layer.interface-layer .widget-button:not(.mz-widget):not(.widget-maddonz_addonsManager):not(.widget-gogatki_addonsManager):not([data-gogatki-native-launcher]):not(.red):not(.danger):has(.icon, .label, img, svg)::after {
   box-shadow: 0 1px 0 1px var(--cp-bg) !important;
 }
 
