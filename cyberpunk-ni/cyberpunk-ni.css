@@ -1,4 +1,4 @@
-/* Cyberpunk NI 0.2.5 — motyw dla nowego interfejsu Margonem.
+/* Cyberpunk NI 0.2.6 — motyw dla nowego interfejsu Margonem.
  * Skrypt .user.js włącza go atrybutem data-cyberpunk-ni="on" na <html>.
  * Zmienne poniżej sterują paletą. Nie wymaga zewnętrznych grafik ani fontów.
  * Najlepiej używać z wyłączonym DarknessNI i innymi motywami całego NI.
@@ -14,6 +14,8 @@ html[data-cyberpunk-ni="on"] {
   --cp-muted: #b1c0cb;
   --cp-button: #38566c;
   --cp-button-border: #6d879a;
+  /* Barwienie zachowuje alfę i czerń sprite'a, jego przesuwanie i animację. */
+  --cp-sprite-tint: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='tint' color-interpolation-filters='sRGB' x='0%25' y='0%25' width='100%25' height='100%25'%3E%3CfeColorMatrix type='matrix' values='.0564704 .0564704 .0564704 0 0 .630588 .630588 .630588 0 0 .592941 .592941 .592941 0 0 0 0 0 1 0'/%3E%3C/filter%3E%3C/svg%3E#tint");
 }
 
 /* Wyłącznie powierzchnie NI: bez selektora *, zmian wymiarów i filtrów mapy. */
@@ -414,22 +416,43 @@ html[data-cyberpunk-ni="on"] .bottom-panel :is(
   box-shadow: none !important;
 }
 
-/* Czerwone wypełnienie .blood i ostrzegawcza .blood-frame należą do gry. */
+/* Wypełnieniem .blood nadal steruje gra. Barwimy tylko jego widoczne piksele;
+ * osobna ostrzegawcza .blood-frame zachowuje natywne kolory i animację. */
 html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator {
-  background: var(--cp-bg) !important;
+  background: linear-gradient(var(--cp-raised), var(--cp-panel)) !important;
   border-image: none !important;
-  border-radius: 50% !important;
-  box-shadow: inset 0 0 0 1px var(--cp-line) !important;
+  border-radius: 4px !important;
+  box-shadow: inset 0 0 0 1px var(--cp-line), inset 0 -2px var(--cp-cyan) !important;
+}
+
+html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator .blood {
+  filter: var(--cp-sprite-tint) !important;
+  opacity: .32 !important;
 }
 
 html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator-wrapper .glass {
-  border-radius: 50% !important;
-  box-shadow: inset 0 0 0 1px var(--cp-cyan) !important;
+  border-radius: 4px !important;
+  box-shadow: none !important;
 }
 
 html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator :is(.hpp, .hpp .value) {
   color: #f5f8fb !important;
+  font-family: Arial, sans-serif !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
   text-shadow: none !important;
+}
+
+/* Ramka opóźnienia 22 × 29 i ikona 16 × 26 pozostają w natywnym położeniu.
+ * Tylko potwierdzony stan lag-0 dostaje turkus. Inne stany rysuje gra. */
+html[data-cyberpunk-ni="on"] .bottom-panel .lagmeter {
+  background: var(--cp-panel) !important;
+  border-radius: 3px !important;
+  box-shadow: inset 0 0 0 1px var(--cp-line) !important;
+}
+
+html[data-cyberpunk-ni="on"] .bottom-panel .lagmeter .lag.lag-0 {
+  filter: var(--cp-sprite-tint) !important;
 }
 
 /* Środek kontenera etykiet pozostaje przezroczysty nad kulą HP. */
