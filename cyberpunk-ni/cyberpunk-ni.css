@@ -1,4 +1,4 @@
-/* Cyberpunk NI 0.2.3 — motyw dla nowego interfejsu Margonem.
+/* Cyberpunk NI 0.2.4 — motyw dla nowego interfejsu Margonem.
  * Skrypt .user.js włącza go atrybutem data-cyberpunk-ni="on" na <html>.
  * Zmienne poniżej sterują paletą. Nie wymaga zewnętrznych grafik ani fontów.
  * Najlepiej używać z wyłączonym DarknessNI i innymi motywami całego NI.
@@ -244,6 +244,35 @@ html[data-cyberpunk-ni="on"] .layer.interface-layer .button:not(.widget-button):
 
 html[data-cyberpunk-ni="on"] .layer.interface-layer .widget-button:not(.mz-widget):not(.widget-maddonz_addonsManager):not(.widget-gogatki_addonsManager):not([data-gogatki-native-launcher]):not(.red):not(.danger):has(.icon, .label, img, svg)::after {
   box-shadow: 0 1px 0 1px var(--cp-bg) !important;
+}
+
+/* Zwykłe przyciski na paskach przy krawędziach mają ikonę w dziecku .icon.
+ * Ich zielony gradient można zastąpić bez ruszania obrazka ikony.
+ * Menedżery dodatków i widgety z własnym obrazkiem inline nie są objęte skórką. */
+html[data-cyberpunk-ni="on"] .layer.interface-layer .main-buttons-container .widget-button:not(.mz-widget):not(.widget-maddonz_addonsManager):not(.widget-gogatki_addonsManager):not([data-gogatki-native-launcher]):not([class*="gargonem" i]):not([style*="url(" i]):not(.red):not(.danger):has(> .icon) {
+  background-color: var(--cp-panel) !important;
+  background-image: linear-gradient(var(--cp-raised), var(--cp-panel)) !important;
+  box-shadow: inset 0 0 0 1px var(--cp-line), inset 0 -2px var(--cp-cyan) !important;
+}
+
+html[data-cyberpunk-ni="on"] .layer.interface-layer .main-buttons-container .widget-button:not(.mz-widget):not(.widget-maddonz_addonsManager):not(.widget-gogatki_addonsManager):not([data-gogatki-native-launcher]):not([class*="gargonem" i]):not([style*="url(" i]):not(.red):not(.danger):has(> .icon)::before {
+  background: none !important;
+  box-shadow: none !important;
+}
+
+html[data-cyberpunk-ni="on"] .layer.interface-layer .main-buttons-container .widget-button:not(.mz-widget):not(.widget-maddonz_addonsManager):not(.widget-gogatki_addonsManager):not([data-gogatki-native-launcher]):not([class*="gargonem" i]):not([style*="url(" i]):not(.red):not(.danger):has(> .icon):not(.disabled):not([disabled]):not([aria-disabled="true"]):not(.no-hover):not(.active):not(.pressed):not(.window-is-open):hover {
+  background-image: linear-gradient(#233b42, var(--cp-panel)) !important;
+  box-shadow: inset 0 0 0 1px var(--cp-cyan), inset 0 -2px var(--cp-cyan) !important;
+}
+
+html[data-cyberpunk-ni="on"] .layer.interface-layer .main-buttons-container .widget-button:not(.mz-widget):not(.widget-maddonz_addonsManager):not(.widget-gogatki_addonsManager):not([data-gogatki-native-launcher]):not([class*="gargonem" i]):not([style*="url(" i]):not(.red):not(.danger):has(> .icon):is(.active, .pressed, .window-is-open):not(.disabled):not([disabled]):not([aria-disabled="true"]) {
+  background-image: linear-gradient(#1b3037, var(--cp-panel)) !important;
+  box-shadow: inset 0 0 0 1px var(--cp-cyan), inset 0 2px #0c1118 !important;
+}
+
+html[data-cyberpunk-ni="on"] .layer.interface-layer .main-buttons-container .widget-button:not(.mz-widget):not(.widget-maddonz_addonsManager):not(.widget-gogatki_addonsManager):not([data-gogatki-native-launcher]):not([class*="gargonem" i]):not([style*="url(" i]):not(.red):not(.danger):has(> .icon):is(.disabled, [disabled], [aria-disabled="true"]) {
+  background-image: linear-gradient(var(--cp-raised), var(--cp-panel)) !important;
+  box-shadow: inset 0 0 0 1px #46515b !important;
 }
 
 html[data-cyberpunk-ni="on"] .layer.interface-layer :is(
