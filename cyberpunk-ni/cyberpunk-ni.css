@@ -1,4 +1,4 @@
-/* Cyberpunk NI 0.2.7 — motyw dla nowego interfejsu Margonem.
+/* Cyberpunk NI 0.2.8 — motyw dla nowego interfejsu Margonem.
  * Skrypt .user.js włącza go atrybutem data-cyberpunk-ni="on" na <html>.
  * Zmienne poniżej sterują paletą. Nie wymaga zewnętrznych grafik ani fontów.
  * Najlepiej używać z wyłączonym DarknessNI i innymi motywami całego NI.
@@ -480,7 +480,7 @@ html[data-cyberpunk-ni="on"] :is(.c-window, .border-window) .window-resize-handl
 }
 
 /* Pola NI rysują sprite ramki w ::before. Ikona clear-cross jest niezależna. */
-html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) .ni-input {
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window, .loot-window, .quest-log, .quest-box, .skills-window, .friend-enemy-list, .news-panel, .news-window, .settings-window, .mails-window, .mail-box, .help-window2, .world-window, .left-grouped-list-and-right-description-window, .divide-panel, .divide-list-group, .addons-panel, .clan, .auctions, .auction-window, .showcase, .depo, .recovery-item, .premium-panel, .pre-premium-panel, .chests-window, .promo-window, .gold-shop, .stamina-shop, .matchmaking-summary, .console-window, .who-is-here-edit, .window-list-edit) .ni-input {
   background: var(--cp-bg) !important;
   border-image: none !important;
   border-radius: 3px !important;
@@ -488,13 +488,13 @@ html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .t
   color: var(--cp-text) !important;
 }
 
-html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) .ni-input::before {
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window, .loot-window, .quest-log, .quest-box, .skills-window, .friend-enemy-list, .news-panel, .news-window, .settings-window, .mails-window, .mail-box, .help-window2, .world-window, .left-grouped-list-and-right-description-window, .divide-panel, .divide-list-group, .addons-panel, .clan, .auctions, .auction-window, .showcase, .depo, .recovery-item, .premium-panel, .pre-premium-panel, .chests-window, .promo-window, .gold-shop, .stamina-shop, .matchmaking-summary, .console-window, .who-is-here-edit, .window-list-edit) .ni-input::before {
   background: none !important;
   border-image: none !important;
   box-shadow: none !important;
 }
 
-html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) :is(input:not([type="checkbox"]):not([type="radio"]), textarea, select) {
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window, .loot-window, .quest-log, .quest-box, .skills-window, .friend-enemy-list, .news-panel, .news-window, .settings-window, .mails-window, .mail-box, .help-window2, .world-window, .left-grouped-list-and-right-description-window, .divide-panel, .divide-list-group, .addons-panel, .clan, .auctions, .auction-window, .showcase, .depo, .recovery-item, .premium-panel, .pre-premium-panel, .chests-window, .promo-window, .gold-shop, .stamina-shop, .matchmaking-summary, .console-window, .who-is-here-edit, .window-list-edit) :is(input:not([type="checkbox"]):not([type="radio"]), textarea, select) {
   background-color: var(--cp-bg) !important;
   border-color: var(--cp-line) !important;
   color: var(--cp-text) !important;
@@ -502,19 +502,21 @@ html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .t
   text-shadow: none !important;
 }
 
-html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) :is(button, input, textarea, select, [tabindex]):focus-visible {
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window, .loot-window, .quest-log, .quest-box, .skills-window, .friend-enemy-list, .news-panel, .news-window, .settings-window, .mails-window, .mail-box, .help-window2, .world-window, .left-grouped-list-and-right-description-window, .divide-panel, .divide-list-group, .addons-panel, .clan, .auctions, .auction-window, .showcase, .depo, .recovery-item, .premium-panel, .pre-premium-panel, .chests-window, .promo-window, .gold-shop, .stamina-shop, .matchmaking-summary, .console-window, .who-is-here-edit, .window-list-edit) :is(button, input, textarea, select, [tabindex]):focus-visible {
   outline: 2px solid var(--cp-cyan) !important;
   outline-offset: -2px;
 }
 
 /* Tła dekoracyjne wnętrz. Bez obrazków przedmiotów, ikon umiejętności,
  * portretów i ilustracji aktualności. Nazwy pochodzą ze źródeł dodatków NI. */
-html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .loot-window, .quest-log, .quest-box, .skills-window, .friend-enemy-list, .news-panel, .news-window) :is(
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window, .loot-window, .quest-log, .quest-box, .skills-window, .friend-enemy-list, .news-panel, .news-window, .settings-window, .mails-window, .mail-box, .help-window2, .world-window, .left-grouped-list-and-right-description-window, .divide-panel, .divide-list-group, .addons-panel, .clan, .auctions, .auction-window, .showcase, .depo, .recovery-item, .premium-panel, .pre-premium-panel, .chests-window, .promo-window, .gold-shop, .stamina-shop, .matchmaking-summary, .console-window, .who-is-here-edit, .window-list-edit) :is(
   .middle-graphics, .middle-graphic, .paper-graphics, .graphic-background,
   .background-graphic, .window-background, .board-graphic, .brown-background,
   .premium-graphic, .depo-graphic-background, .middle-wood,
   .middle-left-column-graphics, .middle-right-column-graphics,
-  .bottom-left-column-graphics, .list-border, .points-header-wrapper
+  .bottom-left-column-graphics, .top-left-column-graphics, .location-graphics,
+  .list-border, .points-header-wrapper, .header-background-graphic, .card-graphic,
+  .left-column-auction-and-main-column-auction, .filter-section-graphic
 ) {
   background: var(--cp-panel) !important;
   border-image: none !important;
@@ -523,11 +525,13 @@ html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .l
   color: var(--cp-text);
 }
 
-html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .loot-window, .quest-log, .quest-box, .skills-window, .friend-enemy-list, .news-panel, .news-window) :is(
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window, .loot-window, .quest-log, .quest-box, .skills-window, .friend-enemy-list, .news-panel, .news-window, .settings-window, .mails-window, .mail-box, .help-window2, .world-window, .left-grouped-list-and-right-description-window, .divide-panel, .divide-list-group, .addons-panel, .clan, .auctions, .auction-window, .showcase, .depo, .recovery-item, .premium-panel, .pre-premium-panel, .chests-window, .promo-window, .gold-shop, .stamina-shop, .matchmaking-summary, .console-window, .who-is-here-edit, .window-list-edit) :is(
   .header-bar, .content-header, .main-header, .table-header, .header-list,
   .section-header, .wood-bar, .maku-wood, .bottom-bar, .bottom-panel-graphics,
   .bottom-graphic, .recover-bottom-panel, .premium-bottom-panel,
-  .bottom-friend-panel, .window-controlls, .crazy-bar
+  .bottom-friend-panel, .window-controlls, .crazy-bar, .table-header-wrapper,
+  .promo-bottom-panel, .chests-bottom-panel, .console-bottom-panel,
+  .manage-money-wrapper-graphic, .money-info, .green-bar-section, .season-header
 ) {
   background: var(--cp-raised) !important;
   border-image: none !important;
@@ -557,40 +561,50 @@ html[data-cyberpunk-ni="on"] :is(.c-window, .border-window) .green-box {
 }
 
 /* Przewijanie zachowuje natywny tor, strzałki i uchwyty. */
-html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) .scrollbar-wrapper :is(.background, .track) {
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window, .loot-window, .quest-log, .quest-box, .skills-window, .friend-enemy-list, .news-panel, .news-window, .settings-window, .mails-window, .mail-box, .help-window2, .world-window, .left-grouped-list-and-right-description-window, .divide-panel, .divide-list-group, .addons-panel, .clan, .auctions, .auction-window, .showcase, .depo, .recovery-item, .premium-panel, .pre-premium-panel, .chests-window, .promo-window, .gold-shop, .stamina-shop, .matchmaking-summary, .console-window, .who-is-here-edit, .window-list-edit) .scrollbar-wrapper :is(.background, .track) {
   background: var(--cp-bg) !important;
 }
 
-html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) .scrollbar-wrapper .track .handle {
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window, .loot-window, .quest-log, .quest-box, .skills-window, .friend-enemy-list, .news-panel, .news-window, .settings-window, .mails-window, .mail-box, .help-window2, .world-window, .left-grouped-list-and-right-description-window, .divide-panel, .divide-list-group, .addons-panel, .clan, .auctions, .auction-window, .showcase, .depo, .recovery-item, .premium-panel, .pre-premium-panel, .chests-window, .promo-window, .gold-shop, .stamina-shop, .matchmaking-summary, .console-window, .who-is-here-edit, .window-list-edit) .scrollbar-wrapper .track .handle {
   background: var(--cp-button) !important;
   border-radius: 3px !important;
   box-shadow: inset 0 0 0 1px var(--cp-line) !important;
 }
 
-/* Przyciski tekstowe; ich ikony pozostają w osobnych elementach. */
-html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) .button:not(.widget-button):not(.mz-widget):not(.red):not(.danger):not([style*="url(" i]):has(.label) {
+/* Przyciski z etykietą, bezpośrednim tekstem i natywnymi klasami koloru.
+ * Obrazki inline, ikony widgetów oraz semantyczne wybory łupu są oddzielne. */
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window, .loot-window, .quest-log, .quest-box, .skills-window, .friend-enemy-list, .news-panel, .news-window, .settings-window, .mails-window, .mail-box, .help-window2, .world-window, .left-grouped-list-and-right-description-window, .divide-panel, .divide-list-group, .addons-panel, .clan, .auctions, .auction-window, .showcase, .depo, .recovery-item, .premium-panel, .pre-premium-panel, .chests-window, .promo-window, .gold-shop, .stamina-shop, .matchmaking-summary, .console-window, .who-is-here-edit, .window-list-edit) .button:not(.widget-button):not(.mz-widget):not(.red):not(.danger):not(.purple):not(.not):not(.want):not(.must):not([data-gogatki-native-launcher]):not([style*="url(" i]):is(:not(:empty), .green, .black, .purple, .accept-button) {
   background: linear-gradient(var(--cp-raised), var(--cp-panel)) !important;
+  border-image: none !important;
+  border-color: var(--cp-line) !important;
   border-radius: 3px !important;
   box-shadow: inset 0 0 0 1px var(--cp-line) !important;
   color: var(--cp-text) !important;
   text-shadow: none !important;
 }
 
-html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) .button:not(.widget-button):not(.mz-widget):not(.red):not(.danger):not([style*="url(" i]):has(.label):not(.disabled):not([disabled]):not([aria-disabled="true"]):not(.active):not(.pressed):hover {
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window, .loot-window, .quest-log, .quest-box, .skills-window, .friend-enemy-list, .news-panel, .news-window, .settings-window, .mails-window, .mail-box, .help-window2, .world-window, .left-grouped-list-and-right-description-window, .divide-panel, .divide-list-group, .addons-panel, .clan, .auctions, .auction-window, .showcase, .depo, .recovery-item, .premium-panel, .pre-premium-panel, .chests-window, .promo-window, .gold-shop, .stamina-shop, .matchmaking-summary, .console-window, .who-is-here-edit, .window-list-edit) .button:not(.widget-button):not(.mz-widget):not(.red):not(.danger):not(.purple):not(.not):not(.want):not(.must):not([data-gogatki-native-launcher]):not([style*="url(" i]):is(:not(:empty), .green, .black, .purple, .accept-button):not(.disabled):not([disabled]):not([aria-disabled="true"]):not(.no-hover):not(.active):not(.pressed):hover {
   background: linear-gradient(#233b42, var(--cp-panel)) !important;
   box-shadow: inset 0 0 0 1px var(--cp-cyan) !important;
 }
 
-html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) .button:not(.widget-button):not(.mz-widget):not(.red):not(.danger):not([style*="url(" i]):has(.label):is(.active, .pressed):not(.disabled):not([disabled]):not([aria-disabled="true"]) {
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window, .loot-window, .quest-log, .quest-box, .skills-window, .friend-enemy-list, .news-panel, .news-window, .settings-window, .mails-window, .mail-box, .help-window2, .world-window, .left-grouped-list-and-right-description-window, .divide-panel, .divide-list-group, .addons-panel, .clan, .auctions, .auction-window, .showcase, .depo, .recovery-item, .premium-panel, .pre-premium-panel, .chests-window, .promo-window, .gold-shop, .stamina-shop, .matchmaking-summary, .console-window, .who-is-here-edit, .window-list-edit) .button:not(.widget-button):not(.mz-widget):not(.red):not(.danger):not(.purple):not(.not):not(.want):not(.must):not([data-gogatki-native-launcher]):not([style*="url(" i]):is(:not(:empty), .green, .black, .purple, .accept-button):is(.active, .pressed):not(.disabled):not([disabled]):not([aria-disabled="true"]) {
   background: linear-gradient(#1b3037, var(--cp-panel)) !important;
   box-shadow: inset 0 0 0 1px var(--cp-cyan) !important;
   color: var(--cp-cyan) !important;
 }
 
-html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) .button:not(.widget-button):not(.mz-widget):not(.red):not(.danger):not([style*="url(" i]):has(.label):is(.disabled, [disabled], [aria-disabled="true"]) {
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window, .loot-window, .quest-log, .quest-box, .skills-window, .friend-enemy-list, .news-panel, .news-window, .settings-window, .mails-window, .mail-box, .help-window2, .world-window, .left-grouped-list-and-right-description-window, .divide-panel, .divide-list-group, .addons-panel, .clan, .auctions, .auction-window, .showcase, .depo, .recovery-item, .premium-panel, .pre-premium-panel, .chests-window, .promo-window, .gold-shop, .stamina-shop, .matchmaking-summary, .console-window, .who-is-here-edit, .window-list-edit) .button:not(.widget-button):not(.mz-widget):not(.red):not(.danger):not(.purple):not(.not):not(.want):not(.must):not([data-gogatki-native-launcher]):not([style*="url(" i]):is(:not(:empty), .green, .black, .purple, .accept-button):is(.disabled, [disabled], [aria-disabled="true"]) {
   background: linear-gradient(var(--cp-raised), var(--cp-panel)) !important;
   box-shadow: inset 0 0 0 1px #46515b !important;
   color: #8e9aa4 !important;
+}
+
+/* ::before natywnego przycisku jest dekoracyjną ramką; glyph w ::after zostaje. */
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window, .loot-window, .quest-log, .quest-box, .skills-window, .friend-enemy-list, .news-panel, .news-window, .settings-window, .mails-window, .mail-box, .help-window2, .world-window, .left-grouped-list-and-right-description-window, .divide-panel, .divide-list-group, .addons-panel, .clan, .auctions, .auction-window, .showcase, .depo, .recovery-item, .premium-panel, .pre-premium-panel, .chests-window, .promo-window, .gold-shop, .stamina-shop, .matchmaking-summary, .console-window, .who-is-here-edit, .window-list-edit) .button:not(.widget-button):not(.mz-widget):not(.red):not(.danger):not(.purple):not(.not):not(.want):not(.must):not([data-gogatki-native-launcher]):not([style*="url(" i]):is(:not(:empty), .green, .black, .purple, .accept-button)::before {
+  background: none !important;
+  border-image: none !important;
+  box-shadow: none !important;
 }
 
 /* Slot łupu ma własne tło pod obrazkiem przedmiotu i ramką jego jakości. */
@@ -612,7 +626,7 @@ html[data-cyberpunk-ni="on"] .news-panel .news-content :is(.right-arrow, .left-a
   filter: var(--cp-sprite-tint) !important;
 }
 
-html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) .header-label :is(.text, .label, span):not(.ie-icon):not(.icon) {
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window, .loot-window, .quest-log, .quest-box, .skills-window, .friend-enemy-list, .news-panel, .news-window, .settings-window, .mails-window, .mail-box, .help-window2, .world-window, .left-grouped-list-and-right-description-window, .divide-panel, .divide-list-group, .addons-panel, .clan, .auctions, .auction-window, .showcase, .depo, .recovery-item, .premium-panel, .pre-premium-panel, .chests-window, .promo-window, .gold-shop, .stamina-shop, .matchmaking-summary, .console-window, .who-is-here-edit, .window-list-edit) .header-label :is(.text, .label, span):not(.ie-icon):not(.icon) {
   color: var(--cp-cyan) !important;
   text-shadow: none !important;
 }
@@ -631,7 +645,231 @@ html[data-cyberpunk-ni="on"] .trade-window header .h_background :is(.left, .righ
   border-image: none !important;
 }
 
-html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) .button .label {
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window, .loot-window, .quest-log, .quest-box, .skills-window, .friend-enemy-list, .news-panel, .news-window, .settings-window, .mails-window, .mail-box, .help-window2, .world-window, .left-grouped-list-and-right-description-window, .divide-panel, .divide-list-group, .addons-panel, .clan, .auctions, .auction-window, .showcase, .depo, .recovery-item, .premium-panel, .pre-premium-panel, .chests-window, .promo-window, .gold-shop, .stamina-shop, .matchmaking-summary, .console-window, .who-is-here-edit, .window-list-edit) .button .label {
   color: inherit !important;
   text-shadow: none !important;
+}
+
+/* Dalsze wnętrza: poczta, aukcje, świat, bonusy, depozyt i dialogi NPC. */
+html[data-cyberpunk-ni="on"] :is(
+  .world-window__bg, .bonus-selector-wnd__bg, .bonus-reselect-wnd__bg,
+  .crafting__bg, .world-window__info,
+  .left-grouped-list-and-right-description-window .right-column .right-scroll,
+  .auction-window .main-column-auction,
+  .mails-window .one-mail-wraper,
+  .clan-official-page-content, .clan-priv-page-content,
+  .clan-history-content .chose-show,
+  .recovery-item .info-3
+) {
+  background: var(--cp-panel) !important;
+  border-image: none !important;
+  border-color: var(--cp-line) !important;
+  color: var(--cp-text);
+  text-shadow: none !important;
+}
+
+html[data-cyberpunk-ni="on"] .mails-window .one-mail-wraper .msg-content {
+  border-color: var(--cp-line) !important;
+}
+
+/* Zakładki: obrazek jest oprawą karty, ikony pozostają w jej dzieciach. */
+html[data-cyberpunk-ni="on"] :is(
+  .friend-enemy-list .friend-enemy-cards .card,
+  .game-window-positioner .tabs-nav .card,
+  .game-window-positioner .cards-header-wrapper .cards-header .card,
+  .clan .left-column .scroll-wrapper .scroll-pane .card,
+  .skills-window .left-column .list-label-wrapper .list-label
+):not([style*="url(" i]) {
+  background: var(--cp-raised) !important;
+  border-image: none !important;
+  border-radius: 3px !important;
+  box-shadow: inset 0 0 0 1px var(--cp-line) !important;
+  color: var(--cp-text) !important;
+  text-shadow: none !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(
+  .friend-enemy-list .friend-enemy-cards .card,
+  .game-window-positioner .tabs-nav .card,
+  .game-window-positioner .cards-header-wrapper .cards-header .card,
+  .clan .left-column .scroll-wrapper .scroll-pane .card,
+  .skills-window .left-column .list-label-wrapper .list-label
+):not([style*="url(" i]):is(.active, .selected, .pressed, [aria-selected="true"]) {
+  background: #1b3037 !important;
+  box-shadow: inset 0 0 0 1px var(--cp-cyan) !important;
+  color: var(--cp-cyan) !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(
+  .friend-enemy-list .friend-enemy-cards .card,
+  .game-window-positioner .tabs-nav .card,
+  .game-window-positioner .cards-header-wrapper .cards-header .card,
+  .clan .left-column .scroll-wrapper .scroll-pane .card,
+  .skills-window .left-column .list-label-wrapper .list-label
+):not([style*="url(" i]):not(.disabled):not([aria-disabled="true"]):not(.active):not(.selected):not(.pressed):not([aria-selected="true"]):hover {
+  background: #233b42 !important;
+  box-shadow: inset 0 0 0 1px var(--cp-cyan) !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(
+  .friend-enemy-list .friend-enemy-cards .card,
+  .game-window-positioner .tabs-nav .card,
+  .game-window-positioner .cards-header-wrapper .cards-header .card,
+  .clan .left-column .scroll-wrapper .scroll-pane .card,
+  .skills-window .left-column .list-label-wrapper .list-label
+):is(.disabled, [aria-disabled="true"]) {
+  color: #8e9aa4 !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(
+  .friend-enemy-list .friend-enemy-cards .card,
+  .game-window-positioner .tabs-nav .card,
+  .game-window-positioner .cards-header-wrapper .cards-header .card,
+  .skills-window .left-column .list-label-wrapper .list-label
+) :is(.label, .text) {
+  color: inherit !important;
+  text-shadow: none !important;
+}
+
+/* Natywne checkboxy sprite: bez zmiany rozmiaru i bez podwójnego znacznika. */
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window, .loot-window, .quest-log, .quest-box, .skills-window, .friend-enemy-list, .news-panel, .news-window, .settings-window, .mails-window, .mail-box, .help-window2, .world-window, .left-grouped-list-and-right-description-window, .divide-panel, .divide-list-group, .addons-panel, .clan, .auctions, .auction-window, .showcase, .depo, .recovery-item, .premium-panel, .pre-premium-panel, .chests-window, .promo-window, .gold-shop, .stamina-shop, .matchmaking-summary, .console-window, .who-is-here-edit, .window-list-edit) .checkbox:not(input):not(:has(input)) {
+  background: var(--cp-bg) !important;
+  border-radius: 3px !important;
+  box-shadow: inset 0 0 0 1px var(--cp-line) !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window, .loot-window, .quest-log, .quest-box, .skills-window, .friend-enemy-list, .news-panel, .news-window, .settings-window, .mails-window, .mail-box, .help-window2, .world-window, .left-grouped-list-and-right-description-window, .divide-panel, .divide-list-group, .addons-panel, .clan, .auctions, .auction-window, .showcase, .depo, .recovery-item, .premium-panel, .pre-premium-panel, .chests-window, .promo-window, .gold-shop, .stamina-shop, .matchmaking-summary, .console-window, .who-is-here-edit, .window-list-edit) .checkbox:not(input):not(:has(input)):is(.active, .checked, [aria-checked="true"]) {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='m3 8 3 3 7-7' fill='none' stroke='%2312c9bd' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important;
+  background-position: center !important;
+  background-size: 14px 14px !important;
+  background-repeat: no-repeat !important;
+  box-shadow: inset 0 0 0 1px var(--cp-cyan) !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window, .loot-window, .quest-log, .quest-box, .skills-window, .friend-enemy-list, .news-panel, .news-window, .settings-window, .mails-window, .mail-box, .help-window2, .world-window, .left-grouped-list-and-right-description-window, .divide-panel, .divide-list-group, .addons-panel, .clan, .auctions, .auction-window, .showcase, .depo, .recovery-item, .premium-panel, .pre-premium-panel, .chests-window, .promo-window, .gold-shop, .stamina-shop, .matchmaking-summary, .console-window, .who-is-here-edit, .window-list-edit) .checkbox:not(input):not(:has(input))::before,
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window, .loot-window, .quest-log, .quest-box, .skills-window, .friend-enemy-list, .news-panel, .news-window, .settings-window, .mails-window, .mail-box, .help-window2, .world-window, .left-grouped-list-and-right-description-window, .divide-panel, .divide-list-group, .addons-panel, .clan, .auctions, .auction-window, .showcase, .depo, .recovery-item, .premium-panel, .pre-premium-panel, .chests-window, .promo-window, .gold-shop, .stamina-shop, .matchmaking-summary, .console-window, .who-is-here-edit, .window-list-edit) .checkbox:not(input):not(:has(input))::after {
+  content: none !important;
+  background: none !important;
+  box-shadow: none !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window, .loot-window, .quest-log, .quest-box, .skills-window, .friend-enemy-list, .news-panel, .news-window, .settings-window, .mails-window, .mail-box, .help-window2, .world-window, .left-grouped-list-and-right-description-window, .divide-panel, .divide-list-group, .addons-panel, .clan, .auctions, .auction-window, .showcase, .depo, .recovery-item, .premium-panel, .pre-premium-panel, .chests-window, .promo-window, .gold-shop, .stamina-shop, .matchmaking-summary, .console-window, .who-is-here-edit, .window-list-edit) :is(input[type="checkbox"], input[type="radio"]) {
+  accent-color: var(--cp-cyan);
+}
+
+/* Kolor zmieniają same glyphy sterowania, bez filtrów na treści okna. */
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window, .loot-window, .quest-log, .quest-box, .skills-window, .friend-enemy-list, .news-panel, .news-window, .settings-window, .mails-window, .mail-box, .help-window2, .world-window, .left-grouped-list-and-right-description-window, .divide-panel, .divide-list-group, .addons-panel, .clan, .auctions, .auction-window, .showcase, .depo, .recovery-item, .premium-panel, .pre-premium-panel, .chests-window, .promo-window, .gold-shop, .stamina-shop, .matchmaking-summary, .console-window, .who-is-here-edit, .window-list-edit) :is(.scrollbar-wrapper .arrow-up, .scrollbar-wrapper .arrow-down, .transparent-window-buttons-menu .settings-button, .toggle-size-button, .collapse, .close-button) {
+  filter: var(--cp-sprite-tint) !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window, .loot-window, .quest-log, .quest-box, .skills-window, .friend-enemy-list, .news-panel, .news-window, .settings-window, .mails-window, .mail-box, .help-window2, .world-window, .left-grouped-list-and-right-description-window, .divide-panel, .divide-list-group, .addons-panel, .clan, .auctions, .auction-window, .showcase, .depo, .recovery-item, .premium-panel, .pre-premium-panel, .chests-window, .promo-window, .gold-shop, .stamina-shop, .matchmaking-summary, .console-window, .who-is-here-edit, .window-list-edit) :is(.ni-input, input.default, input.default2, textarea, select) {
+  border-image: none !important;
+  background-image: none !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window, .loot-window, .quest-log, .quest-box, .skills-window, .friend-enemy-list, .news-panel, .news-window, .settings-window, .mails-window, .mail-box, .help-window2, .world-window, .left-grouped-list-and-right-description-window, .divide-panel, .divide-list-group, .addons-panel, .clan, .auctions, .auction-window, .showcase, .depo, .recovery-item, .premium-panel, .pre-premium-panel, .chests-window, .promo-window, .gold-shop, .stamina-shop, .matchmaking-summary, .console-window, .who-is-here-edit, .window-list-edit) .search-wrapper::before {
+  background: none !important;
+  border-image: none !important;
+  box-shadow: none !important;
+}
+
+/* Pusty przycisk może być pojedynczym sprite'em zawierającym także ikonę. */
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window, .loot-window, .quest-log, .quest-box, .skills-window, .friend-enemy-list, .news-panel, .news-window, .settings-window, .mails-window, .mail-box, .help-window2, .world-window, .left-grouped-list-and-right-description-window, .divide-panel, .divide-list-group, .addons-panel, .clan, .auctions, .auction-window, .showcase, .depo, .recovery-item, .premium-panel, .pre-premium-panel, .chests-window, .promo-window, .gold-shop, .stamina-shop, .matchmaking-summary, .console-window, .who-is-here-edit, .window-list-edit) .button:empty:not(.widget-button, .mz-widget, .widget-maddonz_addonsManager, .widget-gogatki_addonsManager, [data-gogatki-native-launcher], [class*="gargonem" i], .red, .danger, .purple, .want, .not, .must) {
+  filter: var(--cp-sprite-tint) !important;
+}
+
+/* Czerwony i fioletowy przycisk zachowują znaczenie, dostają ciemną oprawę. */
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window, .loot-window, .quest-log, .quest-box, .skills-window, .friend-enemy-list, .news-panel, .news-window, .settings-window, .mails-window, .mail-box, .help-window2, .world-window, .left-grouped-list-and-right-description-window, .divide-panel, .divide-list-group, .addons-panel, .clan, .auctions, .auction-window, .showcase, .depo, .recovery-item, .premium-panel, .pre-premium-panel, .chests-window, .promo-window, .gold-shop, .stamina-shop, .matchmaking-summary, .console-window, .who-is-here-edit, .window-list-edit) .button:is(.red, .danger, .purple):not(.widget-button):not(.mz-widget):not([style*="url(" i]) {
+  --cp-action-accent: #e58d99;
+  --cp-action-bg: #35262e;
+  background: linear-gradient(var(--cp-action-bg), var(--cp-panel)) !important;
+  border-image: none !important;
+  border-color: var(--cp-action-accent) !important;
+  border-radius: 3px !important;
+  box-shadow: inset 0 0 0 1px var(--cp-action-accent) !important;
+  color: var(--cp-text) !important;
+  text-shadow: none !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window, .loot-window, .quest-log, .quest-box, .skills-window, .friend-enemy-list, .news-panel, .news-window, .settings-window, .mails-window, .mail-box, .help-window2, .world-window, .left-grouped-list-and-right-description-window, .divide-panel, .divide-list-group, .addons-panel, .clan, .auctions, .auction-window, .showcase, .depo, .recovery-item, .premium-panel, .pre-premium-panel, .chests-window, .promo-window, .gold-shop, .stamina-shop, .matchmaking-summary, .console-window, .who-is-here-edit, .window-list-edit) .button.purple:not(.widget-button):not(.mz-widget):not([style*="url(" i]) {
+  --cp-action-accent: var(--cp-violet);
+  --cp-action-bg: #30283e;
+}
+
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window, .loot-window, .quest-log, .quest-box, .skills-window, .friend-enemy-list, .news-panel, .news-window, .settings-window, .mails-window, .mail-box, .help-window2, .world-window, .left-grouped-list-and-right-description-window, .divide-panel, .divide-list-group, .addons-panel, .clan, .auctions, .auction-window, .showcase, .depo, .recovery-item, .premium-panel, .pre-premium-panel, .chests-window, .promo-window, .gold-shop, .stamina-shop, .matchmaking-summary, .console-window, .who-is-here-edit, .window-list-edit) .button:is(.red, .danger, .purple):not(.widget-button):not(.mz-widget):not([style*="url(" i])::before {
+  background: none !important;
+  box-shadow: none !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window, .loot-window, .quest-log, .quest-box, .skills-window, .friend-enemy-list, .news-panel, .news-window, .settings-window, .mails-window, .mail-box, .help-window2, .world-window, .left-grouped-list-and-right-description-window, .divide-panel, .divide-list-group, .addons-panel, .clan, .auctions, .auction-window, .showcase, .depo, .recovery-item, .premium-panel, .pre-premium-panel, .chests-window, .promo-window, .gold-shop, .stamina-shop, .matchmaking-summary, .console-window, .who-is-here-edit, .window-list-edit) .button:is(.red, .danger, .purple):not(.widget-button):not(.mz-widget):not([style*="url(" i]):not(.disabled):not([disabled]):not([aria-disabled="true"]):is(:hover, .active, .pressed) {
+  color: var(--cp-action-accent) !important;
+  background: var(--cp-action-bg) !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window, .loot-window, .quest-log, .quest-box, .skills-window, .friend-enemy-list, .news-panel, .news-window, .settings-window, .mails-window, .mail-box, .help-window2, .world-window, .left-grouped-list-and-right-description-window, .divide-panel, .divide-list-group, .addons-panel, .clan, .auctions, .auction-window, .showcase, .depo, .recovery-item, .premium-panel, .pre-premium-panel, .chests-window, .promo-window, .gold-shop, .stamina-shop, .matchmaking-summary, .console-window, .who-is-here-edit, .window-list-edit) .button:is(.red, .danger, .purple):is(.disabled, [disabled], [aria-disabled="true"]):not(.widget-button):not(.mz-widget):not([style*="url(" i]) {
+  color: #8e9aa4 !important;
+  box-shadow: inset 0 0 0 1px #46515b !important;
+}
+
+/* Wybory łupu: neutralne kafelki, turkus Chcę, fiolet Potrzebuję, róż Nie chcę.
+ * Stan zaznaczenia nadal pochodzi z data-state gry/Maddonz. */
+html[data-cyberpunk-ni="on"] .loot-window .button-holder .button:is(.want, .not, .must):not([style*="url(" i]) {
+  background: var(--cp-raised) !important;
+  border-image: none !important;
+  border-color: var(--cp-line) !important;
+  border-radius: 3px !important;
+  box-shadow: inset 0 0 0 1px var(--cp-line) !important;
+  color: var(--cp-text) !important;
+}
+
+html[data-cyberpunk-ni="on"] .loot-window .button-holder .button:is(.want, .not, .must):not([style*="url(" i])::before {
+  background: none !important;
+  box-shadow: none !important;
+}
+
+html[data-cyberpunk-ni="on"] .loot-window [data-state="want"] .button-holder .button.want:not([style*="url(" i]) {
+  background: #1b3037 !important;
+  box-shadow: inset 0 0 0 1px var(--cp-cyan) !important;
+  color: var(--cp-cyan) !important;
+}
+
+html[data-cyberpunk-ni="on"] .loot-window [data-state="not"] .button-holder .button.not:not([style*="url(" i]) {
+  background: #35262e !important;
+  box-shadow: inset 0 0 0 1px #e58d99 !important;
+  color: #e58d99 !important;
+}
+
+html[data-cyberpunk-ni="on"] .loot-window [data-state="must"] .button-holder .button.must:not([style*="url(" i]) {
+  background: #30283e !important;
+  box-shadow: inset 0 0 0 1px var(--cp-violet) !important;
+  color: var(--cp-violet) !important;
+}
+
+html[data-cyberpunk-ni="on"] .dialogue-window .content .answers li {
+  background: var(--cp-raised) !important;
+  border-image: none !important;
+  border-color: var(--cp-line) !important;
+  color: var(--cp-text) !important;
+  text-shadow: none !important;
+}
+
+html[data-cyberpunk-ni="on"] .dialogue-window .content .answers li:not(.disabled):hover {
+  background: #233b42 !important;
+  color: var(--cp-cyan) !important;
+}
+
+html[data-cyberpunk-ni="on"] .dialogue-window .content .answers li .icon {
+  filter: var(--cp-sprite-tint) !important;
+}
+
+html[data-cyberpunk-ni="on"] .dialogue-window .npc-message .rew_item .container:not([style*="url(" i]),
+html[data-cyberpunk-ni="on"] .quest-bring-item .item-wrapper:not([style*="url(" i]) {
+  background: var(--cp-bg) !important;
+  border-image: none !important;
+  border-color: var(--cp-line) !important;
+}
+
+html[data-cyberpunk-ni="on"] .news-classic-tile .used-text,
+html[data-cyberpunk-ni="on"] .mails-window .new-message .footer .atachments .foot-item .send-item {
+  filter: var(--cp-sprite-tint) !important;
 }
