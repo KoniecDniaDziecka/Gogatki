@@ -1,4 +1,4 @@
-/* Cyberpunk NI 0.2.22 — motyw dla nowego interfejsu Margonem.
+/* Cyberpunk NI 0.2.23 — motyw dla nowego interfejsu Margonem.
  * Skrypt .user.js włącza go atrybutem data-cyberpunk-ni="on" na <html>.
  * Zmienne poniżej sterują paletą. Nie wymaga zewnętrznych grafik ani fontów.
  * Najlepiej używać z wyłączonym DarknessNI i innymi motywami całego NI.
@@ -1373,13 +1373,21 @@ html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator > .cp-hp-disc {
   overflow: hidden !important;
   background:
     linear-gradient(var(--cp-bg), var(--cp-bg)) padding-box,
-    conic-gradient(from -45deg,
-      var(--cp-cyan) 0deg 32deg,
-      #344b5b 32deg 180deg,
-      var(--cp-cyan) 180deg 212deg,
-      #344b5b 212deg 360deg
+    repeating-conic-gradient(from -1deg,
+      transparent 0deg 16deg, #101a22 16deg 19deg
+    ) border-box,
+    conic-gradient(from var(--cp-ni-hp-orbit, 0deg),
+      transparent 0deg 326deg, #6df7e0 338deg 345deg,
+      transparent 357deg 360deg
+    ) border-box,
+    conic-gradient(from -48deg,
+      #12c9bd 0deg 26deg, #486172 26deg 80deg,
+      #263642 80deg 120deg, #b08aff 120deg 131deg,
+      #486172 131deg 198deg, #12c9bd 198deg 220deg,
+      #263642 220deg 290deg, #486172 290deg 360deg
     ) border-box !important;
-  box-shadow: 0 0 0 1px var(--cp-line) !important;
+  box-shadow: 0 0 0 1px var(--cp-line), inset 0 0 0 1px #0a141b !important;
+  animation: cp-ni-hp-orbit 14s linear infinite !important;
   transform: none !important;
   translate: none !important;
   filter: none !important;
@@ -1408,7 +1416,11 @@ html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator > .cp-hp-disc > .cp-hp-
   border: 0 !important;
   border-image: none !important;
   border-radius: 0 !important;
-  background: var(--cp-hp-red) !important;
+  /* Zawsze nieprzezroczysta czerwień. Animacja jest tylko nakładką wewnątrz. */
+  background:
+    radial-gradient(ellipse at 26% 18%, rgba(255, 139, 110, .4), transparent 52%),
+    linear-gradient(145deg, #ff3025, #ed151c 56%, #ac0a21) !important;
+  overflow: hidden !important;
   box-shadow: none !important;
   transform: none !important;
   translate: none !important;
@@ -1422,6 +1434,68 @@ html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator > .cp-hp-disc > .cp-hp-
 
 html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator[data-cp-hp="100"] > .cp-hp-disc > .cp-hp-fill {
   height: 100% !important;
+}
+
+/* Miękkie pasma energii i przesuwające się odbicie. Poruszają się wyłącznie
+ * przezroczyste nakładki: wysokość HP i okrągła maska nigdy nie są animowane. */
+html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator > .cp-hp-disc > .cp-hp-fill::before,
+html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator > .cp-hp-disc > .cp-hp-fill::after {
+  content: "" !important;
+  position: absolute !important;
+  left: -40px !important;
+  top: -40px !important;
+  right: auto !important;
+  bottom: auto !important;
+  width: 170px !important;
+  height: 170px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  pointer-events: none !important;
+}
+
+html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator > .cp-hp-disc > .cp-hp-fill::before {
+  background:
+    radial-gradient(ellipse at 35% 40%, transparent 29%,
+      rgba(255, 98, 115, .24) 35%, rgba(255, 156, 110, .14) 38%, transparent 44%),
+    radial-gradient(ellipse at 70% 65%, transparent 22%,
+      rgba(135, 0, 31, .2) 28%, transparent 36%) !important;
+  animation: cp-ni-hp-flow 7s ease-in-out infinite alternate !important;
+}
+
+html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator > .cp-hp-disc > .cp-hp-fill::after {
+  background: linear-gradient(115deg, transparent 38%,
+    rgba(255, 194, 170, .16) 49%, transparent 59%) !important;
+  animation: cp-ni-hp-reflection 4.8s ease-in-out infinite alternate !important;
+}
+
+html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator[data-cp-hp="0"] .cp-hp-fill::before,
+html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator[data-cp-hp="0"] .cp-hp-fill::after {
+  animation-play-state: paused !important;
+}
+
+@keyframes cp-ni-hp-flow {
+  from { transform: translate(-6px, -3px) rotate(-16deg); }
+  to { transform: translate(6px, 5px) rotate(18deg); }
+}
+
+@keyframes cp-ni-hp-reflection {
+  from { transform: translateX(-34px); }
+  to { transform: translateX(32px); }
+}
+
+@keyframes cp-ni-hp-orbit {
+  from { --cp-ni-hp-orbit: 0deg; }
+  to { --cp-ni-hp-orbit: 360deg; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator > .cp-hp-disc,
+  html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator > .cp-hp-disc > .cp-hp-fill::before,
+  html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator > .cp-hp-disc > .cp-hp-fill::after {
+    animation: none !important;
+  }
 }
 
 /* Starszy loader pobiera CSS, ale nie umie przekazać procentu HP.
@@ -1438,6 +1512,13 @@ html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator:not([data-cp-hp]) .hpp:
   text-shadow: none !important;
   pointer-events: none !important;
 }
+}
+
+/* Typ kąta pozwala płynnie przesuwać światło po pierścieniu bez obracania HP. */
+@property --cp-ni-hp-orbit {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
 }
 
 /* Zwarte pola wartości NI i wskaźnik połączenia obok obniżonego HP.
