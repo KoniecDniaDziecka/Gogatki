@@ -49,6 +49,8 @@ const assert = require('node:assert/strict');
         await section.waitFor();
         assert.deepEqual(await section.locator('.guc-value').allTextContents(), ['280 000', '308 000', '364 000', '448 000', '560 000', '1 960 000', '13 800 000', '60']);
         assert.equal(await section.evaluate(element => element.nextElementSibling.id), 'requirements');
+        assert.equal(await section.evaluate(element => getComputedStyle(element).backgroundColor), 'rgba(0, 0, 0, 0)');
+        assert.equal(await section.evaluate(element => getComputedStyle(element).borderTopWidth), '0px');
         assert.equal(await section.locator('.guc-row').first().evaluate(element => getComputedStyle(element).fontSize), '12px');
         assert.equal(await section.locator('.guc-heading').evaluate(element => getComputedStyle(element).color), 'rgb(18, 201, 189)');
         assert.equal(await section.locator('.guc-heading').evaluate(element => getComputedStyle(element).textShadow), 'none');

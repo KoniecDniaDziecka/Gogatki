@@ -1,4 +1,4 @@
-// Koszty ulepszeń 1.0.0
+// Koszty ulepszeń 1.0.1
 // Wzory i rozpoznawanie dymków: Dark-Sad, Panel dodatków 6.1.5,
 // Sebastian00P/PanelDodatkow/script.js (blob e589b5b7ccb42279d2e9ff386777d6bb2631b86c).
 GogatkiRuntime.register({
@@ -24,8 +24,8 @@ GogatkiRuntime.register({
         const style = document.createElement('style');
         style.id = STYLE_ID;
         style.textContent = `
-            .item-tip-section.${SECTION_CLASS}{box-sizing:border-box;margin:5px 0;padding:6px;
-                border:1px solid #668298;border-radius:4px;background:#171b20;color:#c7d0d9;
+            .item-tip-section.${SECTION_CLASS}{box-sizing:border-box;margin:5px 0;padding:0;
+                border:0;border-radius:0;background:none;color:inherit;
                 font:12px/1.4 Arial,sans-serif;text-align:left;text-shadow:none}
             .item-tip-section.${SECTION_CLASS} *{box-sizing:border-box;font:12px/1.4 Arial,sans-serif;
                 text-shadow:none;-webkit-text-stroke:0;letter-spacing:normal}
@@ -34,7 +34,7 @@ GogatkiRuntime.register({
                 color:#c7d0d9;font:12px/1.4 Arial,sans-serif;text-shadow:none}
             .${SECTION_CLASS} .guc-row span{color:#c7d0d9;font:inherit;text-shadow:none}
             .${SECTION_CLASS} .guc-row .guc-value{color:#12c9bd;white-space:nowrap}
-            .${SECTION_CLASS} .guc-total{margin-top:4px;padding-top:3px;border-top:1px solid #668298}
+            .${SECTION_CLASS} .guc-total{margin-top:4px;padding-top:3px}
         `;
         (document.head || document.documentElement).appendChild(style);
 
