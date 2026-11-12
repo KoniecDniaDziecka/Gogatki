@@ -1,0 +1,7 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' preserveAspectRatio='none' id='cp-window-corner-ne'>
+          <g transform='translate(12 0) scale(-1 1)' fill='none'>
+            <path d='M11.5 .5H4L.5 4v7.5' stroke='#668298'/>
+            <path d='M8 .5H4L.5 4v4' stroke='#12c9bd'/>
+            <path d='M11.5 3.5H6l-2.5 2.5v5.5' stroke='#2b414f'/>
+          </g>
+        </svg>

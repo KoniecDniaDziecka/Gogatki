@@ -1,10 +1,13 @@
 """Buduje instalator i zdalną paczkę motywu. Bez zależności."""
 import json
 from pathlib import Path
+from window_assets import inline_graphics
 
 ROOT = Path(__file__).resolve().parent
 CSS = (ROOT / "cyberpunk-ni.css").read_text()
-BUNDLE = {"id": "cyberpunk-ni", "schema": 1, "version": "0.2.27", "css": CSS}
+CSS = inline_graphics(CSS, ROOT)
+(ROOT / "cyberpunk-ni.css").write_text(CSS)
+BUNDLE = {"id": "cyberpunk-ni", "schema": 1, "version": "0.2.28", "css": CSS}
 HEADER = """// ==UserScript==
 // @name         Cyberpunk NI
 // @namespace    local.margonem.cyberpunk-ni

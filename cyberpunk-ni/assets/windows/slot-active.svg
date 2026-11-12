@@ -1,0 +1,5 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40' preserveAspectRatio='none' id='cp-window-slot-active'>
+          <path d='M4 .5h32l3.5 3.5v32L36 39.5H4L.5 36V4Z' fill='#17232c' stroke='#12c9bd' vector-effect='non-scaling-stroke'/>
+          <path d='M3 11V5l2-2h6m18 0h6l2 2v6M3 29v6l2 2h6m18 0h6l2-2v-6' fill='none' stroke='#12c9bd' vector-effect='non-scaling-stroke'/>
+          <path d='M6 20h3m22 0h3' stroke='#344b5a' vector-effect='non-scaling-stroke'/>
+        </svg>

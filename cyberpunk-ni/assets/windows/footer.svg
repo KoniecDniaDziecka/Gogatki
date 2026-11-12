@@ -1,0 +1,6 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='240' height='36' viewBox='0 0 240 36' preserveAspectRatio='none' id='cp-window-footer'>
+      <rect width='240' height='36' fill='#1d2831'/>
+      <path d='M0 .5h240M0 35.5h240' stroke='#425b6b' vector-effect='non-scaling-stroke'/>
+      <path d='M7 5h17m192 0h17M7 30h10m206 0h10' stroke='#12c9bd' opacity='.6' vector-effect='non-scaling-stroke'/>
+      <path d='M30 5h14m152 0h14' stroke='#344b5a' vector-effect='non-scaling-stroke'/>
+    </svg>
