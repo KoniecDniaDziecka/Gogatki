@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parent
 CSS = (ROOT / "cyberpunk-ni.css").read_text()
 CSS = inline_graphics(CSS, ROOT)
 (ROOT / "cyberpunk-ni.css").write_text(CSS)
-BUNDLE = {"id": "cyberpunk-ni", "schema": 1, "version": "0.2.28", "css": CSS}
+BUNDLE = {"id": "cyberpunk-ni", "schema": 1, "version": "0.2.29", "css": CSS}
 HEADER = """// ==UserScript==
 // @name         Cyberpunk NI
 // @namespace    local.margonem.cyberpunk-ni

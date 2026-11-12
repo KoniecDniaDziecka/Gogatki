@@ -1,4 +1,4 @@
-/* Cyberpunk NI 0.2.28 — motyw dla nowego interfejsu Margonem.
+/* Cyberpunk NI 0.2.29 — motyw dla nowego interfejsu Margonem.
  * Skrypt .user.js włącza go atrybutem data-cyberpunk-ni="on" na <html>.
  * Zmienne poniżej sterują paletą. Nie wymaga zewnętrznych grafik ani fontów.
  * Najlepiej używać z wyłączonym DarknessNI i innymi motywami całego NI.
@@ -1348,7 +1348,7 @@ html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator[data-cp-hp="100"]::befo
   background: var(--cp-hp-red) !important;
 }
 
-/* Większa kula jak w NI: ramka 98 × 98, wnętrze 90 × 90.
+/* Większa kula jak w NI: ramka 98 × 98, wnętrze 84 × 84.
  * Natywny obszar 98 × 78 pokazuje górę kuli i ucina jej dolny fragment.
  * Obramowanie i wypełnienie pozostają w jednym border-boxie. */
 html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator[data-cp-hp-renderer="disc"] {
@@ -1389,24 +1389,16 @@ html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator > .cp-hp-disc {
   box-sizing: border-box !important;
   margin: 0 !important;
   padding: 0 !important;
-  border: 4px solid transparent !important;
+  border: 7px solid transparent !important;
   border-image: none !important;
   border-radius: 50% !important;
   overflow: hidden !important;
+  /* Pierścień i kula mają jeden środek; 7 px ramki mieści się w 98 px. */
   background:
-    linear-gradient(var(--cp-bg), var(--cp-bg)) padding-box,
-    conic-gradient(from -48deg,
-      rgba(18, 201, 189, .75) 0deg 9deg, transparent 9deg 180deg,
-      rgba(18, 201, 189, .65) 180deg 189deg, transparent 189deg 360deg
-    ) border-box,
-    conic-gradient(from var(--cp-ni-hp-orbit, 0deg),
-      transparent 0deg 340deg, rgba(42, 193, 183, .5) 348deg 351deg,
-      transparent 357deg 360deg
-    ) border-box,
-    linear-gradient(135deg, #7c919e, #344752 26%, #14212c 51%,
-      #506574 79%, #253642) border-box !important;
-  box-shadow: 0 0 0 1px #3c5363, inset 0 0 0 1px #0a1118 !important;
-  animation: cp-ni-hp-orbit 24s linear infinite !important;
+    linear-gradient(#111720, #111720) padding-box,
+    url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='98'%20height='98'%20viewBox='0%200%2098%2098'%3E%0A%3Cdefs%3E%3ClinearGradient%20id='metal'%20x1='0'%20y1='0'%20x2='1'%20y2='1'%3E%3Cstop%20stop-color='%23a0b7c3'/%3E%3Cstop%20offset='.2'%20stop-color='%234a6577'/%3E%3Cstop%20offset='.48'%20stop-color='%23182c3b'/%3E%3Cstop%20offset='.72'%20stop-color='%23607d8e'/%3E%3Cstop%20offset='1'%20stop-color='%232b4253'/%3E%3C/linearGradient%3E%3C/defs%3E%0A%3Ccircle%20cx='49'%20cy='49'%20r='45.5'%20fill='none'%20stroke='url%28%23metal%29'%20stroke-width='7'/%3E%0A%3Ccircle%20cx='49'%20cy='49'%20r='48.2'%20fill='none'%20stroke='%2391a9b8'%20stroke-width='.7'/%3E%0A%3Ccircle%20cx='49'%20cy='49'%20r='47'%20fill='none'%20stroke='%23182b38'%20stroke-width='.8'/%3E%0A%3Ccircle%20cx='49'%20cy='49'%20r='42.5'%20fill='none'%20stroke='%230b131d'%20stroke-width='1.5'/%3E%0A%3Ccircle%20cx='49'%20cy='49'%20r='43.5'%20fill='none'%20stroke='%23728e9e'%20stroke-width='.65'/%3E%0A%3Cg%20fill='none'%20stroke-linecap='square'%3E%3Cpath%20d='M10.3%2025.3A45.4%2045.4%200%200%201%2031.9%206.9M66.1%2091.1A45.4%2045.4%200%200%201%2087.7%2072.7'%20stroke='%23082b31'%20stroke-width='4'/%3E%3Cpath%20d='M10.3%2025.3A45.4%2045.4%200%200%201%2031.9%206.9M66.1%2091.1A45.4%2045.4%200%200%201%2087.7%2072.7'%20stroke='%2312c9bd'%20stroke-width='2.1'/%3E%3Cpath%20d='M11.8%2024.2A44.2%2044.2%200%200%201%2031.6%208.3'%20stroke='%238df6e6'%20stroke-width='.6'/%3E%3C/g%3E%0A%3Cg%20stroke='%23142631'%20stroke-width='1.4'%3E%3Cpath%20d='M46%201v5m6-5v5M46%2092v5m6-5v5M1%2046h5m-5%206h5m86-6h5m-5%206h5'/%3E%3C/g%3E%0A%3Cg%20fill='%23162834'%20stroke='%237b96a6'%20stroke-width='.7'%3E%3Ccircle%20cx='81.2'%20cy='16.8'%20r='1.5'/%3E%3Ccircle%20cx='16.8'%20cy='81.2'%20r='1.5'/%3E%3C/g%3E%3C/svg%3E") 0 0 / 98px 98px border-box no-repeat !important;
+  box-shadow: 0 0 0 1px #152630, inset 0 0 0 1px #0a1118 !important;
+  animation: none !important;
   transform: none !important;
   translate: none !important;
   filter: none !important;
@@ -1416,6 +1408,20 @@ html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator > .cp-hp-disc {
   opacity: 1 !important;
   pointer-events: none !important;
   z-index: 0 !important;
+}
+
+/* Szkło jest nieruchome względem kuli także przy częściowym wypełnieniu. */
+html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator > .cp-hp-disc::after {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  border-radius: 50% !important;
+  background:
+    radial-gradient(ellipse 66% 38% at 36% 9%, rgba(255, 202, 193, .26), transparent 72%),
+    radial-gradient(circle at 44% 36%, transparent 44%, rgba(32, 0, 10, .45) 100%) !important;
+  box-shadow: inset 0 1px 2px rgba(255, 185, 177, .3), inset 0 -3px 6px rgba(39, 0, 9, .48) !important;
+  pointer-events: none !important;
+  z-index: 1 !important;
 }
 
 html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator > .cp-hp-disc > .cp-hp-fill {
@@ -1437,8 +1443,7 @@ html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator > .cp-hp-disc > .cp-hp-
   border-radius: 0 !important;
   /* Zawsze nieprzezroczysta czerwień. Animacja jest tylko nakładką wewnątrz. */
   background:
-    radial-gradient(ellipse at 26% 18%, rgba(232, 71, 65, .2), transparent 52%),
-    linear-gradient(145deg, #c51a21, #a4101b 56%, #640b1c) !important;
+    radial-gradient(ellipse at 36% 29%, #e73538 0%, #c41b28 37%, #9c101f 70%, #640d20 100%) !important;
   overflow: hidden !important;
   box-shadow: none !important;
   transform: none !important;
@@ -1477,7 +1482,7 @@ html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator > .cp-hp-disc > .cp-hp-
 html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator > .cp-hp-disc > .cp-hp-fill::before {
   background:
     radial-gradient(ellipse at 35% 40%, transparent 29%,
-      rgba(217, 55, 78, .2) 35%, rgba(227, 108, 96, .08) 38%, transparent 44%),
+      rgba(255, 100, 92, .12) 35%, rgba(243, 125, 111, .06) 38%, transparent 44%),
     radial-gradient(ellipse at 70% 65%, transparent 22%,
       rgba(94, 0, 19, .2) 28%, transparent 36%) !important;
   animation: cp-ni-hp-flow 7s ease-in-out infinite alternate !important;
@@ -1485,7 +1490,7 @@ html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator > .cp-hp-disc > .cp-hp-
 
 html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator > .cp-hp-disc > .cp-hp-fill::after {
   background: linear-gradient(115deg, transparent 38%,
-    rgba(255, 150, 140, .08) 49%, transparent 59%) !important;
+    rgba(255, 187, 173, .12) 49%, transparent 59%) !important;
   animation: cp-ni-hp-reflection 4.8s ease-in-out infinite alternate !important;
 }
 
