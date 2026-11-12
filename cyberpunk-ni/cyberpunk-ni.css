@@ -1,4 +1,4 @@
-/* Cyberpunk NI 0.2.18 — motyw dla nowego interfejsu Margonem.
+/* Cyberpunk NI 0.2.19 — motyw dla nowego interfejsu Margonem.
  * Skrypt .user.js włącza go atrybutem data-cyberpunk-ni="on" na <html>.
  * Zmienne poniżej sterują paletą. Nie wymaga zewnętrznych grafik ani fontów.
  * Najlepiej używać z wyłączonym DarknessNI i innymi motywami całego NI.
@@ -1128,6 +1128,15 @@ html[data-cyberpunk-ni="on"] {
   --cp-hp-frame: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 98 78'%3E%3Cdefs%3E%3ClinearGradient id='metal' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop stop-color='%23668298'/%3E%3Cstop offset='.5' stop-color='%23263642'/%3E%3Cstop offset='1' stop-color='%23425566'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M13 30H8l-3 4v10l3 4h5m72-18h5l3 4v10l-3 4h-5' fill='%23171b20' stroke='%23668298'/%3E%3Cpath d='M9 35v8m80-8v8' stroke='%2312c9bd' stroke-width='2'/%3E%3Ccircle cx='49' cy='39' r='35.5' fill='none' stroke='%23668298'/%3E%3Ccircle cx='49' cy='39' r='33.75' fill='none' stroke='url%28%23metal%29' stroke-width='3.5'/%3E%3Ccircle cx='49' cy='39' r='32' fill='none' stroke='%23668298'/%3E%3Cpath d='M24.96 14.96a34 34 0 0 1 15.24-8.8m17.6 65.68a34 34 0 0 0 15.24-8.8' fill='none' stroke='%2312c9bd' stroke-width='2'/%3E%3Cpath d='M45 4h8m-8 70h8' stroke='%23b1c0cb'/%3E%3C/svg%3E");
 }
 
+/* Cały wskaźnik 10 px niżej: wspólna pozycja koła, procentu i hitboxa. */
+html[data-cyberpunk-ni="on"] .bottom-panel:has(> .hp-indicator-wrapper-template) {
+  overflow: visible !important;
+}
+
+html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator-wrapper {
+  translate: 0 10px !important;
+}
+
 html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator-wrapper-template {
   overflow: visible !important;
 }
@@ -1141,6 +1150,7 @@ html[data-cyberpunk-ni="on"] .bottom-panel :is(.hp-indicator-wrapper, .hp-indica
 }
 
 html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator {
+  anchor-name: --cp-hp-orb !important;
   background: var(--cp-hp-frame) center / 98px 78px no-repeat !important;
   box-shadow: none !important;
 }
@@ -1313,13 +1323,13 @@ html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator[data-cp-hp] .hpp {
 }
 }
 
-/* Pola EXP/wyczerpania i wskaźnik połączenia obok okrągłego HP.
+/* Zwarte pola wartości NI i wskaźnik połączenia obok obniżonego HP.
  * Klasy i rozmiary płyt pochodzą z odczytu HUD: 70 × 35, kontener 243 × 35.
  * Gra nadal steruje tekstem wartości, postępem EXP i klasami .lag-N. */
 @layer cyberpunk-ni-bottom-meters {
 html[data-cyberpunk-ni="on"] {
-  --cp-exp-plate: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 70 35' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='metal' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop stop-color='%23263642'/%3E%3Cstop offset='.45' stop-color='%23171b20'/%3E%3Cstop offset='1' stop-color='%231b2932'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M5 .5h57.5l7 7v20l-7 7H5L.5 30V5Z' fill='url%28%23metal%29' stroke='%23668298'/%3E%3Cpath d='M1 12V5l4-4h13' fill='none' stroke='%2312c9bd' stroke-width='1.5'/%3E%3Cpath d='M12 33h46' stroke='%2338566c' stroke-width='1'/%3E%3C/svg%3E");
-  --cp-fatigue-plate: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 70 35' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='metal' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop stop-color='%23263642'/%3E%3Cstop offset='.45' stop-color='%23171b20'/%3E%3Cstop offset='1' stop-color='%231b2932'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M7.5 .5H65L69.5 5v25l-4.5 4.5H7.5l-7-7v-20Z' fill='url%28%23metal%29' stroke='%23668298'/%3E%3Cpath d='M52 1h13l4 4v7' fill='none' stroke='%23b08aff' stroke-width='1.5'/%3E%3Cpath d='M12 33h46' stroke='%2338566c' stroke-width='1'/%3E%3C/svg%3E");
+  --cp-exp-plate: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 70 35'%3E%3Cdefs%3E%3ClinearGradient id='metal' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop stop-color='%2338505e'/%3E%3Cstop offset='.25' stop-color='%23252b31'/%3E%3Cstop offset='1' stop-color='%23171b20'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cg%3E%3Cpath d='M5 8.5h54l9 8.5-9 8.5H5L1.5 22V12Z' fill='url%28%23metal%29' stroke='%23668298'/%3E%3Cpath d='M8 11h44' stroke='%2312c9bd'/%3E%3Cpath d='m53 28 6 5h9m-9-5 3 2h6' fill='none' stroke='%2338566c'/%3E%3C/g%3E%3C/svg%3E");
+  --cp-fatigue-plate: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 70 35'%3E%3Cdefs%3E%3ClinearGradient id='metal' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop stop-color='%2338505e'/%3E%3Cstop offset='.25' stop-color='%23252b31'/%3E%3Cstop offset='1' stop-color='%23171b20'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cg transform='translate%2870 0%29 scale%28-1 1%29'%3E%3Cpath d='M5 8.5h54l9 8.5-9 8.5H5L1.5 22V12Z' fill='url%28%23metal%29' stroke='%23668298'/%3E%3Cpath d='M8 11h44' stroke='%23b08aff'/%3E%3Cpath d='m53 28 6 5h9m-9-5 3 2h6' fill='none' stroke='%2338566c'/%3E%3C/g%3E%3C/svg%3E");
   --cp-signal-healthy: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 16'%3E%3Crect x='2' y='11' width='3' height='4' rx='.65' fill='%2312c9bd'/%3E%3Crect x='7' y='8' width='3' height='7' rx='.65' fill='%2312c9bd'/%3E%3Crect x='12' y='5' width='3' height='10' rx='.65' fill='%2312c9bd'/%3E%3Crect x='17' y='2' width='3' height='13' rx='.65' fill='%2312c9bd'/%3E%3C/svg%3E");
   --cp-signal-warning: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 16'%3E%3Crect x='2' y='11' width='3' height='4' rx='.65' fill='%23f4bf63'/%3E%3Crect x='7' y='8' width='3' height='7' rx='.65' fill='%23f4bf63'/%3E%3Crect x='12' y='5' width='3' height='10' rx='.65' fill='%23405362'/%3E%3Crect x='17' y='2' width='3' height='13' rx='.65' fill='%23405362'/%3E%3C/svg%3E");
   --cp-signal-poor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 22 16'%3E%3Crect x='2' y='11' width='3' height='4' rx='.65' fill='%23f1747d'/%3E%3Crect x='7' y='8' width='3' height='7' rx='.65' fill='%23405362'/%3E%3Crect x='12' y='5' width='3' height='10' rx='.65' fill='%23405362'/%3E%3Crect x='17' y='2' width='3' height='13' rx='.65' fill='%23405362'/%3E%3C/svg%3E");
@@ -1349,67 +1359,47 @@ html[data-cyberpunk-ni="on"] .bottom-panel .bottom-panel-pointer-bg .pointer-ttl
   left: auto !important;
   right: 0 !important;
   background-image: var(--cp-fatigue-plate) !important;
-  anchor-name: --cp-fatigue-plate !important;
 }
 
+/* Oryginalny NI pokazuje same wartości, bez dodatkowego wiersza etykiet. */
 html[data-cyberpunk-ni="on"] .bottom-panel .bottom-panel-pointer-bg :is(.pointer-exp-graphic, .pointer-ttl-graphic)::before {
-  position: absolute !important;
-  top: 4px !important;
-  left: 0 !important;
-  width: 100% !important;
-  height: 10px !important;
-  font: 700 8px/10px Arial, sans-serif !important;
-  letter-spacing: .8px !important;
-  text-align: center !important;
-  text-shadow: none !important;
-  pointer-events: none !important;
-  background: none !important;
-}
-
-html[data-cyberpunk-ni="on"] .bottom-panel .bottom-panel-pointer-bg .pointer-exp-graphic::before {
-  content: "EXP" !important;
-  color: var(--cp-cyan) !important;
-}
-
-html[data-cyberpunk-ni="on"] .bottom-panel .bottom-panel-pointer-bg .pointer-ttl-graphic::before {
-  content: "WYCZ." !important;
-  color: var(--cp-violet) !important;
+  content: none !important;
 }
 
 html[data-cyberpunk-ni="on"] .bottom-panel .bottom-panel-pointer-bg :is(.pointer-exp, .pointer-ttl) {
   position: absolute !important;
-  top: 17px !important;
-  width: 70px !important;
+  top: 10px !important;
+  width: 58px !important;
   height: 14px !important;
   margin: 0 !important;
   padding: 0 !important;
   box-sizing: border-box !important;
   color: #edf5fa !important;
-  font: 600 11px/14px Arial, sans-serif !important;
+  font: 600 9px/14px Arial, sans-serif !important;
   text-align: center !important;
   text-shadow: none !important;
   background: none !important;
 }
 
 html[data-cyberpunk-ni="on"] .bottom-panel .bottom-panel-pointer-bg .pointer-exp {
-  left: 0 !important;
+  left: 4px !important;
   right: auto !important;
 }
 
 html[data-cyberpunk-ni="on"] .bottom-panel .bottom-panel-pointer-bg .pointer-ttl {
   left: auto !important;
-  right: 0 !important;
+  right: 4px !important;
 }
 
-/* Wolne miejsce pod prawą płytą. Podstawowe położenie działa bez CSS anchors. */
+/* Wąski wskaźnik przy dolnej krawędzi HUD, pod polem wyczerpania. */
 html[data-cyberpunk-ni="on"] .bottom-panel .lagmeter {
   position: absolute !important;
-  left: calc(50% + 72.5px) !important;
+  left: calc(50% + 75.5px) !important;
   right: auto !important;
-  top: 48px !important;
-  bottom: auto !important;
-  width: 28px !important;
-  height: 20px !important;
+  top: auto !important;
+  bottom: 3px !important;
+  width: 22px !important;
+  height: 22px !important;
   margin: 0 !important;
   padding: 0 !important;
   box-sizing: border-box !important;
@@ -1424,12 +1414,12 @@ html[data-cyberpunk-ni="on"] .bottom-panel .lagmeter {
 html[data-cyberpunk-ni="on"] .bottom-panel .lagmeter .lag {
   position: absolute !important;
   left: 3px !important;
-  top: 2px !important;
-  width: 22px !important;
+  top: 3px !important;
+  width: 16px !important;
   height: 16px !important;
   margin: 0 !important;
   padding: 0 !important;
-  background: var(--cp-signal-unknown) center / 22px 16px no-repeat !important;
+  background: var(--cp-signal-unknown) center / 16px 16px no-repeat !important;
   filter: none !important;
 }
 
@@ -1445,17 +1435,20 @@ html[data-cyberpunk-ni="on"] .bottom-panel .lagmeter .lag.lag-2 {
   background-image: var(--cp-signal-poor) !important;
 }
 
-/* Kotwica dopasowuje położenie do rzeczywistej płyty także przy zmianie skali. */
-@supports (position-anchor: --cp-fatigue-plate) {
+/* Kotwica HP występuje przed .lagmeter w DOM gry. Poprzednia kotwica
+ * prawej płytki była za nim i potrafiła pozostawić wskaźnik na wartości.
+ * Sygnał kończy się na wysokości dolnej krawędzi pierścienia. */
+@supports (position-anchor: --cp-hp-orb) {
   html[data-cyberpunk-ni="on"] .bottom-panel {
-    anchor-scope: --cp-fatigue-plate !important;
+    anchor-scope: --cp-hp-orb !important;
   }
 
   html[data-cyberpunk-ni="on"] .bottom-panel .lagmeter {
-    position-anchor: --cp-fatigue-plate !important;
-    left: anchor(center, calc(50% + 86.5px)) !important;
-    top: calc(anchor(bottom, 44px) + 4px) !important;
-    transform: translateX(-50%) !important;
+    position-anchor: --cp-hp-orb !important;
+    left: calc(anchor(center, 50%) + 75.5px) !important;
+    top: calc(anchor(center, 43px) + 14px) !important;
+    bottom: auto !important;
+    transform: none !important;
   }
 }
 }
