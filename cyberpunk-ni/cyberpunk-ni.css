@@ -1,4 +1,4 @@
-/* Cyberpunk NI 0.2.23 — motyw dla nowego interfejsu Margonem.
+/* Cyberpunk NI 0.2.24 — motyw dla nowego interfejsu Margonem.
  * Skrypt .user.js włącza go atrybutem data-cyberpunk-ni="on" na <html>.
  * Zmienne poniżej sterują paletą. Nie wymaga zewnętrznych grafik ani fontów.
  * Najlepiej używać z wyłączonym DarknessNI i innymi motywami całego NI.
@@ -1340,7 +1340,9 @@ html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator[data-cp-hp-renderer="di
 }
 
 html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator[data-cp-hp-renderer="disc"]::after {
-  content: none !important;
+  /* Symetryczne metalowe uchwyty, bez drugiego pierścienia nad wypełnieniem. */
+  content: "" !important;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 98 78'%3E%3Cdefs%3E%3ClinearGradient id='clamp' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop stop-color='%23445968'/%3E%3Cstop offset='.5' stop-color='%23141f29'/%3E%3Cstop offset='1' stop-color='%232a3c4a'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M.5 38.5h4L7 41v16l-2.5 2.5h-4Zm97 0h-4L91 41v16l2.5 2.5h4Z' fill='url%28%23clamp%29' stroke='%233c5363'/%3E%3Cpath d='M3.5 44v10m91-10v10' stroke='%2312988e' stroke-width='1.5'/%3E%3Cpath d='M2.5 41.5h2m-2 15h2m89-15h2m-2 15h2' stroke='%23607787'/%3E%3C/svg%3E") 0 0 / 98px 78px no-repeat !important;
 }
 
 html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator[data-cp-hp-renderer="disc"] .hpp {
@@ -1373,21 +1375,18 @@ html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator > .cp-hp-disc {
   overflow: hidden !important;
   background:
     linear-gradient(var(--cp-bg), var(--cp-bg)) padding-box,
-    repeating-conic-gradient(from -1deg,
-      transparent 0deg 16deg, #101a22 16deg 19deg
+    conic-gradient(from -48deg,
+      rgba(18, 201, 189, .75) 0deg 9deg, transparent 9deg 180deg,
+      rgba(18, 201, 189, .65) 180deg 189deg, transparent 189deg 360deg
     ) border-box,
     conic-gradient(from var(--cp-ni-hp-orbit, 0deg),
-      transparent 0deg 326deg, #6df7e0 338deg 345deg,
+      transparent 0deg 340deg, rgba(42, 193, 183, .5) 348deg 351deg,
       transparent 357deg 360deg
     ) border-box,
-    conic-gradient(from -48deg,
-      #12c9bd 0deg 26deg, #486172 26deg 80deg,
-      #263642 80deg 120deg, #b08aff 120deg 131deg,
-      #486172 131deg 198deg, #12c9bd 198deg 220deg,
-      #263642 220deg 290deg, #486172 290deg 360deg
-    ) border-box !important;
-  box-shadow: 0 0 0 1px var(--cp-line), inset 0 0 0 1px #0a141b !important;
-  animation: cp-ni-hp-orbit 14s linear infinite !important;
+    linear-gradient(135deg, #7c919e, #344752 26%, #14212c 51%,
+      #506574 79%, #253642) border-box !important;
+  box-shadow: 0 0 0 1px #3c5363, inset 0 0 0 1px #0a1118 !important;
+  animation: cp-ni-hp-orbit 24s linear infinite !important;
   transform: none !important;
   translate: none !important;
   filter: none !important;
@@ -1418,8 +1417,8 @@ html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator > .cp-hp-disc > .cp-hp-
   border-radius: 0 !important;
   /* Zawsze nieprzezroczysta czerwień. Animacja jest tylko nakładką wewnątrz. */
   background:
-    radial-gradient(ellipse at 26% 18%, rgba(255, 139, 110, .4), transparent 52%),
-    linear-gradient(145deg, #ff3025, #ed151c 56%, #ac0a21) !important;
+    radial-gradient(ellipse at 26% 18%, rgba(232, 71, 65, .2), transparent 52%),
+    linear-gradient(145deg, #c51a21, #a4101b 56%, #640b1c) !important;
   overflow: hidden !important;
   box-shadow: none !important;
   transform: none !important;
@@ -1458,15 +1457,15 @@ html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator > .cp-hp-disc > .cp-hp-
 html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator > .cp-hp-disc > .cp-hp-fill::before {
   background:
     radial-gradient(ellipse at 35% 40%, transparent 29%,
-      rgba(255, 98, 115, .24) 35%, rgba(255, 156, 110, .14) 38%, transparent 44%),
+      rgba(217, 55, 78, .2) 35%, rgba(227, 108, 96, .08) 38%, transparent 44%),
     radial-gradient(ellipse at 70% 65%, transparent 22%,
-      rgba(135, 0, 31, .2) 28%, transparent 36%) !important;
+      rgba(94, 0, 19, .2) 28%, transparent 36%) !important;
   animation: cp-ni-hp-flow 7s ease-in-out infinite alternate !important;
 }
 
 html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator > .cp-hp-disc > .cp-hp-fill::after {
   background: linear-gradient(115deg, transparent 38%,
-    rgba(255, 194, 170, .16) 49%, transparent 59%) !important;
+    rgba(255, 150, 140, .08) 49%, transparent 59%) !important;
   animation: cp-ni-hp-reflection 4.8s ease-in-out infinite alternate !important;
 }
 
