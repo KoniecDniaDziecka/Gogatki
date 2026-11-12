@@ -32,7 +32,9 @@
         text.match(/^(-?\d+(?:[.,]\d+)?)$/));
       if (!match) {
         indicator.removeAttribute('data-cp-hp');
+        indicator.removeAttribute('data-cp-hp-renderer');
         indicator.style.removeProperty('--cp-hp-level');
+        indicator.querySelector(':scope > .cp-hp-disc')?.remove();
         return;
       }
       const percent = Math.max(0, Math.min(100, Number(match[1].replace(',', '.'))));
@@ -43,6 +45,21 @@
       }
       if (indicator.getAttribute('data-cp-hp') !== String(percent)) {
         indicator.setAttribute('data-cp-hp', String(percent));
+      }
+      // Osobny dysk nie korzysta ze sprite'a, jego marginesów ani klatek.
+      // Przy 100% prostokąt wypełnienia zajmuje cały okrągły rodzic.
+      let disc = indicator.querySelector(':scope > .cp-hp-disc');
+      if (!disc) {
+        disc = document.createElement('div');
+        disc.className = 'cp-hp-disc';
+        disc.setAttribute('aria-hidden', 'true');
+        const fill = document.createElement('div');
+        fill.className = 'cp-hp-fill';
+        disc.append(fill);
+        indicator.append(disc);
+      }
+      if (indicator.getAttribute('data-cp-hp-renderer') !== 'disc') {
+        indicator.setAttribute('data-cp-hp-renderer', 'disc');
       }
     });
   }

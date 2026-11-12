@@ -4,11 +4,11 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 CSS = (ROOT / "cyberpunk-ni.css").read_text()
-BUNDLE = {"id": "cyberpunk-ni", "schema": 1, "version": "0.2.19", "css": CSS}
+BUNDLE = {"id": "cyberpunk-ni", "schema": 1, "version": "0.2.20", "css": CSS}
 HEADER = """// ==UserScript==
 // @name         Cyberpunk NI
 // @namespace    local.margonem.cyberpunk-ni
-// @version      0.2.2
+// @version      0.2.3
 // @description  Cyberpunk NI — najnowszy motyw pobierany przy każdym odświeżeniu gry.
 // @match        https://*.margonem.pl/*
 // @match        https://*.margonem.com/*

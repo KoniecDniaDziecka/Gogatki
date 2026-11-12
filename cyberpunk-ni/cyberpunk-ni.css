@@ -1,4 +1,4 @@
-/* Cyberpunk NI 0.2.19 — motyw dla nowego interfejsu Margonem.
+/* Cyberpunk NI 0.2.20 — motyw dla nowego interfejsu Margonem.
  * Skrypt .user.js włącza go atrybutem data-cyberpunk-ni="on" na <html>.
  * Zmienne poniżej sterują paletą. Nie wymaga zewnętrznych grafik ani fontów.
  * Najlepiej używać z wyłączonym DarknessNI i innymi motywami całego NI.
@@ -1320,6 +1320,84 @@ html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator[data-cp-hp]::after {
 html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator[data-cp-hp] .hpp {
   position: absolute !important;
   z-index: 2 !important;
+}
+
+/* Pełny stan również dla loadera 0.2.2: bez pozycjonowanego obrazu tła. */
+html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator[data-cp-hp="100"]::before {
+  background: var(--cp-hp-red) !important;
+}
+
+/* Loader 0.2.3 tworzy prawdziwy dysk 63 × 63 i osobne wypełnienie.
+ * Oba mają lokalne współrzędne; oryginalna .blood nie uczestniczy w rysowaniu. */
+html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator[data-cp-hp-renderer="disc"]::before {
+  content: none !important;
+}
+
+html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator > .cp-hp-disc {
+  position: absolute !important;
+  inset: auto !important;
+  left: 17.5px !important;
+  top: 7.5px !important;
+  width: 63px !important;
+  height: 63px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  overflow: hidden !important;
+  background: var(--cp-bg) !important;
+  box-shadow: none !important;
+  transform: none !important;
+  translate: none !important;
+  filter: none !important;
+  clip-path: none !important;
+  mask-image: none !important;
+  -webkit-mask-image: none !important;
+  opacity: 1 !important;
+  pointer-events: none !important;
+  z-index: 0 !important;
+}
+
+html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator > .cp-hp-disc > .cp-hp-fill {
+  position: absolute !important;
+  inset: auto !important;
+  left: 0 !important;
+  bottom: 0 !important;
+  width: 100% !important;
+  height: var(--cp-hp-level, 0%) !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: var(--cp-hp-red) !important;
+  box-shadow: none !important;
+  transform: none !important;
+  translate: none !important;
+  filter: none !important;
+  clip-path: none !important;
+  mask-image: none !important;
+  -webkit-mask-image: none !important;
+  opacity: 1 !important;
+  pointer-events: none !important;
+}
+
+html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator[data-cp-hp="100"] > .cp-hp-disc > .cp-hp-fill {
+  height: 100% !important;
+}
+
+/* Starszy loader pobiera CSS, ale nie umie przekazać procentu HP.
+ * Informacja znika po aktualizacji loadera; nie udajemy poprawnego odczytu. */
+html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator:not([data-cp-hp]) .hpp::after {
+  content: "Aktualizuj" !important;
+  position: absolute !important;
+  left: 0 !important;
+  top: 51px !important;
+  width: 98px !important;
+  color: #fff !important;
+  font: 700 8px/10px Arial, sans-serif !important;
+  text-align: center !important;
+  text-shadow: none !important;
+  pointer-events: none !important;
 }
 }
 
