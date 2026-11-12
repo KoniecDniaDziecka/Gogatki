@@ -1,4 +1,4 @@
-/* Cyberpunk NI 0.2.24 — motyw dla nowego interfejsu Margonem.
+/* Cyberpunk NI 0.2.25 — motyw dla nowego interfejsu Margonem.
  * Skrypt .user.js włącza go atrybutem data-cyberpunk-ni="on" na <html>.
  * Zmienne poniżej sterują paletą. Nie wymaga zewnętrznych grafik ani fontów.
  * Najlepiej używać z wyłączonym DarknessNI i innymi motywami całego NI.
@@ -375,7 +375,6 @@ html[data-cyberpunk-ni="on"] .bottom-panel .bottom-panel-pointer-bg :is(.pointer
 
 /* Nakładki są przezroczyste, aby nie zasłaniały rzeczywistego postępu. */
 html[data-cyberpunk-ni="on"] .bottom-panel :is(
-  .exp-bar-wrapper .exp-progress .overlay,
   .battle-bars-wrapper .battle-bar .overlay
 ) {
   background: none !important;
@@ -1647,5 +1646,32 @@ html[data-cyberpunk-ni="on"] .bottom-panel .lagmeter .lag.lag-2 {
     bottom: auto !important;
     transform: none !important;
   }
+}
+}
+
+/* EXP: nakładka atlasu ma 250 × 18, tor 235 × 11 i inne marginesy.
+ * Ramka należy do toru, nie do bitmapowej nakładki. Obrys oraz tło 2 px
+ * nie zmieniają wymiarów, pozycji ani szerokości wypełnienia .inner. */
+@layer cyberpunk-ni-bottom-meters {
+html[data-cyberpunk-ni="on"] .bottom-panel .exp-bar-wrapper .exp-progress .progress {
+  background-color: var(--cp-bg) !important;
+  border-image: none !important;
+  border-color: transparent !important;
+  border-radius: 1px !important;
+  box-shadow: 0 0 0 2px var(--cp-panel) !important;
+  outline: 1px solid var(--cp-line) !important;
+  outline-offset: 2px !important;
+}
+
+/* Natywna nakładka zachowuje obszar zdarzeń i tooltip, ale już nie rysuje ramy. */
+html[data-cyberpunk-ni="on"] .bottom-panel .exp-bar-wrapper .exp-progress .overlay,
+html[data-cyberpunk-ni="on"] .bottom-panel .exp-bar-wrapper .exp-progress .overlay::before,
+html[data-cyberpunk-ni="on"] .bottom-panel .exp-bar-wrapper .exp-progress .overlay::after {
+  background: none !important;
+  border-image: none !important;
+  border-color: transparent !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
 }
 }
