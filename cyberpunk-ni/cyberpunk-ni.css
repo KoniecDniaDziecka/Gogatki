@@ -1,4 +1,4 @@
-/* Cyberpunk NI 0.2.31 — motyw dla nowego interfejsu Margonem.
+/* Cyberpunk NI 0.2.32 — motyw dla nowego interfejsu Margonem.
  * Skrypt .user.js włącza go atrybutem data-cyberpunk-ni="on" na <html>.
  * Zmienne poniżej sterują paletą. Nie wymaga zewnętrznych grafik ani fontów.
  * Najlepiej używać z wyłączonym DarknessNI i innymi motywami całego NI.
@@ -1894,29 +1894,12 @@ html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .t
   box-shadow: none !important;
 }
 
-/* Ramka składa się ze stałych narożników 12 px i prostych krawędzi.
- * Zmiana rozmiaru okna nie rozciąga narożników ani grubości linii. */
+/* Stara ramka w ::before była liczona od padding-box i przecinała stopkę
+ * zajmującą natywne dolne obramowanie. Oprawa jest teraz tłem border-box. */
 html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window)::before {
-  content: "" !important;
-  position: absolute !important;
-  inset: 0 !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  border: 0 !important;
-  box-shadow: none !important;
-  transform: none !important;
-  translate: none !important;
-  background:
-    var(--cp-art-corner-nw) left top / 12px 12px no-repeat,
-    var(--cp-art-corner-ne) right top / 12px 12px no-repeat,
-    var(--cp-art-corner-sw) left bottom / 12px 12px no-repeat,
-    var(--cp-art-corner-se) right bottom / 12px 12px no-repeat,
-    linear-gradient(#425b6b, #425b6b) center top / calc(100% - 24px) 1px no-repeat,
-    linear-gradient(#425b6b, #425b6b) center bottom / calc(100% - 24px) 1px no-repeat,
-    linear-gradient(#425b6b, #425b6b) left center / 1px calc(100% - 24px) no-repeat,
-    linear-gradient(#425b6b, #425b6b) right center / 1px calc(100% - 24px) no-repeat !important;
+  content: none !important;
+  background: none !important;
   pointer-events: none !important;
-  z-index: 2 !important;
 }
 
 html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) > .border-image {
@@ -2124,10 +2107,29 @@ html[data-cyberpunk-ni="on"] .border-window.log-off-wnd .window-controlls {
  * dziecku albo pseudoelemencie, ponad kontenerem okna. Nie zmieniamy szerokości
  * natywnych ramek: nowe tła wypełniają także ich przezroczysty border-box. */
 @layer cyberpunk-ni-window-finishes {
+/* Tło na border-box automatycznie obejmuje natywne ramki 32/20 px,
+ * wąskie okna transparent i stopki wysunięte poza content-box.
+ * Nie tworzy warstwy nad treścią ani nowego kontekstu stosu. */
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) {
+  background:
+    var(--cp-art-corner-nw) left top / 12px 12px no-repeat,
+    var(--cp-art-corner-ne) right top / 12px 12px no-repeat,
+    var(--cp-art-corner-sw) left bottom / 12px 12px no-repeat,
+    var(--cp-art-corner-se) right bottom / 12px 12px no-repeat,
+    linear-gradient(#425b6b, #425b6b) center top / calc(100% - 24px) 1px no-repeat,
+    linear-gradient(#425b6b, #425b6b) center bottom / calc(100% - 24px) 1px no-repeat,
+    linear-gradient(#425b6b, #425b6b) left center / 1px calc(100% - 24px) no-repeat,
+    linear-gradient(#425b6b, #425b6b) right center / 1px calc(100% - 24px) no-repeat,
+    var(--cp-window-surface) right bottom / 256px 192px no-repeat,
+    var(--cp-panel) !important;
+  background-origin: border-box !important;
+  background-clip: border-box !important;
+}
+
 /* Niektóre warianty NI nakładają oprawę jako pseudo-element tego samego paska. */
 html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .skills-window, .friend-enemy-list, .settings-window, .crafting, .world-window, .left-grouped-list-and-right-description-window, .matchmaking-panel) :is(.bottom-panel-graphics, .bottom-part, .bottom-friend-panel, .bottom-row-panel, .bottom-bar, .matchmaking-menu-bottom-panel)::before,
 html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .skills-window, .friend-enemy-list, .settings-window, .crafting, .world-window, .left-grouped-list-and-right-description-window, .matchmaking-panel) :is(.bottom-panel-graphics, .bottom-part, .bottom-friend-panel, .bottom-row-panel, .bottom-bar, .matchmaking-menu-bottom-panel)::after {
-  background: var(--cp-art-footer) center / 100% 100% no-repeat !important;
+  background: none !important;
   background-origin: border-box !important;
   border-image: none !important;
   border-color: transparent !important;
@@ -2161,14 +2163,20 @@ html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .skills-window, .fri
 }
 
 
-html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .skills-window, .friend-enemy-list, .settings-window, .crafting, .world-window, .left-grouped-list-and-right-description-window, .matchmaking-panel) :is(.interface-element-bottom-bar-background, .interface-element-bottom-bar-background-stretch),
-html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .skills-window, .friend-enemy-list, .settings-window, .crafting, .world-window, .left-grouped-list-and-right-description-window, .matchmaking-panel) :is(.interface-element-bottom-bar-background, .interface-element-bottom-bar-background-stretch)::before,
-html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .skills-window, .friend-enemy-list, .settings-window, .crafting, .world-window, .left-grouped-list-and-right-description-window, .matchmaking-panel) :is(.interface-element-bottom-bar-background, .interface-element-bottom-bar-background-stretch)::after {
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .skills-window, .friend-enemy-list, .settings-window, .crafting, .world-window, .left-grouped-list-and-right-description-window, .matchmaking-panel) :is(.interface-element-bottom-bar-background, .interface-element-bottom-bar-background-stretch) {
   background: var(--cp-art-footer) center / 100% 100% no-repeat !important;
   background-origin: border-box !important;
   background-clip: border-box !important;
   border-image: none !important;
   border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .skills-window, .friend-enemy-list, .settings-window, .crafting, .world-window, .left-grouped-list-and-right-description-window, .matchmaking-panel) :is(.interface-element-bottom-bar-background, .interface-element-bottom-bar-background-stretch)::before,
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .skills-window, .friend-enemy-list, .settings-window, .crafting, .world-window, .left-grouped-list-and-right-description-window, .matchmaking-panel) :is(.interface-element-bottom-bar-background, .interface-element-bottom-bar-background-stretch)::after {
+  background: none !important;
+  border-image: none !important;
   box-shadow: none !important;
 }
 
@@ -2308,6 +2316,14 @@ html[data-cyberpunk-ni="on"] .left-grouped-list-and-right-description-window .in
   background: var(--cp-art-card) right bottom / 96px 24px no-repeat, var(--cp-raised) !important;
   border-image: none !important;
   border-color: #425b6b !important;
+}
+
+/* Kontener belki już ma nowe tło. Dekoracyjne dzieci nie mogą go powielać. */
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window, .skills-window, .friend-enemy-list, .settings-window, .crafting, .world-window, .left-grouped-list-and-right-description-window, .matchmaking-panel) :is(.bottom-row-panel, .bottom-part, .bottom-friend-panel, .bottom-bar, .matchmaking-menu-bottom-panel) :is(.bottom-panel-graphics, .interface-element-bottom-bar-background, .interface-element-bottom-bar-background-stretch) {
+  background: none !important;
+  border-image: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
 }
 
 /* Kontrolki .checkbox-custom mają ukryty input i dwa pseudo-elementy label.
