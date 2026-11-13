@@ -8,12 +8,13 @@ from window_assets import inline_graphics
 ROOT = Path(__file__).resolve().parent
 CSS = (ROOT / "cyberpunk-ni.css").read_text()
 CSS = inline_graphics(CSS, ROOT)
-HUD_URI = "data:image/svg+xml," + quote((ROOT / "assets/hud-frame.svg").read_text(), safe="='/:,.-")
-CSS, HUD_COUNT = re.subn(r"(?m)^  --cp-hud-frame: .*;$", lambda _m: f'  --cp-hud-frame: url("{HUD_URI}");', CSS)
-if HUD_COUNT != 1:
-    raise ValueError("Brak jednoznacznego miejsca na grafikę HUD")
+for asset in ("hud-frame", "game-frame", "game-rail-top", "game-rail-bottom", "game-rail-left", "game-rail-right"):
+    uri = "data:image/svg+xml," + quote((ROOT / f"assets/{asset}.svg").read_text(), safe="='/:,.-")
+    CSS, count = re.subn(rf"(?m)^  --cp-{asset}: .*;$", lambda _m: f'  --cp-{asset}: url("{uri}");', CSS)
+    if count != 1:
+        raise ValueError(f"Brak jednoznacznego miejsca na grafikę {asset}")
 (ROOT / "cyberpunk-ni.css").write_text(CSS)
-BUNDLE = {"id": "cyberpunk-ni", "schema": 1, "version": "0.2.36", "css": CSS}
+BUNDLE = {"id": "cyberpunk-ni", "schema": 1, "version": "0.2.37", "css": CSS}
 HEADER = """// ==UserScript==
 // @name         Cyberpunk NI
 // @namespace    local.margonem.cyberpunk-ni

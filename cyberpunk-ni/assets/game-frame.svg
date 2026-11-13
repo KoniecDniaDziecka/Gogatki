@@ -1,0 +1,6 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64' preserveAspectRatio='none'><defs><linearGradient id='steel' x1='0' y1='0' x2='1' y2='1'><stop stop-color='#91a7b4'/><stop offset='.3' stop-color='#354f62'/><stop offset='.65' stop-color='#1c2d3a'/><stop offset='1' stop-color='#647f91'/></linearGradient></defs>
+<path d='M9 .5h46l8.5 8.5v46L55 63.5H9L.5 55V9Z' fill='none' stroke='url(#steel)'/>
+<path d='M10 2.5h44l7.5 7.5v44L54 61.5H10L2.5 54V10Z' fill='none' stroke='#172a36' stroke-width='3'/>
+<path d='m2 11 9-9m42 60 9-9' fill='none' stroke='#12c9bd' stroke-width='1.2'/>
+<path d='M17 1h12m6 62h12M1 35v12m62-30v12' stroke='#4d7d8c' stroke-width='.7'/>
+</svg>
