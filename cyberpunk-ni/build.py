@@ -20,7 +20,7 @@ CSS, count = re.subn(r'(?m)^  src: url\("data:font/ttf;base64,[A-Za-z0-9+/=]*"\)
 if count != 1:
     raise ValueError("Brak jednoznacznego miejsca na krój cyfr HP")
 (ROOT / "cyberpunk-ni.css").write_text(CSS)
-BUNDLE = {"id": "cyberpunk-ni", "schema": 1, "version": "0.2.55", "css": CSS}
+BUNDLE = {"id": "cyberpunk-ni", "schema": 1, "version": "0.2.56", "css": CSS}
 HEADER = """// ==UserScript==
 // @name         Cyberpunk NI
 // @namespace    local.margonem.cyberpunk-ni
@@ -48,9 +48,12 @@ SCRIPT = SCRIPT.replace("__RUNTIME__", RUNTIME)
 (ROOT / "cyberpunk-ni.user.js").write_text(HEADER + SCRIPT.replace("__BUNDLE__", json.dumps(BUNDLE, ensure_ascii=False)))
 MODULE = (ROOT / "module.template.js").read_text()
 MODULE = MODULE.replace("__RUNTIME__", RUNTIME)
+MODULE = MODULE.replace("__DIAGNOSTICS__", (ROOT / "diagnostics.js").read_text())
 MODULE_PATH = ROOT.parent / "gogatki/modules/cyberpunk-ni.js"
 MODULE_PATH.parent.mkdir(parents=True, exist_ok=True)
-MODULE_PATH.write_text(MODULE.replace("__BUNDLE__", json.dumps(BUNDLE, ensure_ascii=False)))
+MODULE_SOURCE = MODULE.replace("__BUNDLE__", json.dumps(BUNDLE, ensure_ascii=False))
+MODULE_PATH.write_text(MODULE_SOURCE)
+MODULE_PATH.with_name(f"cyberpunk-ni-{BUNDLE['version']}.js").write_text(MODULE_SOURCE)
 CATALOGUE_PATH = ROOT.parent / "gogatki/catalogue.json"
 if CATALOGUE_PATH.exists():
     catalogue = json.loads(CATALOGUE_PATH.read_text())
@@ -59,6 +62,6 @@ if CATALOGUE_PATH.exists():
         raise ValueError("Brak jednoznacznego wpisu Cyberpunk NI w katalogu Gogatków")
     entries[0]["url"] = (
         "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/"
-        f"gogatki/modules/cyberpunk-ni.js?v={BUNDLE['version']}"
+        f"gogatki/modules/cyberpunk-ni-{BUNDLE['version']}.js"
     )
     CATALOGUE_PATH.write_text(json.dumps(catalogue, ensure_ascii=False, indent=2) + "\n")

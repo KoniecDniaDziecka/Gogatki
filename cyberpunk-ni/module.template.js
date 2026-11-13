@@ -16,9 +16,12 @@ GogatkiRuntime.register({
     if (root.hasAttribute(mounted)) return;
     root.setAttribute(mounted, 'on');
     __RUNTIME__
+    __DIAGNOSTICS__
     const runtime = createCyberpunkNiRuntime(window, () => theme, () => true);
     runtime.apply();
+    const removeDiagnostics = installCyberpunkNiDiagnostics(window, theme, GM_getValue);
     window.addEventListener('pagehide', () => {
+      removeDiagnostics();
       runtime.destroy();
       root.removeAttribute(mounted);
     }, { once: true });
