@@ -1,4 +1,4 @@
-/* Cyberpunk NI 0.2.39 — motyw dla nowego interfejsu Margonem.
+/* Cyberpunk NI 0.2.40 — motyw dla nowego interfejsu Margonem.
  * Skrypt .user.js włącza go atrybutem data-cyberpunk-ni="on" na <html>.
  * Zmienne poniżej sterują paletą. Nie wymaga zewnętrznych grafik ani fontów.
  * Najlepiej używać z wyłączonym DarknessNI i innymi motywami całego NI.
@@ -2525,6 +2525,22 @@ html[data-cyberpunk-ni="on"] .layer.interface-layer .main-column.left-column .bo
 html[data-cyberpunk-ni="on"] .layer.interface-layer .main-column.right-column .border:not(.extended-stats .border) {
   background: var(--cp-game-rail-right) right top / 100% 192px repeat-y !important;
   box-shadow: none !important;
+}
+}
+
+/* Miedziana oprawa kart i slotów łupu jest niezależna od ramki jakości
+ * na .item/.highlight. Podmieniamy wyłącznie obramowania oprawy. */
+@layer cyberpunk-ni-window-finishes {
+html[data-cyberpunk-ni="on"] .loot-window .items-wrapper .loot-item-wrapper,
+html[data-cyberpunk-ni="on"] .loot-window .items-wrapper .loot-item-wrapper :is(.slot, .text-info) {
+  border-color: var(--cp-line) !important;
+}
+html[data-cyberpunk-ni="on"] .loot-window .items-wrapper .loot-item-wrapper {
+  box-shadow: 0 1px 2px #0c1118 !important;
+}
+html[data-cyberpunk-ni="on"] .loot-window .items-wrapper .loot-item-wrapper.yours,
+html[data-cyberpunk-ni="on"] .loot-window .items-wrapper .loot-item-wrapper.yours .slot {
+  border-color: var(--cp-cyan) !important;
 }
 }
 
