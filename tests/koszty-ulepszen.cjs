@@ -10,7 +10,7 @@ const assert = require('node:assert/strict');
         page.setDefaultTimeout(10000);
         const errors = [];
         page.on('pageerror', error => errors.push(error.message));
-        const fixture = `<html><head><style>.content div{font-size:35px;text-shadow:1px 1px red}</style></head><body>
+        const fixture = `<html><head><style>.content div{font-size:35px;text-shadow:1px 1px red}.item-rarity.legendary{color:rgb(255,140,0)}</style></head><body>
             <div id="legend" class="tip-wrapper" data-type="t_item" data-item-type="t-leg"><div class="content">
                 <div class="item-tip-section"><span class="tip-item-stat-rarity item-rarity legendary">legendarny</span></div>
                 <div id="requirements" class="item-tip-section"><div class="tip-item-stat-lvl level-required"><span>Wymagany poziom: 100</span></div></div>
@@ -52,9 +52,16 @@ const assert = require('node:assert/strict');
         assert.equal(await section.evaluate(element => getComputedStyle(element).backgroundColor), 'rgba(0, 0, 0, 0)');
         assert.equal(await section.evaluate(element => getComputedStyle(element).borderTopWidth), '0px');
         assert.equal(await section.locator('.guc-row').first().evaluate(element => getComputedStyle(element).fontSize), '12px');
-        assert.equal(await section.locator('.guc-heading').evaluate(element => getComputedStyle(element).color), 'rgb(18, 201, 189)');
+        assert.equal(await section.locator('.guc-heading').evaluate(element => getComputedStyle(element).color), 'rgb(255, 140, 0)');
+        assert.deepEqual(await section.locator('.guc-value').evaluateAll(elements => elements.map(element => getComputedStyle(element).color)), Array(8).fill('rgb(255, 140, 0)'));
+        assert.equal(await section.locator('.guc-row > span').first().evaluate(element => getComputedStyle(element).color), 'rgb(199, 208, 217)');
         assert.equal(await section.locator('.guc-heading').evaluate(element => getComputedStyle(element).textShadow), 'none');
         assert.equal(await page.evaluate(() => store['gogatek:modules:v1']['koszty-ulepszen']), true);
+
+        // Refresh the accent when a reused item's quality label changes color.
+        await page.evaluate(() => { document.querySelector('#legend .item-rarity').style.color = 'rgb(238,170,34)'; });
+        await page.waitForFunction(() => getComputedStyle(document.querySelector('#legend .guc-heading')).color === 'rgb(238, 170, 34)');
+        assert.deepEqual(await section.locator('.guc-value').evaluateAll(elements => elements.map(element => getComputedStyle(element).color)), Array(8).fill('rgb(238, 170, 34)'));
 
         // Changing a text node in place must refresh an existing section, not leave stale costs.
         await page.evaluate(() => { document.querySelector('#legend .level-required span').firstChild.data = 'Wymagany poziom: 200'; });

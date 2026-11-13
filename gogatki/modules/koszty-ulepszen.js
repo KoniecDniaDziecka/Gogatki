@@ -1,4 +1,4 @@
-// Koszty ulepszeń 1.0.1
+// Koszty ulepszeń 1.0.2
 // Wzory i rozpoznawanie dymków: Dark-Sad, Panel dodatków 6.1.5,
 // Sebastian00P/PanelDodatkow/script.js (blob e589b5b7ccb42279d2e9ff386777d6bb2631b86c).
 GogatkiRuntime.register({
@@ -29,11 +29,11 @@ GogatkiRuntime.register({
                 font:12px/1.4 Arial,sans-serif;text-align:left;text-shadow:none}
             .item-tip-section.${SECTION_CLASS} *{box-sizing:border-box;font:12px/1.4 Arial,sans-serif;
                 text-shadow:none;-webkit-text-stroke:0;letter-spacing:normal}
-            .${SECTION_CLASS} .guc-heading{margin:0 0 4px;color:#12c9bd;font-weight:bold}
+            .${SECTION_CLASS} .guc-heading{margin:0 0 4px;color:var(--guc-quality-color,inherit);font-weight:bold}
             .${SECTION_CLASS} .guc-row{display:flex;justify-content:space-between;gap:12px;
                 color:#c7d0d9;font:12px/1.4 Arial,sans-serif;text-shadow:none}
             .${SECTION_CLASS} .guc-row span{color:#c7d0d9;font:inherit;text-shadow:none}
-            .${SECTION_CLASS} .guc-row .guc-value{color:#12c9bd;white-space:nowrap}
+            .${SECTION_CLASS} .guc-row .guc-value{color:var(--guc-quality-color,inherit);white-space:nowrap}
             .${SECTION_CLASS} .guc-total{margin-top:4px;padding-top:3px}
         `;
         (document.head || document.documentElement).appendChild(style);
@@ -92,9 +92,14 @@ GogatkiRuntime.register({
                 existing?.remove();
                 return;
             }
+            // Read the actual quality label, including the player's game theme.
+            const color = window.getComputedStyle(rarity || content).color;
             // Native tooltips can reuse the same wrapper/content for another item.
-            if (existing?.dataset.level === String(level)) return;
-            const section = makeSection(level, costs);
+            const section = existing?.dataset.level === String(level) ? existing : makeSection(level, costs);
+            if (section.style.getPropertyValue('--guc-quality-color') !== color) {
+                section.style.setProperty('--guc-quality-color', color);
+            }
+            if (section === existing) return;
             if (existing) existing.replaceWith(section);
             else {
                 const before = [...content.querySelectorAll(':scope > .item-tip-section')].find(part =>
@@ -131,7 +136,7 @@ GogatkiRuntime.register({
         document.querySelectorAll(TIP_SELECTOR).forEach(updateTip);
         observer.observe(document.body, {
             childList: true, subtree: true, characterData: true, attributes: true,
-            attributeFilter: ['data-type', 'data-item-type', 'class']
+            attributeFilter: ['data-type', 'data-item-type', 'class', 'style']
         });
         window.addEventListener('pagehide', destroy);
     }
