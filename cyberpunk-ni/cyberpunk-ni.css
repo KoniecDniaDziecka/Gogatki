@@ -1,4 +1,4 @@
-/* Cyberpunk NI 0.2.49 — motyw dla nowego interfejsu Margonem.
+/* Cyberpunk NI 0.2.50 — motyw dla nowego interfejsu Margonem.
  * Skrypt .user.js włącza go atrybutem data-cyberpunk-ni="on" na <html>.
  * Zmienne poniżej sterują paletą. Nie wymaga zewnętrznych grafik ani fontów.
  * Najlepiej używać z wyłączonym DarknessNI i innymi motywami całego NI.
@@ -2824,7 +2824,7 @@ html[data-cyberpunk-ni="on"] .trade-window header .h_background .middle {
   border-color: transparent !important;
 }
 
-html[data-cyberpunk-ni="on"] .skills-window :is(.list-label-wrapper, .list-border, .list-label, .points-header-wrapper, .skills-points-wrapper) {
+html[data-cyberpunk-ni="on"] .skills-window :is(.list-label-wrapper, .points-header-wrapper) {
   background: var(--cp-art-header) center / 100% 100% no-repeat !important;
   background-origin: border-box !important;
   background-clip: border-box !important;
@@ -2837,6 +2837,20 @@ html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .t
 html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) .header-label::after,
 html[data-cyberpunk-ni="on"] .skills-window :is(.list-label-wrapper, .list-border, .list-label, .points-header-wrapper, .skills-points-wrapper)::before,
 html[data-cyberpunk-ni="on"] .skills-window :is(.list-label-wrapper, .list-border, .list-label, .points-header-wrapper, .skills-points-wrapper)::after {
+  background: none !important;
+  border-image: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+}
+
+/* W nagłówkach umiejętności dekoracja może być zagnieżdżonym elementem,
+ * nie tylko tłem kontenera. Jedna oprawa na zewnętrznym pasku; wnętrze
+ * zawiera wyłącznie etykiety i licznik. Bez zmian geometrii i zdarzeń. */
+@layer cyberpunk-ni-window-finishes {
+html[data-cyberpunk-ni="on"] .skills-window :is(.left-column, .right-column) :is(.list-label-wrapper, .points-header-wrapper) *,
+html[data-cyberpunk-ni="on"] .skills-window :is(.left-column, .right-column) :is(.list-label-wrapper, .points-header-wrapper) *::before,
+html[data-cyberpunk-ni="on"] .skills-window :is(.left-column, .right-column) :is(.list-label-wrapper, .points-header-wrapper) *::after {
   background: none !important;
   border-image: none !important;
   border-color: transparent !important;
