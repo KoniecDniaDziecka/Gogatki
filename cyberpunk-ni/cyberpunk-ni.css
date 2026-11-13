@@ -1,4 +1,4 @@
-/* Cyberpunk NI 0.2.56 — motyw dla nowego interfejsu Margonem.
+/* Cyberpunk NI 0.2.57 — motyw dla nowego interfejsu Margonem.
  * Skrypt .user.js włącza go atrybutem data-cyberpunk-ni="on" na <html>.
  * Zmienne poniżej sterują paletą. Nie wymaga zewnętrznych grafik ani fontów.
  * Najlepiej używać z wyłączonym DarknessNI i innymi motywami całego NI.
@@ -2896,10 +2896,10 @@ html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator[data-cp-hp-renderer="di
 }
 /* CP-HP-TYPE-END */
 
-/* Podręczne menu NI jest osobnym .scroll-wrapper.menu-wrapper.
- * Bez zależności od warstwy portalu, bez zmian wymiarów i ikon opcji. */
+/* Dwa warianty menu NI: klasyczny .menu-wrapper i aktualny .popup-menu
+ * w osobnej .popup-menu-layer. Bez zmian układu, animacji otwierania i ikon. */
 @layer cyberpunk-ni-window-finishes {
-html[data-cyberpunk-ni="on"] .scroll-wrapper.menu-wrapper {
+html[data-cyberpunk-ni="on"] :is(.scroll-wrapper.menu-wrapper, .popup-menu) {
   background: linear-gradient(90deg, #12c9bd, #34505e) left top / 100% 1px no-repeat, var(--cp-panel) !important;
   border-image: none !important;
   border-color: var(--cp-line) !important;
@@ -2909,7 +2909,7 @@ html[data-cyberpunk-ni="on"] .scroll-wrapper.menu-wrapper {
   text-shadow: none !important;
 }
 
-html[data-cyberpunk-ni="on"] .scroll-wrapper.menu-wrapper .wrapper .bck-wrapper .option {
+html[data-cyberpunk-ni="on"] :is(.scroll-wrapper.menu-wrapper .wrapper .bck-wrapper .option, .popup-menu .menu-item) {
   background: var(--cp-raised) !important;
   border-image: none !important;
   border-color: #425b6b !important;
@@ -2919,45 +2919,74 @@ html[data-cyberpunk-ni="on"] .scroll-wrapper.menu-wrapper .wrapper .bck-wrapper 
   text-shadow: none !important;
 }
 
-html[data-cyberpunk-ni="on"] .scroll-wrapper.menu-wrapper .wrapper .bck-wrapper .option:not(.disabled):not(.label):not(.cooldown-disabled):not([blockclick="true"]):not([aria-disabled="true"]):is(:hover, :focus-visible) {
+html[data-cyberpunk-ni="on"] :is(.scroll-wrapper.menu-wrapper .wrapper .bck-wrapper .option, .popup-menu .menu-item):not(.disabled):not(.label):not(.one-step-skill-menu):not(.cooldown-disabled):not([blockclick="true"]):not([aria-disabled="true"]):is(:hover, :focus-visible) {
   background: #203b42 !important;
   border-color: var(--cp-cyan) !important;
   color: #e4fcf8 !important;
 }
 
-html[data-cyberpunk-ni="on"] .scroll-wrapper.menu-wrapper .wrapper .bck-wrapper .option.option--red {
+html[data-cyberpunk-ni="on"] :is(.scroll-wrapper.menu-wrapper .wrapper .bck-wrapper .option.option--red, .popup-menu .menu-item.menu-item--red) {
   background: #4f2027 !important;
   border-color: #b24855 !important;
   color: #ffe2e5 !important;
 }
 
-html[data-cyberpunk-ni="on"] .scroll-wrapper.menu-wrapper .wrapper .bck-wrapper .option.option--red:not(.disabled):not(.cooldown-disabled):not([blockclick="true"]):not([aria-disabled="true"]):is(:hover, :focus-visible) {
+html[data-cyberpunk-ni="on"] :is(.scroll-wrapper.menu-wrapper .wrapper .bck-wrapper .option.option--red, .popup-menu .menu-item.menu-item--red):not(.disabled):not(.label):not(.one-step-skill-menu):not(.cooldown-disabled):not([blockclick="true"]):not([aria-disabled="true"]):is(:hover, :focus-visible) {
   background: #672b34 !important;
   border-color: #d36875 !important;
   color: #fff0f1 !important;
 }
 
-html[data-cyberpunk-ni="on"] .scroll-wrapper.menu-wrapper .wrapper .bck-wrapper .option:focus-visible {
+html[data-cyberpunk-ni="on"] :is(.scroll-wrapper.menu-wrapper .wrapper .bck-wrapper .option, .popup-menu .menu-item):focus-visible {
   outline: 1px solid var(--cp-cyan) !important;
   outline-offset: -2px !important;
 }
 
-html[data-cyberpunk-ni="on"] .scroll-wrapper.menu-wrapper .wrapper .bck-wrapper .option.option--red:focus-visible {
+html[data-cyberpunk-ni="on"] :is(.scroll-wrapper.menu-wrapper .wrapper .bck-wrapper .option.option--red, .popup-menu .menu-item.menu-item--red):focus-visible {
   outline-color: #d36875 !important;
 }
 
-html[data-cyberpunk-ni="on"] .scroll-wrapper.menu-wrapper .wrapper .bck-wrapper .option.label {
+html[data-cyberpunk-ni="on"] :is(.scroll-wrapper.menu-wrapper .wrapper .bck-wrapper .option, .popup-menu .menu-item).label {
   background: #1c2b32 !important;
   border-color: #425b6b !important;
   color: var(--cp-cyan) !important;
 }
 
-html[data-cyberpunk-ni="on"] .scroll-wrapper.menu-wrapper .wrapper .bck-wrapper .option:is(.disabled, .cooldown-disabled, [blockclick="true"], [aria-disabled="true"]) {
+html[data-cyberpunk-ni="on"] :is(.scroll-wrapper.menu-wrapper .wrapper .bck-wrapper .option, .popup-menu .menu-item):is(.disabled, .cooldown-disabled, [blockclick="true"], [aria-disabled="true"]) {
   background: #20262d !important;
   border-color: #35424e !important;
   color: var(--cp-muted) !important;
   outline-color: #425b6b !important;
 }
+
+html[data-cyberpunk-ni="on"] .popup-menu .popup-menu__header {
+  color: var(--cp-cyan) !important;
+  font-family: Arial, sans-serif !important;
+  text-shadow: none !important;
+}
+html[data-cyberpunk-ni="on"] .popup-menu > .scroll-wrapper {
+  border-top-color: #425b6b !important;
+}
+html[data-cyberpunk-ni="on"] .popup-menu .scrollbar-wrapper .track {
+  background: var(--cp-bg) !important;
+}
+html[data-cyberpunk-ni="on"] .popup-menu .scrollbar-wrapper .handle {
+  background: var(--cp-line) !important;
+}
+html[data-cyberpunk-ni="on"] .popup-menu .scrollbar-wrapper .handle:hover {
+  background: var(--cp-cyan) !important;
+}
+html[data-cyberpunk-ni="on"] :is(.scroll-wrapper.menu-wrapper .wrapper .bck-wrapper .option, .popup-menu .menu-item).menu-item--debug:not(.disabled):not(.cooldown-disabled):not([blockclick="true"]):not([aria-disabled="true"]) {
+  background: #4f2e1b !important;
+  border-color: #b28746 !important;
+  color: #ffe3b6 !important;
+}
+html[data-cyberpunk-ni="on"] :is(.scroll-wrapper.menu-wrapper .wrapper .bck-wrapper .option, .popup-menu .menu-item).menu-item--debug:not(.disabled):not(.label):not(.one-step-skill-menu):not(.cooldown-disabled):not([blockclick="true"]):not([aria-disabled="true"]):is(:hover, :focus-visible) {
+  background: #664022 !important;
+  border-color: #dba65e !important;
+  outline-color: #dba65e !important;
+}
+
 }
 
 /* CP-WINDOW-ASSETS-BEGIN */
