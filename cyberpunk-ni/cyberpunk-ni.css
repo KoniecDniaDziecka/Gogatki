@@ -1,4 +1,4 @@
-/* Cyberpunk NI 0.2.50 — motyw dla nowego interfejsu Margonem.
+/* Cyberpunk NI 0.2.51 — motyw dla nowego interfejsu Margonem.
  * Skrypt .user.js włącza go atrybutem data-cyberpunk-ni="on" na <html>.
  * Zmienne poniżej sterują paletą. Nie wymaga zewnętrznych grafik ani fontów.
  * Najlepiej używać z wyłączonym DarknessNI i innymi motywami całego NI.
@@ -25,6 +25,16 @@ html[data-cyberpunk-ni="on"] {
   --cp-button-border: #6d879a;
   /* Barwienie zachowuje alfę i czerń sprite'a, jego przesuwanie i animację. */
   --cp-sprite-tint: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='tint' color-interpolation-filters='sRGB' x='0%25' y='0%25' width='100%25' height='100%25'%3E%3CfeColorMatrix type='matrix' values='.0564704 .0564704 .0564704 0 0 .630588 .630588 .630588 0 0 .592941 .592941 .592941 0 0 0 0 0 1 0'/%3E%3C/filter%3E%3C/svg%3E#tint");
+}
+
+/* Tło z konfiguracji gry dopasowuje się do widoku, także gdy ekran
+ * jest większy od obrazu. Zachowujemy wybrany URL i proporcje grafiki. */
+html[data-cyberpunk-ni="on"],
+html[data-cyberpunk-ni="on"] body,
+html[data-cyberpunk-ni="on"] [style*="screen-background.png"] {
+  background-size: cover !important;
+  background-position: center center !important;
+  background-repeat: no-repeat !important;
 }
 
 /* Wyłącznie powierzchnie NI: bez selektora *, zmian wymiarów i filtrów mapy. */
