@@ -2,7 +2,7 @@
 GogatkiRuntime.register({
   id: 'cyberpunk-ni',
   name: 'Cyberpunk NI',
-  description: 'Motyw cyberpunkowy Nowego Interfejsu: okna, HUD i wskaźnik życia.',
+  description: 'Motyw NI',
   start() {
     'use strict';
     const window = unsafeWindow;
