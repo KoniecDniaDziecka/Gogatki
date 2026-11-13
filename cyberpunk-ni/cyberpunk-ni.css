@@ -1,9 +1,9 @@
-/* Cyberpunk NI 0.2.30 — motyw dla nowego interfejsu Margonem.
+/* Cyberpunk NI 0.2.31 — motyw dla nowego interfejsu Margonem.
  * Skrypt .user.js włącza go atrybutem data-cyberpunk-ni="on" na <html>.
  * Zmienne poniżej sterują paletą. Nie wymaga zewnętrznych grafik ani fontów.
  * Najlepiej używać z wyłączonym DarknessNI i innymi motywami całego NI.
  */
-@layer cyberpunk-ni-window-art, cyberpunk-ni-window-details, cyberpunk-ni-top-hud, cyberpunk-ni-bottom-meters;
+@layer cyberpunk-ni-window-finishes, cyberpunk-ni-window-art, cyberpunk-ni-window-details, cyberpunk-ni-top-hud, cyberpunk-ni-bottom-meters;
 
 html[data-cyberpunk-ni="on"] {
   --cp-bg: #0c1118;
@@ -2120,6 +2120,280 @@ html[data-cyberpunk-ni="on"] .border-window.log-off-wnd .window-controlls {
 }
 }
 
+/* Warstwy oprawy NI: klasy interface-element-* mogą występować na osobnym
+ * dziecku albo pseudoelemencie, ponad kontenerem okna. Nie zmieniamy szerokości
+ * natywnych ramek: nowe tła wypełniają także ich przezroczysty border-box. */
+@layer cyberpunk-ni-window-finishes {
+/* Niektóre warianty NI nakładają oprawę jako pseudo-element tego samego paska. */
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .skills-window, .friend-enemy-list, .settings-window, .crafting, .world-window, .left-grouped-list-and-right-description-window, .matchmaking-panel) :is(.bottom-panel-graphics, .bottom-part, .bottom-friend-panel, .bottom-row-panel, .bottom-bar, .matchmaking-menu-bottom-panel)::before,
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .skills-window, .friend-enemy-list, .settings-window, .crafting, .world-window, .left-grouped-list-and-right-description-window, .matchmaking-panel) :is(.bottom-panel-graphics, .bottom-part, .bottom-friend-panel, .bottom-row-panel, .bottom-bar, .matchmaking-menu-bottom-panel)::after {
+  background: var(--cp-art-footer) center / 100% 100% no-repeat !important;
+  background-origin: border-box !important;
+  border-image: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .skills-window, .friend-enemy-list, .settings-window, .crafting, .world-window, .left-grouped-list-and-right-description-window, .matchmaking-panel) :is(.amound-wrapper, .points-header-wrapper, .list-border)::before,
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .skills-window, .friend-enemy-list, .settings-window, .crafting, .world-window, .left-grouped-list-and-right-description-window, .matchmaking-panel) :is(.amound-wrapper, .points-header-wrapper, .list-border)::after {
+  background: var(--cp-art-header) center / 100% 100% no-repeat !important;
+  background-origin: border-box !important;
+  border-image: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .skills-window, .friend-enemy-list, .settings-window, .crafting, .world-window, .left-grouped-list-and-right-description-window, .matchmaking-panel) [style*="quest_bar.png"] {
+  background: var(--cp-art-footer) center / 100% 100% no-repeat !important;
+  background-origin: border-box !important;
+  border-image: none !important;
+  border-color: transparent !important;
+}
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .skills-window, .friend-enemy-list, .settings-window, .crafting, .world-window, .left-grouped-list-and-right-description-window, .matchmaking-panel) [style*="table_header.png"] {
+  background: var(--cp-art-header) center / 100% 100% no-repeat !important;
+  background-origin: border-box !important;
+  border-image: none !important;
+  border-color: transparent !important;
+}
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .skills-window, .friend-enemy-list, .settings-window, .crafting, .world-window, .left-grouped-list-and-right-description-window, .matchmaking-panel) [style*="info-box-2.png"] {
+  background: var(--cp-art-header) center / 100% 100% no-repeat !important;
+  background-origin: border-box !important;
+  border-image: none !important;
+  border-color: transparent !important;
+}
+
+
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .skills-window, .friend-enemy-list, .settings-window, .crafting, .world-window, .left-grouped-list-and-right-description-window, .matchmaking-panel) :is(.interface-element-bottom-bar-background, .interface-element-bottom-bar-background-stretch),
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .skills-window, .friend-enemy-list, .settings-window, .crafting, .world-window, .left-grouped-list-and-right-description-window, .matchmaking-panel) :is(.interface-element-bottom-bar-background, .interface-element-bottom-bar-background-stretch)::before,
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .skills-window, .friend-enemy-list, .settings-window, .crafting, .world-window, .left-grouped-list-and-right-description-window, .matchmaking-panel) :is(.interface-element-bottom-bar-background, .interface-element-bottom-bar-background-stretch)::after {
+  background: var(--cp-art-footer) center / 100% 100% no-repeat !important;
+  background-origin: border-box !important;
+  background-clip: border-box !important;
+  border-image: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .skills-window, .friend-enemy-list, .settings-window, .crafting, .world-window, .left-grouped-list-and-right-description-window, .matchmaking-panel) :is(.interface-element-vertical-wood),
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .skills-window, .friend-enemy-list, .settings-window, .crafting, .world-window, .left-grouped-list-and-right-description-window, .matchmaking-panel) :is(.interface-element-vertical-wood)::before,
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .skills-window, .friend-enemy-list, .settings-window, .crafting, .world-window, .left-grouped-list-and-right-description-window, .matchmaking-panel) :is(.interface-element-vertical-wood)::after {
+  background: linear-gradient(90deg, #233541, #17222c 50%, #233541) !important;
+  background-origin: border-box !important;
+  background-clip: border-box !important;
+  border-image: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .skills-window, .friend-enemy-list, .settings-window, .crafting, .world-window, .left-grouped-list-and-right-description-window, .matchmaking-panel) :is(.interface-element-middle-1-background, .interface-element-middle-1-background-stretch, .interface-element-middle-2-background, .interface-element-middle-2-background-stretch, .interface-element-middle-3-background, .interface-element-middle-3-background-stretch, .interface-element-middle-4-background),
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .skills-window, .friend-enemy-list, .settings-window, .crafting, .world-window, .left-grouped-list-and-right-description-window, .matchmaking-panel) :is(.interface-element-middle-1-background, .interface-element-middle-1-background-stretch, .interface-element-middle-2-background, .interface-element-middle-2-background-stretch, .interface-element-middle-3-background, .interface-element-middle-3-background-stretch, .interface-element-middle-4-background)::before,
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .skills-window, .friend-enemy-list, .settings-window, .crafting, .world-window, .left-grouped-list-and-right-description-window, .matchmaking-panel) :is(.interface-element-middle-1-background, .interface-element-middle-1-background-stretch, .interface-element-middle-2-background, .interface-element-middle-2-background-stretch, .interface-element-middle-3-background, .interface-element-middle-3-background-stretch, .interface-element-middle-4-background)::after {
+  background: var(--cp-window-surface) right bottom / 256px 192px no-repeat, var(--cp-panel) !important;
+  background-origin: border-box !important;
+  background-clip: border-box !important;
+  border-image: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .skills-window, .friend-enemy-list, .settings-window, .crafting, .world-window, .left-grouped-list-and-right-description-window, .matchmaking-panel) :is(.interface-element-header-1-background, .interface-element-header-1-background-stretch, .interface-element-header-2-background, .interface-element-header-2-background-stretch, .interface-element-table-header-1-background, .interface-element-table-header-3-background, .interface-element-header-3, .interface-element-wood-box-background),
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .skills-window, .friend-enemy-list, .settings-window, .crafting, .world-window, .left-grouped-list-and-right-description-window, .matchmaking-panel) :is(.interface-element-header-1-background, .interface-element-header-1-background-stretch, .interface-element-header-2-background, .interface-element-header-2-background-stretch, .interface-element-table-header-1-background, .interface-element-table-header-3-background, .interface-element-header-3, .interface-element-wood-box-background)::before,
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .skills-window, .friend-enemy-list, .settings-window, .crafting, .world-window, .left-grouped-list-and-right-description-window, .matchmaking-panel) :is(.interface-element-header-1-background, .interface-element-header-1-background-stretch, .interface-element-header-2-background, .interface-element-header-2-background-stretch, .interface-element-table-header-1-background, .interface-element-table-header-3-background, .interface-element-header-3, .interface-element-wood-box-background)::after {
+  background: var(--cp-art-header) center / 100% 100% no-repeat !important;
+  background-origin: border-box !important;
+  background-clip: border-box !important;
+  border-image: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .skills-window, .friend-enemy-list, .settings-window, .crafting, .world-window, .left-grouped-list-and-right-description-window, .matchmaking-panel) :is(.interface-element-one-black-tile, .interface-element-background-color-1, .interface-element-background-color-2, .interface-element-background-color-3, .interface-element-background-color-4) {
+  background: var(--cp-panel) !important;
+  border-image: none !important;
+  border-color: #344b5b !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .skills-window, .friend-enemy-list, .settings-window, .crafting, .world-window, .left-grouped-list-and-right-description-window, .matchmaking-panel) .interface-element-line-1-background {
+  background: linear-gradient(90deg, #344b5b, #668298, #344b5b) !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(.skills-window .bottom-part, .skills-window .bottom-panel-graphics,
+  .friend-enemy-list .bottom-friend-panel, .settings-window .bottom-row-panel,
+  .left-grouped-list-and-right-description-window .bottom-row-panel,
+  .world-window .bottom-row-panel, .matchmaking-panel .bottom-panel-graphics,
+  .matchmaking-panel .matchmaking-menu-bottom-panel) {
+  background: var(--cp-art-footer) center / 100% 100% no-repeat !important;
+  background-origin: border-box !important;
+  background-clip: border-box !important;
+  border-image: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(.friend-enemy-list .amound-wrapper,
+  .settings-window .opt-header, .skills-window .list-label,
+  .skills-window .list-border, .skills-window .points-header-wrapper,
+  .skills-window .skills-points-wrapper) {
+  background: var(--cp-art-header) center / 100% 100% no-repeat !important;
+  background-origin: border-box !important;
+  background-clip: border-box !important;
+  border-image: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  color: var(--cp-text) !important;
+  text-shadow: none !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(.skills-window .list-label .label,
+  .skills-window .skills-points, .friend-enemy-list .amound-value) {
+  color: var(--cp-cyan) !important;
+  text-shadow: none !important;
+}
+
+html[data-cyberpunk-ni="on"] .left-grouped-list-and-right-description-window .left-column :is(.search-in-left-column, .scroll-wrapper),
+html[data-cyberpunk-ni="on"] .world-window .search-component {
+  background: var(--cp-panel) !important;
+  border-image: none !important;
+  border-color: #344b5b !important;
+  box-shadow: none !important;
+}
+
+html[data-cyberpunk-ni="on"] .left-grouped-list-and-right-description-window .divide-list-group > :is(.group-header, .group-name, .group-label, .label) {
+  background: var(--cp-art-card) right bottom / 96px 24px no-repeat, var(--cp-raised) !important;
+  border-image: none !important;
+  border-color: #344b5b !important;
+  color: var(--cp-text) !important;
+}
+
+html[data-cyberpunk-ni="on"] .left-grouped-list-and-right-description-window .divide-list-group .group-list {
+  background-color: var(--cp-panel) !important;
+  border-color: #344b5b !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(.crafting, .left-grouped-list-and-right-description-window) :is(.interface-element-one-item-slot-background-to-repeat, .interface-element-item-slot-grid-stretch),
+html[data-cyberpunk-ni="on"] .enhance__reagents {
+  background: var(--cp-art-slot-grid) left top / 32px 32px repeat !important;
+  border-image: none !important;
+  border-color: #425b6b !important;
+  box-shadow: 0 0 0 1px #425b6b !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(.enhance__info--1, .enhance__info--2, .enhance__info--3, .enhance__requires) {
+  background: var(--cp-art-card) right bottom / 96px 24px no-repeat, var(--cp-raised) !important;
+  border-image: none !important;
+  border-color: #425b6b !important;
+  color: var(--cp-text) !important;
+  text-shadow: none !important;
+}
+
+html[data-cyberpunk-ni="on"] .world-window table :is(td, th) {
+  border-color: #344b5b !important;
+}
+
+html[data-cyberpunk-ni="on"] .world-window table tr:nth-child(odd) {
+  background-color: #1c2630 !important;
+}
+
+html[data-cyberpunk-ni="on"] .world-window table tr:nth-child(even) {
+  background-color: var(--cp-panel) !important;
+}
+
+/* Pojedyncze puste pola składników, gdy NI nie używa powtarzanego tła.
+ * .item z właściwą grafiką przedmiotu nie jest elementem oprawy. */
+html[data-cyberpunk-ni="on"] .enhance__reagents :is(.interface-element-one-item-slot, .interface-element-one-item-slot-2, .interface-element-one-item-slot-decor):not(.item) {
+  background: var(--cp-art-slot-grid) center / 100% 100% no-repeat !important;
+  border-image: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+html[data-cyberpunk-ni="on"] .left-grouped-list-and-right-description-window .interface-element-one-gray-tile {
+  background: var(--cp-art-card) right bottom / 96px 24px no-repeat, var(--cp-raised) !important;
+  border-image: none !important;
+  border-color: #425b6b !important;
+}
+
+/* Kontrolki .checkbox-custom mają ukryty input i dwa pseudo-elementy label.
+ * Rysujemy jeden znacznik, zachowując natywny input, etykietę i stan checked. */
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .skills-window, .friend-enemy-list, .settings-window, .crafting, .world-window, .left-grouped-list-and-right-description-window, .matchmaking-panel) .checkbox-custom [type="checkbox"] + label {
+  color: var(--cp-text) !important;
+  text-shadow: none !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .skills-window, .friend-enemy-list, .settings-window, .crafting, .world-window, .left-grouped-list-and-right-description-window, .matchmaking-panel) .checkbox-custom [type="checkbox"] + label::before {
+  width: 14px !important;
+  height: 14px !important;
+  background: var(--cp-bg) !important;
+  border: 1px solid var(--cp-line) !important;
+  border-radius: 3px !important;
+  box-shadow: none !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .skills-window, .friend-enemy-list, .settings-window, .crafting, .world-window, .left-grouped-list-and-right-description-window, .matchmaking-panel) .checkbox-custom [type="checkbox"] + label::after {
+  width: 14px !important;
+  height: 14px !important;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cpath d='m3 7 2.5 2.5L11 4' fill='none' stroke='%2312c9bd' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 14px 14px no-repeat !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .skills-window, .friend-enemy-list, .settings-window, .crafting, .world-window, .left-grouped-list-and-right-description-window, .matchmaking-panel) .checkbox-custom [type="checkbox"]:checked + label::before {
+  border-color: var(--cp-cyan) !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .skills-window, .friend-enemy-list, .settings-window, .crafting, .world-window, .left-grouped-list-and-right-description-window, .matchmaking-panel) .checkbox-custom [type="checkbox"]:focus-visible + label::before,
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .skills-window, .friend-enemy-list, .settings-window, .crafting, .world-window, .left-grouped-list-and-right-description-window, .matchmaking-panel) .checkbox-custom label:focus-visible {
+  outline: 2px solid var(--cp-cyan) !important;
+  outline-offset: 2px !important;
+}
+
+/* Otchłań: tło kafla jest osobne od natywnego atlasu ikony.
+ * Filtr obejmuje wyłącznie symbol, a nie nazwę, zawartość czy całe okno. */
+html[data-cyberpunk-ni="on"] .matchmaking-panel {
+  background: var(--cp-window-surface) right bottom / 256px 192px no-repeat, var(--cp-panel) !important;
+}
+
+html[data-cyberpunk-ni="on"] .matchmaking-panel .middle-graphics {
+  background: var(--cp-window-surface) right bottom / 256px 192px no-repeat, var(--cp-panel) !important;
+  background-origin: border-box !important;
+  background-clip: border-box !important;
+  border-image: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+html[data-cyberpunk-ni="on"] .matchmaking-tile {
+  background: var(--cp-art-menu-tile) center / 100% 100% no-repeat !important;
+  background-origin: border-box !important;
+  background-clip: border-box !important;
+  border-image: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  color: var(--cp-text) !important;
+  text-shadow: none !important;
+}
+
+html[data-cyberpunk-ni="on"] .matchmaking-tile:not(.disabled):not([aria-disabled="true"]):is(:hover, .active) {
+  background-image: var(--cp-art-menu-tile-active) !important;
+}
+
+html[data-cyberpunk-ni="on"] .matchmaking-tile .matchmaking-tile-img {
+  filter: var(--cp-sprite-tint) !important;
+}
+
+html[data-cyberpunk-ni="on"] .matchmaking-tile .matchmaking-tile-header {
+  background: #1d303b !important;
+  border-color: #425b6b !important;
+  color: var(--cp-text) !important;
+  text-shadow: none !important;
+}
+
+html[data-cyberpunk-ni="on"] .matchmaking-panel .warning-points {
+  background: #392029 !important;
+  border-color: #b77581 !important;
+  color: #f0c2c9 !important;
+  text-shadow: none !important;
+}
+
+}
+
 /* CP-WINDOW-ASSETS-BEGIN */
 html[data-cyberpunk-ni="on"] {
   --cp-art-quests: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='256'%20height='192'%20viewBox='0%200%20256%20192'%20preserveAspectRatio='none'%20id='cp-window-quests'%3E%0A%20%20%20%20%20%20%3Cdefs%3E%3Cpattern%20id='grid'%20width='32'%20height='32'%20patternUnits='userSpaceOnUse'%3E%0A%20%20%20%20%20%20%20%20%3Cpath%20d='M32%200H0v32'%20fill='none'%20stroke='%2324333e'%20stroke-width='.5'/%3E%0A%20%20%20%20%20%20%3C/pattern%3E%3C/defs%3E%0A%20%20%20%20%20%20%3Cpath%20d='M148%2094h108v98H148Z'%20fill='url%28%23grid%29'%20opacity='.35'/%3E%0A%20%20%20%20%20%20%3Cg%20fill='none'%20stroke='%23354c5c'%20stroke-width='1'%20opacity='.48'%3E%0A%20%20%20%20%0A%20%20%20%20%20%20%3Cpath%20d='M167%20158h20v-21h29v-23h23'/%3E%0A%20%20%20%20%20%20%3Crect%20x='164'%20y='155'%20width='6'%20height='6'/%3E%3Crect%20x='213'%20y='134'%20width='6'%20height='6'/%3E%0A%20%20%20%20%20%20%3Cpath%20d='M175%20168h59M228%20121v27h-22'/%3E%0A%20%20%20%20%3C/g%3E%0A%20%20%20%20%20%20%3Cpath%20d='M242%20179h-35m35%200v-20M155%20102v-9h18'%20fill='none'%20stroke='%2312c9bd'%20stroke-width='1'%20opacity='.32'/%3E%0A%20%20%20%20%3C/svg%3E%0A");
@@ -2131,10 +2405,14 @@ html[data-cyberpunk-ni="on"] {
   --cp-art-news: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='256'%20height='192'%20viewBox='0%200%20256%20192'%20preserveAspectRatio='none'%20id='cp-window-news'%3E%0A%20%20%20%20%20%20%3Cdefs%3E%3Cpattern%20id='grid'%20width='32'%20height='32'%20patternUnits='userSpaceOnUse'%3E%0A%20%20%20%20%20%20%20%20%3Cpath%20d='M32%200H0v32'%20fill='none'%20stroke='%2324333e'%20stroke-width='.5'/%3E%0A%20%20%20%20%20%20%3C/pattern%3E%3C/defs%3E%0A%20%20%20%20%20%20%3Cpath%20d='M148%2094h108v98H148Z'%20fill='url%28%23grid%29'%20opacity='.35'/%3E%0A%20%20%20%20%20%20%3Cg%20fill='none'%20stroke='%23354c5c'%20stroke-width='1'%20opacity='.48'%3E%0A%20%20%20%20%0A%20%20%20%20%20%20%3Cpath%20d='M170%20112h62v49h-62Z'/%3E%3Cpath%20d='M177%20120h20v16h-20Zm27%200h20m-20%207h20m-20%207h20m-47%209h47m-47%208h34'/%3E%0A%20%20%20%20%20%20%3Cpath%20d='M164%20121v46h57'/%3E%0A%20%20%20%20%3C/g%3E%0A%20%20%20%20%20%20%3Cpath%20d='M242%20179h-35m35%200v-20M155%20102v-9h18'%20fill='none'%20stroke='%2312c9bd'%20stroke-width='1'%20opacity='.32'/%3E%0A%20%20%20%20%3C/svg%3E%0A");
   --cp-art-premium: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='256'%20height='192'%20viewBox='0%200%20256%20192'%20preserveAspectRatio='none'%20id='cp-window-premium'%3E%0A%20%20%20%20%20%20%3Cdefs%3E%3Cpattern%20id='grid'%20width='32'%20height='32'%20patternUnits='userSpaceOnUse'%3E%0A%20%20%20%20%20%20%20%20%3Cpath%20d='M32%200H0v32'%20fill='none'%20stroke='%2324333e'%20stroke-width='.5'/%3E%0A%20%20%20%20%20%20%3C/pattern%3E%3C/defs%3E%0A%20%20%20%20%20%20%3Cpath%20d='M148%2094h108v98H148Z'%20fill='url%28%23grid%29'%20opacity='.35'/%3E%0A%20%20%20%20%20%20%3Cg%20fill='none'%20stroke='%23354c5c'%20stroke-width='1'%20opacity='.48'%3E%0A%20%20%20%20%0A%20%20%20%20%20%20%3Cpath%20d='m176%20119%2012-13h32l12%2013-28%2046Zm0%200h56m-44-13%2016%2059%2016-59m-44%2013%2028-13%2028%2013'/%3E%0A%20%20%20%20%20%20%3Cpath%20d='M171%20172h66'/%3E%0A%20%20%20%20%3C/g%3E%0A%20%20%20%20%20%20%3Cpath%20d='M242%20179h-35m35%200v-20M155%20102v-9h18'%20fill='none'%20stroke='%2312c9bd'%20stroke-width='1'%20opacity='.32'/%3E%0A%20%20%20%20%3C/svg%3E%0A");
   --cp-art-loot: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='256'%20height='192'%20viewBox='0%200%20256%20192'%20preserveAspectRatio='none'%20id='cp-window-loot'%3E%0A%20%20%20%20%20%20%3Cdefs%3E%3Cpattern%20id='grid'%20width='32'%20height='32'%20patternUnits='userSpaceOnUse'%3E%0A%20%20%20%20%20%20%20%20%3Cpath%20d='M32%200H0v32'%20fill='none'%20stroke='%2324333e'%20stroke-width='.5'/%3E%0A%20%20%20%20%20%20%3C/pattern%3E%3C/defs%3E%0A%20%20%20%20%20%20%3Cpath%20d='M148%2094h108v98H148Z'%20fill='url%28%23grid%29'%20opacity='.35'/%3E%0A%20%20%20%20%20%20%3Cg%20fill='none'%20stroke='%23354c5c'%20stroke-width='1'%20opacity='.48'%3E%0A%20%20%20%20%0A%20%20%20%20%20%20%3Cpath%20d='M173%20130h61v34h-61Zm0%200%207-21h47l7%2021m-44-21v55m27-55v55'/%3E%0A%20%20%20%20%20%20%3Crect%20x='198'%20y='130'%20width='11'%20height='12'/%3E%3Cpath%20d='M167%20171h73'/%3E%0A%20%20%20%20%3C/g%3E%0A%20%20%20%20%20%20%3Cpath%20d='M242%20179h-35m35%200v-20M155%20102v-9h18'%20fill='none'%20stroke='%2312c9bd'%20stroke-width='1'%20opacity='.32'/%3E%0A%20%20%20%20%3C/svg%3E%0A");
+  --cp-art-matchmaking: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='256'%20height='192'%20viewBox='0%200%20256%20192'%20preserveAspectRatio='none'%20id='cp-window-matchmaking'%3E%0A%20%20%20%20%20%20%3Cdefs%3E%3Cpattern%20id='grid'%20width='32'%20height='32'%20patternUnits='userSpaceOnUse'%3E%0A%20%20%20%20%20%20%20%20%3Cpath%20d='M32%200H0v32'%20fill='none'%20stroke='%2324333e'%20stroke-width='.5'/%3E%0A%20%20%20%20%20%20%3C/pattern%3E%3C/defs%3E%0A%20%20%20%20%20%20%3Cpath%20d='M148%2094h108v98H148Z'%20fill='url%28%23grid%29'%20opacity='.35'/%3E%0A%20%20%20%20%20%20%3Cg%20fill='none'%20stroke='%23354c5c'%20stroke-width='1'%20opacity='.48'%3E%0A%20%20%20%20%0A%20%20%20%20%20%20%3Cpath%20d='m204%20106%2027%2011v22l-27%2027-27-27v-22Z'/%3E%0A%20%20%20%20%20%20%3Cpath%20d='m188%20146%2032-27m-32%200%2032%2027M194%20153l-8%207m28-7%208%207'/%3E%0A%20%20%20%20%3C/g%3E%0A%20%20%20%20%20%20%3Cpath%20d='M242%20179h-35m35%200v-20M155%20102v-9h18'%20fill='none'%20stroke='%2312c9bd'%20stroke-width='1'%20opacity='.32'/%3E%0A%20%20%20%20%3C/svg%3E%0A");
   --cp-art-common: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='256'%20height='192'%20viewBox='0%200%20256%20192'%20preserveAspectRatio='none'%20id='cp-window-common'%3E%0A%20%20%20%20%20%20%3Cdefs%3E%3Cpattern%20id='grid'%20width='32'%20height='32'%20patternUnits='userSpaceOnUse'%3E%0A%20%20%20%20%20%20%20%20%3Cpath%20d='M32%200H0v32'%20fill='none'%20stroke='%2324333e'%20stroke-width='.5'/%3E%0A%20%20%20%20%20%20%3C/pattern%3E%3C/defs%3E%0A%20%20%20%20%20%20%3Cpath%20d='M148%2094h108v98H148Z'%20fill='url%28%23grid%29'%20opacity='.35'/%3E%0A%20%20%20%20%20%20%3Cg%20fill='none'%20stroke='%23354c5c'%20stroke-width='1'%20opacity='.48'%3E%0A%20%20%20%20%3Cpath%20d='M174%20161h25v-23h30v-26m-55%2032h12m28%2012h19'/%3E%3C/g%3E%0A%20%20%20%20%20%20%3Cpath%20d='M242%20179h-35m35%200v-20M155%20102v-9h18'%20fill='none'%20stroke='%2312c9bd'%20stroke-width='1'%20opacity='.32'/%3E%0A%20%20%20%20%3C/svg%3E%0A");
   --cp-art-header: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='240'%20height='28'%20viewBox='0%200%20240%2028'%20preserveAspectRatio='none'%20id='cp-window-header'%3E%0A%20%20%20%20%20%20%3Crect%20width='240'%20height='28'%20fill='%23252b31'/%3E%0A%20%20%20%20%20%20%3Cpath%20d='M0%2027.5h240M0%20.5h240'%20stroke='%23425b6b'%20fill='none'%20vector-effect='non-scaling-stroke'/%3E%0A%20%20%20%20%20%20%3Cpath%20d='M0%206v16m240-16v16'%20stroke='%2312c9bd'%20fill='none'%20stroke-width='2'%20vector-effect='non-scaling-stroke'/%3E%0A%20%20%20%20%20%20%3Cpath%20d='M8%2024h21m182%200h21M8%204h13m198%200h13'%20stroke='%2334505e'%20fill='none'%20vector-effect='non-scaling-stroke'/%3E%0A%20%20%20%20%3C/svg%3E%0A");
   --cp-art-footer: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='240'%20height='36'%20viewBox='0%200%20240%2036'%20preserveAspectRatio='none'%20id='cp-window-footer'%3E%0A%20%20%20%20%20%20%3Crect%20width='240'%20height='36'%20fill='%231d2831'/%3E%0A%20%20%20%20%20%20%3Cpath%20d='M0%20.5h240M0%2035.5h240'%20stroke='%23425b6b'%20vector-effect='non-scaling-stroke'/%3E%0A%20%20%20%20%20%20%3Cpath%20d='M7%205h17m192%200h17M7%2030h10m206%200h10'%20stroke='%2312c9bd'%20opacity='.6'%20vector-effect='non-scaling-stroke'/%3E%0A%20%20%20%20%20%20%3Cpath%20d='M30%205h14m152%200h14'%20stroke='%23344b5a'%20vector-effect='non-scaling-stroke'/%3E%0A%20%20%20%20%3C/svg%3E%0A");
   --cp-art-card: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='96'%20height='24'%20viewBox='0%200%2096%2024'%20preserveAspectRatio='none'%20id='cp-window-card'%3E%0A%20%20%20%20%20%20%3Cpath%20d='M69%203h23v18H69m3-14h16m-16%205h10m-10%205h16'%20fill='none'%20stroke='%23334957'%20stroke-width='1'/%3E%0A%20%20%20%20%20%20%3Cpath%20d='M91%202v7m-9%2012h10'%20fill='none'%20stroke='%2312c9bd'%20opacity='.45'/%3E%0A%20%20%20%20%3C/svg%3E%0A");
+  --cp-art-slot-grid: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='32'%20height='32'%20viewBox='0%200%2032%2032'%20preserveAspectRatio='none'%20id='cp-window-slot-grid'%3E%0A%20%20%20%20%20%20%3Crect%20x='.5'%20y='.5'%20width='31'%20height='31'%20fill='%23152029'%20stroke='%23425b6b'/%3E%0A%20%20%20%20%20%20%3Cpath%20d='M3%209V3h6m14%200h6v6M3%2023v6h6m14%200h6v-6'%20fill='none'%20stroke='%232b414f'/%3E%0A%20%20%20%20%3C/svg%3E%0A");
+  --cp-art-menu-tile: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='130'%20height='166'%20viewBox='0%200%20130%20166'%20preserveAspectRatio='none'%20id='cp-window-menu-tile'%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cpath%20d='M8%20.5h114l7.5%207.5v150l-7.5%207.5H8L.5%20158V8Z'%20fill='%23171f28'%20stroke='%23668298'%20vector-effect='non-scaling-stroke'/%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cpath%20d='M4%2026V10l6-6h16m78%200h16l6%206v16M4%20140v16l6%206h16m78%200h16l6-6v-16'%20fill='none'%20stroke='%23344f60'%20vector-effect='non-scaling-stroke'/%3E%0A%20%20%20%20%20%20%20%20%20%20%3Ccircle%20cx='65'%20cy='65'%20r='43'%20fill='%231b2a34'%20stroke='%232e4656'%20vector-effect='non-scaling-stroke'/%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cpath%20d='M12%20124h106M14%20128h12m78%200h12M11%2010h16m76%200h16'%20stroke='%23668298'%20opacity='.7'%20vector-effect='non-scaling-stroke'/%3E%0A%20%20%20%20%20%20%20%20%3C/svg%3E%0A");
+  --cp-art-menu-tile-active: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='130'%20height='166'%20viewBox='0%200%20130%20166'%20preserveAspectRatio='none'%20id='cp-window-menu-tile-active'%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cpath%20d='M8%20.5h114l7.5%207.5v150l-7.5%207.5H8L.5%20158V8Z'%20fill='%23171f28'%20stroke='%2312c9bd'%20vector-effect='non-scaling-stroke'/%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cpath%20d='M4%2026V10l6-6h16m78%200h16l6%206v16M4%20140v16l6%206h16m78%200h16l6-6v-16'%20fill='none'%20stroke='%23344f60'%20vector-effect='non-scaling-stroke'/%3E%0A%20%20%20%20%20%20%20%20%20%20%3Ccircle%20cx='65'%20cy='65'%20r='43'%20fill='%231b2a34'%20stroke='%232e4656'%20vector-effect='non-scaling-stroke'/%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cpath%20d='M12%20124h106M14%20128h12m78%200h12M11%2010h16m76%200h16'%20stroke='%2312c9bd'%20opacity='.7'%20vector-effect='non-scaling-stroke'/%3E%0A%20%20%20%20%20%20%20%20%3C/svg%3E%0A");
   --cp-art-slot: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='40'%20height='40'%20viewBox='0%200%2040%2040'%20preserveAspectRatio='none'%20id='cp-window-slot'%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cpath%20d='M4%20.5h32l3.5%203.5v32L36%2039.5H4L.5%2036V4Z'%20fill='%2317232c'%20stroke='%23668298'%20vector-effect='non-scaling-stroke'/%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cpath%20d='M3%2011V5l2-2h6m18%200h6l2%202v6M3%2029v6l2%202h6m18%200h6l2-2v-6'%20fill='none'%20stroke='%23668298'%20vector-effect='non-scaling-stroke'/%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cpath%20d='M6%2020h3m22%200h3'%20stroke='%23344b5a'%20vector-effect='non-scaling-stroke'/%3E%0A%20%20%20%20%20%20%20%20%3C/svg%3E%0A");
   --cp-art-slot-active: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='40'%20height='40'%20viewBox='0%200%2040%2040'%20preserveAspectRatio='none'%20id='cp-window-slot-active'%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cpath%20d='M4%20.5h32l3.5%203.5v32L36%2039.5H4L.5%2036V4Z'%20fill='%2317232c'%20stroke='%2312c9bd'%20vector-effect='non-scaling-stroke'/%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cpath%20d='M3%2011V5l2-2h6m18%200h6l2%202v6M3%2029v6l2%202h6m18%200h6l2-2v-6'%20fill='none'%20stroke='%2312c9bd'%20vector-effect='non-scaling-stroke'/%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cpath%20d='M6%2020h3m22%200h3'%20stroke='%23344b5a'%20vector-effect='non-scaling-stroke'/%3E%0A%20%20%20%20%20%20%20%20%3C/svg%3E%0A");
   --cp-art-corner-nw: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='12'%20height='12'%20viewBox='0%200%2012%2012'%20preserveAspectRatio='none'%20id='cp-window-corner-nw'%3E%0A%20%20%20%20%20%20%20%20%20%20%3Cg%20transform=''%20fill='none'%3E%0A%20%20%20%20%20%20%20%20%20%20%20%20%3Cpath%20d='M11.5%20.5H4L.5%204v7.5'%20stroke='%23668298'/%3E%0A%20%20%20%20%20%20%20%20%20%20%20%20%3Cpath%20d='M8%20.5H4L.5%204v4'%20stroke='%2312c9bd'/%3E%0A%20%20%20%20%20%20%20%20%20%20%20%20%3Cpath%20d='M11.5%203.5H6l-2.5%202.5v5.5'%20stroke='%232b414f'/%3E%0A%20%20%20%20%20%20%20%20%20%20%3C/g%3E%0A%20%20%20%20%20%20%20%20%3C/svg%3E%0A");
@@ -2178,5 +2456,9 @@ html[data-cyberpunk-ni="on"] :is(.c-window,.border-window):has(:is(.premium-pane
 html[data-cyberpunk-ni="on"] :is(.loot-window),
 html[data-cyberpunk-ni="on"] :is(.c-window,.border-window):has(:is(.loot-window)) {
   --cp-window-surface: var(--cp-art-loot);
+}
+html[data-cyberpunk-ni="on"] :is(.matchmaking-panel,.matchmaking-summary),
+html[data-cyberpunk-ni="on"] :is(.c-window,.border-window):has(:is(.matchmaking-panel,.matchmaking-summary)) {
+  --cp-window-surface: var(--cp-art-matchmaking);
 }
 /* CP-WINDOW-ASSETS-END */

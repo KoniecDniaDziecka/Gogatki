@@ -1,0 +1,6 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='130' height='166' viewBox='0 0 130 166' preserveAspectRatio='none' id='cp-window-menu-tile-active'>
+          <path d='M8 .5h114l7.5 7.5v150l-7.5 7.5H8L.5 158V8Z' fill='#171f28' stroke='#12c9bd' vector-effect='non-scaling-stroke'/>
+          <path d='M4 26V10l6-6h16m78 0h16l6 6v16M4 140v16l6 6h16m78 0h16l6-6v-16' fill='none' stroke='#344f60' vector-effect='non-scaling-stroke'/>
+          <circle cx='65' cy='65' r='43' fill='#1b2a34' stroke='#2e4656' vector-effect='non-scaling-stroke'/>
+          <path d='M12 124h106M14 128h12m78 0h12M11 10h16m76 0h16' stroke='#12c9bd' opacity='.7' vector-effect='non-scaling-stroke'/>
+        </svg>

@@ -1,0 +1,12 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='256' height='192' viewBox='0 0 256 192' preserveAspectRatio='none' id='cp-window-matchmaking'>
+      <defs><pattern id='grid' width='32' height='32' patternUnits='userSpaceOnUse'>
+        <path d='M32 0H0v32' fill='none' stroke='#24333e' stroke-width='.5'/>
+      </pattern></defs>
+      <path d='M148 94h108v98H148Z' fill='url(#grid)' opacity='.35'/>
+      <g fill='none' stroke='#354c5c' stroke-width='1' opacity='.48'>
+    
+      <path d='m204 106 27 11v22l-27 27-27-27v-22Z'/>
+      <path d='m188 146 32-27m-32 0 32 27M194 153l-8 7m28-7 8 7'/>
+    </g>
+      <path d='M242 179h-35m35 0v-20M155 102v-9h18' fill='none' stroke='#12c9bd' stroke-width='1' opacity='.32'/>
+    </svg>

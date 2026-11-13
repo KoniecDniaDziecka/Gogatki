@@ -47,6 +47,10 @@ WINDOWS = {
       <path d='M173 130h61v34h-61Zm0 0 7-21h47l7 21m-44-21v55m27-55v55'/>
       <rect x='198' y='130' width='11' height='12'/><path d='M167 171h73'/>
     """),
+    "matchmaking": (".matchmaking-panel,.matchmaking-summary", """
+      <path d='m204 106 27 11v22l-27 27-27-27v-22Z'/>
+      <path d='m188 146 32-27m-32 0 32 27M194 153l-8 7m28-7 8 7'/>
+    """),
 }
 
 
@@ -86,6 +90,17 @@ def assets():
       <path d='M69 3h23v18H69m3-14h16m-16 5h10m-10 5h16' fill='none' stroke='#334957' stroke-width='1'/>
       <path d='M91 2v7m-9 12h10' fill='none' stroke='#12c9bd' opacity='.45'/>
     """, 96, 24, "card")
+    result["slot-grid.svg"] = svg("""
+      <rect x='.5' y='.5' width='31' height='31' fill='#152029' stroke='#425b6b'/>
+      <path d='M3 9V3h6m14 0h6v6M3 23v6h6m14 0h6v-6' fill='none' stroke='#2b414f'/>
+    """, 32, 32, "slot-grid")
+    for name, accent in [("menu-tile", "#668298"), ("menu-tile-active", "#12c9bd")]:
+        result[f"{name}.svg"] = svg(f"""
+          <path d='M8 .5h114l7.5 7.5v150l-7.5 7.5H8L.5 158V8Z' fill='#171f28' stroke='{accent}' vector-effect='non-scaling-stroke'/>
+          <path d='M4 26V10l6-6h16m78 0h16l6 6v16M4 140v16l6 6h16m78 0h16l6-6v-16' fill='none' stroke='#344f60' vector-effect='non-scaling-stroke'/>
+          <circle cx='65' cy='65' r='43' fill='#1b2a34' stroke='#2e4656' vector-effect='non-scaling-stroke'/>
+          <path d='M12 124h106M14 128h12m78 0h12M11 10h16m76 0h16' stroke='{accent}' opacity='.7' vector-effect='non-scaling-stroke'/>
+        """, 130, 166, name)
     for name, accent in [("slot", "#668298"), ("slot-active", "#12c9bd")]:
         result[f"{name}.svg"] = svg(f"""
           <path d='M4 .5h32l3.5 3.5v32L36 39.5H4L.5 36V4Z' fill='#17232c' stroke='{accent}' vector-effect='non-scaling-stroke'/>
