@@ -5,6 +5,7 @@
     const window = unsafeWindow;
     function createTileDock({onCleanup = () => {}} = {}) {
         const specs = [
+            {id:'kamyki-overlay', name:'Kamyki', control:'button', activeControl:true, toggleOnly:true, toggleOnClick:true, icon:'pyramid'},
             {id:'standalone-free-gift', name:'Gift', gift:true},
             {id:'standalone-fullmetal', name:'Ulepa', control:'[data-min]'},
             {id:'standalone-loot-filter', name:'Lootfilter', control:'[data-settings]', click:true, activeControl:true, icon:'bag'},
@@ -190,6 +191,7 @@
             button.dataset.gogatkiDockItem = entry.spec.id;
             button.setAttribute('aria-controls', entry.spec.id);
             const icons = {
+                pyramid:'<path d="M12 3 2 20h20L12 3Zm0 0 4 17M2 20l10-5 10 5"/>',
                 bolt:'<path d="m13 2-8 11h6l-1 9 9-13h-6z"/>',
                 bag:'<path d="m8 3 2 4h4l2-4H8ZM8 8h8M9 8c-2 3-5 5-5 9a4 4 0 0 0 4 4h8a4 4 0 0 0 4-4c0-4-3-6-5-9"/><circle cx="12" cy="15.5" r="2.5"/>',
                 megaphone:'<path d="M3 10v4h4l12 5V5L7 10H3Z"/><path d="m7 14 2 7h4l-2-5M7 10v4M22 9v6"/>'
@@ -204,7 +206,8 @@
                 event.preventDefault(); event.stopPropagation();
                 if (!entry.node.isConnected) return;
                 if (entry.spec.toggleOnly) {
-                    if (event.type === 'contextmenu') control(entry)?.dispatchEvent(new MouseEvent('contextmenu', {bubbles:true, cancelable:true}));
+                    if (entry.spec.toggleOnClick && event.type === 'click') control(entry)?.click();
+                    else if (event.type === 'contextmenu') control(entry)?.dispatchEvent(new MouseEvent('contextmenu', {bubbles:true, cancelable:true}));
                     sync(); return;
                 }
                 // Measure and save the module's floating coordinates, never its dock coordinates.
@@ -379,6 +382,7 @@
     }
     GogatkiDockRuntime.register({apiVersion:2, create:createTileDock});
 })();
+
 
 
 
