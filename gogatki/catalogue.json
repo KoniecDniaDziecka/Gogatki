@@ -2,6 +2,12 @@
   "schemaVersion": 1,
   "modules": [
     {
+      "id": "cyberpunk-ni",
+      "name": "Cyberpunk NI",
+      "description": "Motyw cyberpunkowy Nowego Interfejsu: okna, HUD i wskaźnik życia.",
+      "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/cyberpunk-ni.js?v=0.2.50"
+    },
+    {
       "id": "koszty-ulepszen",
       "name": "Koszty ulepszeń",
       "description": "NI: koszty ulepszenia legendy do +5 w dymku przedmiotu — punkty, złoto i esencja.",

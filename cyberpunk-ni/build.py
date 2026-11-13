@@ -38,3 +38,18 @@ HEADER = """// ==UserScript==
 SCRIPT = (ROOT / "loader.template.js").read_text()
 (ROOT / "theme.json").write_text(json.dumps(BUNDLE, ensure_ascii=False, indent=2) + "\n")
 (ROOT / "cyberpunk-ni.user.js").write_text(HEADER + SCRIPT.replace("__BUNDLE__", json.dumps(BUNDLE, ensure_ascii=False)))
+MODULE = (ROOT / "module.template.js").read_text()
+MODULE_PATH = ROOT.parent / "gogatki/modules/cyberpunk-ni.js"
+MODULE_PATH.parent.mkdir(parents=True, exist_ok=True)
+MODULE_PATH.write_text(MODULE.replace("__BUNDLE__", json.dumps(BUNDLE, ensure_ascii=False)))
+CATALOGUE_PATH = ROOT.parent / "gogatki/catalogue.json"
+if CATALOGUE_PATH.exists():
+    catalogue = json.loads(CATALOGUE_PATH.read_text())
+    entries = [entry for entry in catalogue["modules"] if entry["id"] == BUNDLE["id"]]
+    if len(entries) != 1:
+        raise ValueError("Brak jednoznacznego wpisu Cyberpunk NI w katalogu Gogatków")
+    entries[0]["url"] = (
+        "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/"
+        f"gogatki/modules/cyberpunk-ni.js?v={BUNDLE['version']}"
+    )
+    CATALOGUE_PATH.write_text(json.dumps(catalogue, ensure_ascii=False, indent=2) + "\n")
