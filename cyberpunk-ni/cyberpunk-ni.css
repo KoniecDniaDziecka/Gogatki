@@ -1,4 +1,4 @@
-/* Cyberpunk NI 0.2.43 — motyw dla nowego interfejsu Margonem.
+/* Cyberpunk NI 0.2.44 — motyw dla nowego interfejsu Margonem.
  * Skrypt .user.js włącza go atrybutem data-cyberpunk-ni="on" na <html>.
  * Zmienne poniżej sterują paletą. Nie wymaga zewnętrznych grafik ani fontów.
  * Najlepiej używać z wyłączonym DarknessNI i innymi motywami całego NI.
@@ -2604,6 +2604,38 @@ html[data-cyberpunk-ni="on"] .clan-treasury-content .right-part .outfit-content 
 html[data-cyberpunk-ni="on"] .clan-treasury-content .outfit-content .to-dress-available {
   color: var(--cp-muted) !important;
   text-shadow: none !important;
+}
+}
+
+/* Spokojne przyciski zamykania. Native IE ma osobny glyph; starszy
+ * wariant z X w atlasie zachowuje obrazek i dostaje tylko przygaszenie. */
+@layer cyberpunk-ni-window-finishes {
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) .close-button {
+  background-color: #202831 !important;
+  border-color: #425766 !important;
+  box-shadow: inset 0 0 0 1px #425766 !important;
+  color: #a2afb9 !important;
+  text-shadow: none !important;
+  filter: saturate(.15) brightness(.8) !important;
+}
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) .close-button:has(.ie-icon-close) {
+  background: #202831 !important;
+  filter: none !important;
+}
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) .close-button .ie-icon-close {
+  filter: grayscale(1) brightness(.82) !important;
+}
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) .close-button:not(.disabled):not([disabled]):not([aria-disabled="true"]):hover {
+  background-color: #22353b !important;
+  border-color: #438c84 !important;
+  box-shadow: inset 0 0 0 1px #438c84 !important;
+  filter: saturate(.15) brightness(.95) !important;
+}
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) .close-button:not(.disabled):not([disabled]):not([aria-disabled="true"]):hover:has(.ie-icon-close) {
+  filter: none !important;
+}
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) .close-button:not(.disabled):not([disabled]):not([aria-disabled="true"]):hover .ie-icon-close {
+  filter: var(--cp-sprite-tint) brightness(.7) !important;
 }
 }
 
