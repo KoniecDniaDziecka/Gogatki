@@ -1,4 +1,4 @@
-/* Cyberpunk NI 0.2.48 — motyw dla nowego interfejsu Margonem.
+/* Cyberpunk NI 0.2.49 — motyw dla nowego interfejsu Margonem.
  * Skrypt .user.js włącza go atrybutem data-cyberpunk-ni="on" na <html>.
  * Zmienne poniżej sterują paletą. Nie wymaga zewnętrznych grafik ani fontów.
  * Najlepiej używać z wyłączonym DarknessNI i innymi motywami całego NI.
@@ -2811,6 +2811,36 @@ html[data-cyberpunk-ni="on"] .additional-skill-panel .skill-usable-slot:has(.bat
   border-color: var(--cp-line) !important;
   border-radius: 3px !important;
   box-shadow: inset 0 0 0 1px var(--cp-line) !important;
+}
+}
+
+/* Srebrne krawędzie tytułów są osobnym cieniem, niezależnym od tła.
+ * Nagłówki kolumn umiejętności mają też własne warstwy dekoracyjne. */
+@layer cyberpunk-ni-window-finishes {
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) :is(.header-label, .interface-element-border-window-header-middle),
+html[data-cyberpunk-ni="on"] .trade-window header .h_background .middle {
+  box-shadow: none !important;
+  border-image: none !important;
+  border-color: transparent !important;
+}
+
+html[data-cyberpunk-ni="on"] .skills-window :is(.list-label-wrapper, .list-border, .list-label, .points-header-wrapper, .skills-points-wrapper) {
+  background: var(--cp-art-header) center / 100% 100% no-repeat !important;
+  background-origin: border-box !important;
+  background-clip: border-box !important;
+  border-image: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) .header-label::before,
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) .header-label::after,
+html[data-cyberpunk-ni="on"] .skills-window :is(.list-label-wrapper, .list-border, .list-label, .points-header-wrapper, .skills-points-wrapper)::before,
+html[data-cyberpunk-ni="on"] .skills-window :is(.list-label-wrapper, .list-border, .list-label, .points-header-wrapper, .skills-points-wrapper)::after {
+  background: none !important;
+  border-image: none !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
 }
 }
 
