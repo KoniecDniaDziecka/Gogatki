@@ -7,7 +7,7 @@
         const specs = [
             {id:'standalone-free-gift', name:'Gift', gift:true},
             {id:'standalone-fullmetal', name:'Ulepa', control:'[data-min]'},
-            {id:'standalone-loot-filter', name:'Lootfilter', control:'[data-settings]', click:true, icon:'bag'},
+            {id:'standalone-loot-filter', name:'Lootfilter', control:'[data-settings]', click:true, activeControl:true, icon:'bag'},
             {id:'wolacz-global-panel', name:'Wołacz Kolosy', control:'[aria-label="Uchwyt do przesuwania przycisku"]', icon:'megaphone'},
             {id:'pvp-clan-notificator', name:'PVP Info', control:'[data-settings]'},
             {id:'spell-trigger-standalone', name:'Strategy', control:'.strategy-control', shadow:true, activeControl:true, toggleOnly:true, activeLabel:'okno kolejki', icon:'bolt'},
@@ -238,7 +238,7 @@
                     entry = {node, spec, docked:false, observer:new MutationObserver(schedule)};
                     entries.set(spec.id, entry);
                     if (!spec.gift) entry.button = makeToggle(entry);
-                    entry.observer.observe(node, {attributes:true, attributeFilter:spec.gift ? ['data-reward'] : ['data-compact']});
+                    entry.observer.observe(node, {attributes:true, attributeFilter:spec.gift ? ['data-reward'] : ['data-compact','data-active']});
                     if (node.shadowRoot) entry.observer.observe(node.shadowRoot, {subtree:true, attributes:true, attributeFilter:['class']});
                 }
                 if (compact(entry)) dock(entry); else release(entry);
@@ -379,6 +379,7 @@
     }
     GogatkiDockRuntime.register({apiVersion:2, create:createTileDock});
 })();
+
 
 
 

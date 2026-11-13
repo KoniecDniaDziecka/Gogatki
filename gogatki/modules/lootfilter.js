@@ -1,3 +1,4 @@
+// Lootfilter 1.0.21 — LPM: okno, PPM: działanie filtrów.
 GogatkiRuntime.register({id:"lootfilter",name:"Lootfilter",description:"Filtry \u0142upu po walce",start() {
     // Keep checkbox styling consistent in already installed Gogatki panels.
     const gogatkiRoot = document.querySelector('#gogatek-panel')?.shadowRoot;
@@ -132,6 +133,19 @@ GogatkiRuntime.register({id:"lootfilter",name:"Lootfilter",description:"Filtry \
         free: freeSlots(game.Engine?.bags || game.g?.bags) });
     const say = text => { status.textContent = text; };
     function save() { GM_setValue(storageKey, config); }
+    function renderEnabled() {
+        if (!panel) return;
+        panel.dataset.active = String(!!config.enabled);
+        const button = panel.querySelector('[data-settings]');
+        button.classList.toggle('active', !!config.enabled);
+        const title = `Lootfilter — ${config.enabled ? 'włączony' : 'wyłączony'} · LPM: ${config.settingsOpen ? 'zwiń' : 'rozwiń'} · PPM: włącz/wyłącz`;
+        button.title = title; panel.querySelector('[data-name]').title = title;
+    }
+    function toggleEnabled(event) {
+        event.preventDefault(); event.stopPropagation();
+        generation++; config.enabled = !config.enabled;
+        renderEnabled(); save(); say(config.enabled ? 'LootFilter włączony.' : 'LootFilter wyłączony.');
+    }
     function processLoot(items) {
         if (stopped || !config.enabled) return;
         const ids = new Set(items.map(item => item.id));
@@ -148,7 +162,7 @@ GogatkiRuntime.register({id:"lootfilter",name:"Lootfilter",description:"Filtry \
                 say(`${result.finalize ? 'Zatwierdzono' : 'Wybrano'}: ${count} / ${items.length} przedmiotów.`);
             } catch (error) {
                 config.enabled = false; generation++;
-                panel.querySelector('[data-enabled]').checked = false;
+                renderEnabled();
                 save(); say(error.message); console.error('[LootFilter]', error);
             }
         });
@@ -167,7 +181,7 @@ GogatkiRuntime.register({id:"lootfilter",name:"Lootfilter",description:"Filtry \
         for (const list of ['whiteList', 'blackList']) if (!Array.isArray(config[list])) config[list] = [];
         save();
         panel = document.createElement('section'); panel.id = 'standalone-loot-filter';
-        panel.innerHTML = `<header><label><input type="checkbox" data-enabled> <span data-name title="Lootfilter">LootFilter</span></label><button type="button" data-settings title="Ustawienia" aria-label="Ustawienia Lootfiltera"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false" style="display:block;pointer-events:none;flex-shrink:0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m8 3 2 4h4l2-4H8ZM8 8h8M9 8c-2 3-5 5-5 9a4 4 0 0 0 4 4h8a4 4 0 0 0 4-4c0-4-3-6-5-9"/><circle cx="12" cy="15.5" r="2.5"/></svg></button></header>
+        panel.innerHTML = `<header><span data-name title="Lootfilter">LootFilter</span><button type="button" data-settings title="Ustawienia" aria-label="Ustawienia Lootfiltera"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false" style="display:block;pointer-events:none;flex-shrink:0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m8 3 2 4h4l2-4H8ZM8 8h8M9 8c-2 3-5 5-5 9a4 4 0 0 0 4 4h8a4 4 0 0 0 4-4c0-4-3-6-5-9"/><circle cx="12" cy="15.5" r="2.5"/></svg></button></header>
             <main hidden><div data-filters></div><div data-modes></div>
             <label>Minimalna cena <input type="number" min="0" data-minPrice placeholder="Bez progu"></label>
             <label>Minimalne leczenie <input type="number" min="0" data-minHealing placeholder="Bez progu"></label>
@@ -182,6 +196,7 @@ GogatkiRuntime.register({id:"lootfilter",name:"Lootfilter",description:"Filtry \
         style.textContent += `#standalone-loot-filter[data-compact="true"]{width:70px;box-sizing:border-box}#standalone-loot-filter[data-compact="true"] header{display:grid;grid-template-columns:1fr 17px;height:22px;padding:1px 3px;gap:2px;border-radius:4px}#standalone-loot-filter[data-compact="true"] header label{display:contents}#standalone-loot-filter[data-compact="true"] header input{margin:0;width:12px;height:12px;justify-self:center}#standalone-loot-filter[data-compact="true"] header button{width:17px;height:18px;padding:0;font-size:12px}#standalone-loot-filter[data-compact="true"] footer{display:none}`;
         style.textContent += `#standalone-loot-filter input[type=checkbox]{accent-color:#21bd69}#standalone-loot-filter header button{background:none;border:0;color:#eee}`;
         style.textContent += `#standalone-loot-filter[data-compact="true"] [data-name]{display:flex;align-items:center;justify-content:center;text-align:center;line-height:18px;font-size:16px;color:#12c9bd;white-space:nowrap}`;
+        style.textContent += `:root #standalone-loot-filter [data-name],:root #standalone-loot-filter [data-settings]{color:#12c9bd!important}:root #standalone-loot-filter[data-active="false"] [data-name],:root #standalone-loot-filter[data-active="false"] [data-settings]{color:#74838d!important}`;
         document.head.append(style); document.body.append(panel);
         status = panel.querySelector('[data-status]');
         const filters = [['common','Zwykłe'],['unique','Unikatowe'],['neutral','Neutralne'],['rune','Runy'],['gold','Złoto'],['teleport','Teleporty'],['talisman','Talizmany'],['key','Klucze'],['bag','Torby'],['groupLegendary','Tylko legenda w grupie'],['negation','Odwróć filtry']];
@@ -198,7 +213,7 @@ GogatkiRuntime.register({id:"lootfilter",name:"Lootfilter",description:"Filtry \
             }
             label.append(select); panel.querySelector('[data-modes]').append(label);
         }
-        for (const field of ['enabled','minPrice','minHealing','autoAccept','whiteList','blackList','customLogic']) {
+        for (const field of ['minPrice','minHealing','autoAccept','whiteList','blackList','customLogic']) {
             panel.querySelector(`[data-${field}]`).dataset.field = field;
         }
         for (const input of panel.querySelectorAll('[data-field]')) {
@@ -216,7 +231,6 @@ GogatkiRuntime.register({id:"lootfilter",name:"Lootfilter",description:"Filtry \
         const main = panel.querySelector('main');
         const settingsButton = panel.querySelector('[data-settings]');
         function settingsVisibility() {
-            panel.querySelector('[data-enabled]').hidden = !config.settingsOpen;
             settingsButton.hidden = !config.settingsOpen;
             main.hidden = !config.settingsOpen;
             const name = panel.querySelector('[data-name]');
@@ -232,6 +246,7 @@ GogatkiRuntime.register({id:"lootfilter",name:"Lootfilter",description:"Filtry \
             panel.dataset.compact = String(!config.settingsOpen);
             settingsButton.title = config.settingsOpen ? 'Schowaj ustawienia' : 'Pokaż ustawienia';
             settingsButton.setAttribute('aria-expanded', String(config.settingsOpen));
+            renderEnabled();
         }
         settingsVisibility();
         settingsButton.onclick = () => {
@@ -257,8 +272,9 @@ GogatkiRuntime.register({id:"lootfilter",name:"Lootfilter",description:"Filtry \
             panel.style.top = `${Math.max(0, Math.min(+config.top || 0, innerHeight - 35))}px`;
         }
         const header = panel.querySelector('header'); let drag, dragged = false;
+        header.addEventListener('contextmenu', toggleEnabled);
         header.addEventListener('click', event => {
-            if (config.settingsOpen || event.target.closest('[data-settings]')) return;
+            if (event.target.closest('[data-settings]')) return;
             event.preventDefault();
             if (!dragged) settingsButton.click();
         });
@@ -296,6 +312,7 @@ GogatkiRuntime.register({id:"lootfilter",name:"Lootfilter",description:"Filtry \
 })();
 
 }});
+
 
 
 
