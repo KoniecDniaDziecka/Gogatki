@@ -10,8 +10,8 @@
     {
       "id": "koszty-ulepszen",
       "name": "Koszty ulepszeń",
-      "description": "NI: koszty ulepszenia legendy do +5 w dymku przedmiotu — punkty, złoto i esencja.",
-      "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/koszty-ulepszen.js?v=1.0.2"
+      "description": "Koszty ulepszenia w dymku legendy",
+      "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/koszty-ulepszen.js?v=1.0.3"
     },
     {
       "id": "ulepa",

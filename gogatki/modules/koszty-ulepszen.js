@@ -1,10 +1,10 @@
-// Koszty ulepszeń 1.0.2
+// Koszty ulepszeń 1.0.3
 // Wzory i rozpoznawanie dymków: Dark-Sad, Panel dodatków 6.1.5,
 // Sebastian00P/PanelDodatkow/script.js (blob e589b5b7ccb42279d2e9ff386777d6bb2631b86c).
 GogatkiRuntime.register({
     id: 'koszty-ulepszen',
     name: 'Koszty ulepszeń',
-    description: 'NI: koszty ulepszenia legendy do +5 w dymku przedmiotu — punkty, złoto i esencja.',
+    description: 'Koszty ulepszenia w dymku legendy',
     start() {
         'use strict';
         const window = unsafeWindow;
