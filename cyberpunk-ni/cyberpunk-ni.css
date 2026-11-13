@@ -1,9 +1,9 @@
-/* Cyberpunk NI 0.2.32 — motyw dla nowego interfejsu Margonem.
+/* Cyberpunk NI 0.2.33 — motyw dla nowego interfejsu Margonem.
  * Skrypt .user.js włącza go atrybutem data-cyberpunk-ni="on" na <html>.
  * Zmienne poniżej sterują paletą. Nie wymaga zewnętrznych grafik ani fontów.
  * Najlepiej używać z wyłączonym DarknessNI i innymi motywami całego NI.
  */
-@layer cyberpunk-ni-window-finishes, cyberpunk-ni-window-art, cyberpunk-ni-window-details, cyberpunk-ni-top-hud, cyberpunk-ni-bottom-meters;
+@layer cyberpunk-ni-glass, cyberpunk-ni-window-finishes, cyberpunk-ni-window-art, cyberpunk-ni-window-details, cyberpunk-ni-top-hud, cyberpunk-ni-bottom-meters;
 
 html[data-cyberpunk-ni="on"] {
   --cp-bg: #0c1118;
@@ -2408,6 +2408,34 @@ html[data-cyberpunk-ni="on"] .matchmaking-panel .warning-points {
   text-shadow: none !important;
 }
 
+}
+
+/* Lekka przezroczystość wyłącznie tła: tekst i ikony nie dziedziczą opacity.
+ * Jedno wypełnienie na okno zapobiega kumulowaniu alfa w content/scroll-pane. */
+@layer cyberpunk-ni-glass {
+html[data-cyberpunk-ni="on"] .border-window.transparent {
+  background-color: rgba(23, 27, 32, .86) !important;
+}
+
+html[data-cyberpunk-ni="on"] .border-window.transparent :is(
+  .content, .inner-content, .border-image, .window-list, .who-is-here,
+  .scroll-wrapper, .scroll-pane
+) {
+  background: none !important;
+}
+
+html[data-cyberpunk-ni="on"] .layer.interface-layer .main-column .extended-stats {
+  background: rgba(23, 27, 32, .86) !important;
+}
+
+html[data-cyberpunk-ni="on"] .layer.interface-layer .main-column .extended-stats .border {
+  background: none !important;
+  border-image: none !important;
+}
+
+html[data-cyberpunk-ni="on"] .additional-bar-br .layer.interface-layer .main-column .extended-stats::after {
+  background: rgba(23, 27, 32, .86) !important;
+}
 }
 
 /* CP-WINDOW-ASSETS-BEGIN */
