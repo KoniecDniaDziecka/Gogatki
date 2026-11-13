@@ -1,4 +1,4 @@
-/* Cyberpunk NI 0.2.54 — motyw dla nowego interfejsu Margonem.
+/* Cyberpunk NI 0.2.55 — motyw dla nowego interfejsu Margonem.
  * Skrypt .user.js włącza go atrybutem data-cyberpunk-ni="on" na <html>.
  * Zmienne poniżej sterują paletą. Nie wymaga zewnętrznych grafik ani fontów.
  * Najlepiej używać z wyłączonym DarknessNI i innymi motywami całego NI.
@@ -1315,6 +1315,7 @@ html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator[data-cp-hp] {
 
 html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator[data-cp-hp] .blood {
   visibility: hidden !important;
+  filter: none !important;
 }
 
 html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator[data-cp-hp]::before,
@@ -1457,7 +1458,7 @@ html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator > .cp-hp-disc > .cp-hp-
   border: 0 !important;
   border-image: none !important;
   border-radius: 0 !important;
-  /* Zawsze nieprzezroczysta czerwień. Animacja jest tylko nakładką wewnątrz. */
+  /* Nieprzezroczysta czerwień i osobna warstwa połysku. */
   background:
     radial-gradient(ellipse at 36% 29%, #e73538 0%, #c41b28 37%, #9c101f 70%, #640d20 100%) !important;
   overflow: hidden !important;
@@ -1476,8 +1477,8 @@ html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator[data-cp-hp="100"] > .cp
   height: 100% !important;
 }
 
-/* Miękkie pasma energii i przesuwające się odbicie. Poruszają się wyłącznie
- * przezroczyste nakładki: wysokość HP i okrągła maska nigdy nie są animowane. */
+/* Statyczne pasma energii i odbicie: bez ciągłego odrysowywania podczas ruchu.
+ * Wysokość HP i okrągła maska pozostają sterowane poziomem życia. */
 html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator > .cp-hp-disc > .cp-hp-fill::before,
 html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator > .cp-hp-disc > .cp-hp-fill::after {
   content: "" !important;
@@ -1501,13 +1502,13 @@ html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator > .cp-hp-disc > .cp-hp-
       rgba(255, 100, 92, .12) 35%, rgba(243, 125, 111, .06) 38%, transparent 44%),
     radial-gradient(ellipse at 70% 65%, transparent 22%,
       rgba(94, 0, 19, .2) 28%, transparent 36%) !important;
-  animation: cp-ni-hp-flow 7s ease-in-out infinite alternate !important;
+  animation: none !important;
 }
 
 html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator > .cp-hp-disc > .cp-hp-fill::after {
   background: linear-gradient(115deg, transparent 38%,
     rgba(255, 187, 173, .12) 49%, transparent 59%) !important;
-  animation: cp-ni-hp-reflection 4.8s ease-in-out infinite alternate !important;
+  animation: none !important;
 }
 
 html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator[data-cp-hp="0"] .cp-hp-fill::before,
@@ -2457,7 +2458,7 @@ html[data-cyberpunk-ni="on"] .additional-bar-br .layer.interface-layer .main-col
 }
 }
 
-/* Obrabiane krawędzie i mały puls światła. Położenie danych, obszary
+/* Obrabiane krawędzie i nieruchomy akcent światła. Położenie danych, obszary
  * przycisków oraz atlas statusu mapy pozostają natywne. */
 @layer cyberpunk-ni-top-hud {
 html[data-cyberpunk-ni="on"] .layer.interface-layer .positioner.top .hud-container::after {
@@ -2474,7 +2475,8 @@ html[data-cyberpunk-ni="on"] .layer.interface-layer .positioner.top .hud-contain
   border: 0 !important;
   background: linear-gradient(90deg, transparent, #51e1d2 35% 65%, transparent) !important;
   pointer-events: none !important;
-  animation: cp-ni-hud-light 4.8s ease-in-out infinite alternate !important;
+  animation: none !important;
+  opacity: .8 !important;
 }
 html[data-cyberpunk-ni="on"] .layer.interface-layer .positioner.top .hud-container .herogold {
   background: linear-gradient(#243441, #14222e) !important;
@@ -2487,6 +2489,7 @@ html[data-cyberpunk-ni="on"] .layer.interface-layer .positioner.top .hud-contain
 html[data-cyberpunk-ni="on"] .layer.interface-layer .positioner.top .hud-container .btn-min {
   background-color: #203946 !important;
   box-shadow: inset 0 0 0 1px #6c8c9e !important;
+  filter: none !important;
 }
 html[data-cyberpunk-ni="on"] .layer.interface-layer .positioner.top .hud-container .btn-min:not(.disabled):not([disabled]):not([aria-disabled="true"]):hover {
   box-shadow: inset 0 0 0 1px #12c9bd !important;

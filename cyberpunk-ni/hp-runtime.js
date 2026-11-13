@@ -12,6 +12,8 @@ function createCyberpunkNiRuntime(window, getTheme, isEnabled) {
   let active = false;
   let disposed = false;
   let frame = 0;
+  let layer = null;
+  let watchedParents = new Set();
 
   function clearIndicator(entry) {
     const indicator = entry.indicator;
@@ -74,12 +76,45 @@ function createCyberpunkNiRuntime(window, getTheme, isEnabled) {
     style = null;
     appliedTheme = null;
     active = false;
+    watchedParents.clear();
+    layer = null;
   }
 
   function scheduleBindings() {
     if (!disposed && !frame) frame = window.requestAnimationFrame(bind);
   }
-  const structureObserver = new window.MutationObserver(scheduleBindings);
+  const structureObserver = new window.MutationObserver(records => {
+    if (disposed) return;
+    if (active && (!layer?.isConnected || !style?.isConnected)) {
+      scheduleBindings();
+      return;
+    }
+    for (const entry of entries.values()) {
+      if (!entry.indicator.isConnected) {
+        scheduleBindings();
+        return;
+      }
+    }
+    const selector = '.layer.interface-layer, .hp-indicator';
+    for (const record of records) {
+      for (const node of record.removedNodes) {
+        if (watchedParents.has(node)) {
+          scheduleBindings();
+          return;
+        }
+      }
+      // Zmiana własnych dzieci HP (np. wymiana .hpp) nie wymaga skanu strony.
+      const entry = entries.get(record.target);
+      if (entry) syncIndicator(entry);
+      for (const node of record.addedNodes) {
+        if (node.nodeType === 1 && (node.matches(selector) ||
+            (node.firstElementChild && node.querySelector(selector)))) {
+          scheduleBindings();
+          return;
+        }
+      }
+    }
+  });
   // Obserwacja poddrzewa jest potrzebna tylko podczas oczekiwania na HUD.
   // Nie reaguje na tekst ani atrybuty, sprawdza wyłącznie dodane kontenery.
   const bootstrapObserver = new window.MutationObserver(records => {
@@ -100,7 +135,7 @@ function createCyberpunkNiRuntime(window, getTheme, isEnabled) {
     structureObserver.disconnect();
     bootstrapObserver.disconnect();
     if (!isEnabled()) { release(); return; }
-    const layer = document.querySelector('.layer.interface-layer');
+    layer = document.querySelector('.layer.interface-layer');
     const indicators = layer ? [...layer.querySelectorAll('.bottom-panel .hp-indicator')] : [];
     if (!layer) release();
     else {
@@ -145,6 +180,7 @@ function createCyberpunkNiRuntime(window, getTheme, isEnabled) {
       for (let parent = element; parent; parent = parent.parentElement) parents.add(parent);
     }
     for (const parent of parents) structureObserver.observe(parent, { childList: true });
+    watchedParents = parents;
     if (!indicators.length) bootstrapObserver.observe(root, { childList: true, subtree: true });
   }
 
@@ -160,6 +196,8 @@ function createCyberpunkNiRuntime(window, getTheme, isEnabled) {
     structureObserver.disconnect();
     bootstrapObserver.disconnect();
     release();
+    watchedParents.clear();
+    layer = null;
   }
   return { apply, destroy };
 }

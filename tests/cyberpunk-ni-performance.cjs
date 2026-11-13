@@ -8,11 +8,16 @@ const assert = require('node:assert/strict');
   try {
     const base = path.join(__dirname, '..');
     const theme = JSON.parse(fs.readFileSync(path.join(base, 'cyberpunk-ni/theme.json'), 'utf8'));
+    const referenceCss = process.env.CYBERPUNK_REFERENCE_DIR && path.join(process.env.CYBERPUNK_REFERENCE_DIR, 'before.css');
+    if (referenceCss && fs.existsSync(referenceCss)) {
+      theme.css = fs.readFileSync(referenceCss, 'utf8');
+      theme.version = /^\/\* Cyberpunk NI (\d+\.\d+\.\d+)/.exec(theme.css)?.[1] || theme.version;
+    }
     for (const mode of ['module', 'standalone']) {
       const page = await browser.newPage();
       const errors = [];
       page.on('pageerror', error => errors.push(error.message));
-      await page.setContent('<div id="game"><div class="layer interface-layer"><div class="bottom-panel"><div id="hp" class="hp-indicator"><div id="hp-label" class="hpp">100%</div></div><div id="timer">12:00</div></div><div id="chat"><span id="message">Wiadomość</span></div><div id="other-window"><div id="window-content"></div></div></div></div>');
+      await page.setContent('<style>@keyframes native-warning{from{opacity:.4}to{opacity:1}}.blood-frame{animation:native-warning 2s infinite alternate}</style><div id="game"><div class="layer interface-layer"><div class="positioner top"><div class="hud-container"><button class="btn-min">+</button></div></div><div class="bottom-panel"><div id="hp" class="hp-indicator"><div class="blood"></div><div class="blood-frame"></div><div id="hp-label" class="hpp">100%</div></div><div id="timer">12:00</div></div><div id="chat"><span id="message">Wiadomość</span></div><div id="other-window"><div id="window-content"></div></div></div></div>');
       await page.evaluate(theme => {
         window.unsafeWindow = window;
         window.Engine = { hero: {}, map: {} };
@@ -86,6 +91,33 @@ const assert = require('node:assert/strict');
       if (!process.env.CYBERPUNK_REFERENCE_DIR) {
         assert.deepEqual(unrelated, { documentScans: 0, cssReads: 0, cssWrites: 0, rootWrites: 0, observerCalls: 0 }, 'chat, timers and other windows must not wake the HP runtime');
       }
+      // Temporary markers and controls can be inserted directly beside HUD.
+      // These mutations reached the ancestor observers in the previous runtime.
+      const adjacent = await page.evaluate(async () => {
+        const layer = document.getElementById('game').firstElementChild;
+        const bottom = document.getElementById('hp').parentElement;
+        resetMetrics();
+        for (let i = 0; i < 60; i++) {
+          const markers = [layer, bottom, document.body, document.head].map(parent => {
+            const marker = document.createElement(parent === document.head ? 'style' : 'span');
+            marker.className = 'temporary-walk-marker'; parent.append(marker); return marker;
+          });
+          await new Promise(requestAnimationFrame);
+          for (const marker of markers) marker.remove();
+          await new Promise(requestAnimationFrame);
+        }
+        await settle(); return { ...metrics };
+      });
+      console.log(`${mode} adjacent UI: ${JSON.stringify(adjacent)}`);
+      const decorativeAnimations = await page.evaluate(() => document.getAnimations().filter(a => a.animationName?.startsWith('cp-ni-')).length);
+      console.log(`${mode} continuous theme animations: ${decorativeAnimations}`);
+      if (!process.env.CYBERPUNK_REFERENCE_DIR) {
+        assert.equal(adjacent.documentScans + adjacent.cssReads + adjacent.cssWrites + adjacent.rootWrites, 0, 'neighboring controls must not rescan the HUD or reapply styles');
+        assert.equal(decorativeAnimations, 0, 'theme must not animate continuously while moving');
+        assert.equal(await page.locator('.blood-frame').evaluate(el => el.getAnimations().length), 1, 'native HP warning animation retained');
+        assert.equal(await page.locator('.blood').evaluate(el => getComputedStyle(el).filter), 'none', 'hidden legacy blood sprite does not retain an SVG filter');
+        assert.equal(await page.locator('.hud-container .btn-min').evaluate(el => getComputedStyle(el).filter), 'none', 'HUD buttons do not retain SVG filters');
+      }
       const health = await page.evaluate(async () => {
         resetMetrics();
         for (const value of ['90%', '65%', '37,5%', '0%', '100%']) {
@@ -100,11 +132,13 @@ const assert = require('node:assert/strict');
       if (!process.env.CYBERPUNK_REFERENCE_DIR) {
         assert.equal(health.documentScans, 0);
         assert.equal(health.cssReads + health.cssWrites + health.rootWrites, 0, 'HP updates must not read or reapply the stylesheet');
+        await page.evaluate(() => resetMetrics());
         await page.locator('#hp-label').evaluate(el => {
           const replacement = document.createElement('div'); replacement.id = 'hp-label'; replacement.className = 'hpp';
           replacement.innerHTML = '<span class="value">77%</span>'; el.replaceWith(replacement);
         });
         await page.waitForFunction(() => document.getElementById('hp').getAttribute('data-cp-hp') === '77');
+        assert.equal(await page.evaluate(() => metrics.documentScans + metrics.cssReads + metrics.cssWrites + metrics.rootWrites), 0, 'replacing the HP label only updates that indicator');
         await page.locator('#hp-label .value').evaluate(el => { el.firstChild.data = 'invalid'; });
         await page.waitForFunction(() => !document.getElementById('hp').hasAttribute('data-cp-hp'));
         assert.equal(await page.locator('.cp-hp-disc').count(), 0);
@@ -142,6 +176,6 @@ const assert = require('node:assert/strict');
       assert.deepEqual(errors, []);
       await page.close();
     }
-    console.log(process.env.CYBERPUNK_REFERENCE_DIR ? 'Reference measurements complete.' : 'PASS: scoped HP work in module and standalone; zero unrelated UI work; label/HUD replacement, delayed HUD, invalid values, full HP, cleanup and standalone toggle.');
+    console.log(process.env.CYBERPUNK_REFERENCE_DIR ? 'Reference measurements complete.' : 'PASS: no HUD rescans for nearby movement/UI mutations; no continuous theme animations or HUD SVG filters; native warnings, HP updates, rebuild, cleanup and toggles retained.');
   } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });
