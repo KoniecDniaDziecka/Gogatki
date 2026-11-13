@@ -1,4 +1,5 @@
 """Buduje instalator i zdalną paczkę motywu. Bez zależności."""
+import base64
 import json
 import re
 from urllib.parse import quote
@@ -13,8 +14,13 @@ for asset in ("hud-frame", "game-frame", "game-rail-top", "game-rail-bottom", "g
     CSS, count = re.subn(rf"(?m)^  --cp-{asset}: .*;$", lambda _m: f'  --cp-{asset}: url("{uri}");', CSS)
     if count != 1:
         raise ValueError(f"Brak jednoznacznego miejsca na grafikę {asset}")
+FONT = base64.b64encode((ROOT / "assets/fonts/cyberpunk-ni-digits.ttf").read_bytes()).decode("ascii")
+CSS, count = re.subn(r'(?m)^  src: url\("data:font/ttf;base64,[A-Za-z0-9+/=]*"\) format\("truetype"\);$',
+                     lambda _m: f'  src: url("data:font/ttf;base64,{FONT}") format("truetype");', CSS)
+if count != 1:
+    raise ValueError("Brak jednoznacznego miejsca na krój cyfr HP")
 (ROOT / "cyberpunk-ni.css").write_text(CSS)
-BUNDLE = {"id": "cyberpunk-ni", "schema": 1, "version": "0.2.51", "css": CSS}
+BUNDLE = {"id": "cyberpunk-ni", "schema": 1, "version": "0.2.52", "css": CSS}
 HEADER = """// ==UserScript==
 // @name         Cyberpunk NI
 // @namespace    local.margonem.cyberpunk-ni
