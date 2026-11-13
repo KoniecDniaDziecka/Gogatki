@@ -20,11 +20,11 @@ CSS, count = re.subn(r'(?m)^  src: url\("data:font/ttf;base64,[A-Za-z0-9+/=]*"\)
 if count != 1:
     raise ValueError("Brak jednoznacznego miejsca na krój cyfr HP")
 (ROOT / "cyberpunk-ni.css").write_text(CSS)
-BUNDLE = {"id": "cyberpunk-ni", "schema": 1, "version": "0.2.52", "css": CSS}
+BUNDLE = {"id": "cyberpunk-ni", "schema": 1, "version": "0.2.53", "css": CSS}
 HEADER = """// ==UserScript==
 // @name         Cyberpunk NI
 // @namespace    local.margonem.cyberpunk-ni
-// @version      0.2.3
+// @version      0.2.4
 // @description  Cyberpunk NI — najnowszy motyw pobierany przy każdym odświeżeniu gry.
 // @match        https://*.margonem.pl/*
 // @match        https://*.margonem.com/*
@@ -42,9 +42,12 @@ HEADER = """// ==UserScript==
 
 """
 SCRIPT = (ROOT / "loader.template.js").read_text()
+RUNTIME = (ROOT / "hp-runtime.js").read_text()
+SCRIPT = SCRIPT.replace("__RUNTIME__", RUNTIME)
 (ROOT / "theme.json").write_text(json.dumps(BUNDLE, ensure_ascii=False, indent=2) + "\n")
 (ROOT / "cyberpunk-ni.user.js").write_text(HEADER + SCRIPT.replace("__BUNDLE__", json.dumps(BUNDLE, ensure_ascii=False)))
 MODULE = (ROOT / "module.template.js").read_text()
+MODULE = MODULE.replace("__RUNTIME__", RUNTIME)
 MODULE_PATH = ROOT.parent / "gogatki/modules/cyberpunk-ni.js"
 MODULE_PATH.parent.mkdir(parents=True, exist_ok=True)
 MODULE_PATH.write_text(MODULE.replace("__BUNDLE__", json.dumps(BUNDLE, ensure_ascii=False)))

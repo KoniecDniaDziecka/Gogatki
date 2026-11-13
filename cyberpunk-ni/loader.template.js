@@ -5,12 +5,10 @@
   const API_URL = 'https://api.github.com/repos/KoniecDniaDziecka/Gogatki/contents/cyberpunk-ni/theme.json?ref=main';
   const ENABLED_KEY = 'cyberpunk-ni-enabled';
   const CACHE_KEY = 'cyberpunk-ni-last-good-theme';
-  const ATTRIBUTE = 'data-cyberpunk-ni';
-  const STYLE_ID = 'cyberpunk-ni-style';
   let enabled = GM_getValue(ENABLED_KEY, true) !== false;
   let request;
   let started = false;
-  let hpObserver;
+  __RUNTIME__
 
   function valid(theme) {
     return theme && theme.id === 'cyberpunk-ni' && theme.schema === 1 &&
@@ -23,65 +21,8 @@
   let theme = EMBEDDED_THEME;
   if (valid(cached) && !isOlder(cached)) theme = cached;
 
-  function syncHp() {
-    document.querySelectorAll('.bottom-panel .hp-indicator').forEach(indicator => {
-      // Licznik gry jest źródłem poziomu. Sprite krwi zawiera marginesy i cienie.
-      const label = indicator.querySelector('.hpp');
-      const text = label?.textContent.trim() || '';
-      const match = enabled && (text.match(/(-?\d+(?:[.,]\d+)?)\s*%/) ||
-        text.match(/^(-?\d+(?:[.,]\d+)?)$/));
-      if (!match) {
-        indicator.removeAttribute('data-cp-hp');
-        indicator.removeAttribute('data-cp-hp-renderer');
-        indicator.style.removeProperty('--cp-hp-level');
-        indicator.querySelector(':scope > .cp-hp-disc')?.remove();
-        return;
-      }
-      const percent = Math.max(0, Math.min(100, Number(match[1].replace(',', '.'))));
-      if (!Number.isFinite(percent)) return;
-      const value = `${percent}%`;
-      if (indicator.style.getPropertyValue('--cp-hp-level') !== value) {
-        indicator.style.setProperty('--cp-hp-level', value);
-      }
-      if (indicator.getAttribute('data-cp-hp') !== String(percent)) {
-        indicator.setAttribute('data-cp-hp', String(percent));
-      }
-      // Osobny dysk nie korzysta ze sprite'a, jego marginesów ani klatek.
-      // Przy 100% prostokąt wypełnienia zajmuje cały okrągły rodzic.
-      let disc = indicator.querySelector(':scope > .cp-hp-disc');
-      if (!disc) {
-        disc = document.createElement('div');
-        disc.className = 'cp-hp-disc';
-        disc.setAttribute('aria-hidden', 'true');
-        const fill = document.createElement('div');
-        fill.className = 'cp-hp-fill';
-        disc.append(fill);
-        indicator.append(disc);
-      }
-      if (indicator.getAttribute('data-cp-hp-renderer') !== 'disc') {
-        indicator.setAttribute('data-cp-hp-renderer', 'disc');
-      }
-    });
-  }
-
-  function apply() {
-    let style = document.getElementById(STYLE_ID);
-    if (!enabled || !document.querySelector('.layer.interface-layer')) {
-      document.documentElement.removeAttribute(ATTRIBUTE);
-      style?.remove();
-      syncHp();
-      return;
-    }
-    if (!style) {
-      style = document.createElement('style');
-      style.id = STYLE_ID;
-      (document.head || document.documentElement).append(style);
-    }
-    style.textContent = theme.css;
-    style.dataset.version = theme.version;
-    document.documentElement.setAttribute(ATTRIBUTE, 'on');
-    syncHp();
-  }
+  const runtime = createCyberpunkNiRuntime(window, () => theme, () => enabled);
+  function apply() { runtime.apply(); }
 
   function failed(reason) {
     console.warn('Cyberpunk NI: nie udało się pobrać aktualizacji; pozostaje ostatni dostępny motyw.', reason);
@@ -152,8 +93,6 @@
     if (started) return;
     started = true;
     apply();
-    hpObserver = new MutationObserver(syncHp);
-    hpObserver.observe(document.documentElement, { childList: true, subtree: true, characterData: true });
     refresh();
   }
 
@@ -174,7 +113,7 @@
 
   window.addEventListener('pagehide', () => {
     observer.disconnect();
-    hpObserver?.disconnect();
+    runtime.destroy();
     request?.abort?.();
   }, { once: true });
 })();
