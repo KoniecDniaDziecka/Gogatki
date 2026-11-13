@@ -4,10 +4,14 @@
  <linearGradient id='body' x1='0' y1='0' x2='0' y2='1'><stop stop-color='#25323e'/><stop offset='.42' stop-color='#171f28'/><stop offset='1' stop-color='#101a23'/></linearGradient>
  <linearGradient id='title' x1='0' y1='0' x2='1' y2='0'><stop stop-color='#1c303d'/><stop offset='.5' stop-color='#10232c'/><stop offset='1' stop-color='#1c303d'/></linearGradient>
 </defs>
-<!-- Skrzydła i nacięcia obudowy. -->
-<path id='wing' d='M1 .5h22v13l-9 9H6v-8h6l5-5V6H1Z' fill='#203442' stroke='#668298'/>
-<use href='#wing' transform='translate(340 0) scale(-1 1)'/>
-<path d='M3 3h13m308 0h13' stroke='#12c9bd'/><path d='M9 17h4l5-5m304 0 5 5h4' fill='none' stroke='#2c5d68'/>
+<!-- Krótkie, płaskie mocowania z wpuszczonym paskiem światła. -->
+<g id='mount'>
+ <path d='M14 5h9v12h-9l-3-3V8Z' fill='url(#metal)' stroke='#668298' stroke-width='.8'/>
+ <path d='M15 7h8v8h-8l-2-2V9Z' fill='#162a36' stroke='#314e60' stroke-width='.6'/>
+ <path d='M14.5 9v4' stroke='#12c9bd' stroke-width='1.5'/>
+ <circle cx='20.5' cy='11' r='1.2' fill='#12212c' stroke='#6a879b' stroke-width='.65'/>
+</g>
+<use href='#mount' transform='translate(340 0) scale(-1 1)'/>
 <!-- Szeroka stalowa obręcz i ciemny rdzeń. -->
 <path d='M23 .5h294v47l-7 16-13 10H43L30 63l-7-16Z' fill='url(#metal)' stroke='#6e899b'/>
 <path d='M27 4h286v42l-7 15-10 9H44l-10-9-7-15Z' fill='url(#body)' stroke='#0a141e'/>

@@ -13,7 +13,7 @@ CSS, HUD_COUNT = re.subn(r"(?m)^  --cp-hud-frame: .*;$", lambda _m: f'  --cp-hud
 if HUD_COUNT != 1:
     raise ValueError("Brak jednoznacznego miejsca na grafikę HUD")
 (ROOT / "cyberpunk-ni.css").write_text(CSS)
-BUNDLE = {"id": "cyberpunk-ni", "schema": 1, "version": "0.2.34", "css": CSS}
+BUNDLE = {"id": "cyberpunk-ni", "schema": 1, "version": "0.2.35", "css": CSS}
 HEADER = """// ==UserScript==
 // @name         Cyberpunk NI
 // @namespace    local.margonem.cyberpunk-ni
