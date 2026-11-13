@@ -1,4 +1,8 @@
 <svg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64' preserveAspectRatio='none'><defs><linearGradient id='steel' x1='0' y1='0' x2='1' y2='1'><stop stop-color='#91a7b4'/><stop offset='.3' stop-color='#354f62'/><stop offset='.65' stop-color='#1c2d3a'/><stop offset='1' stop-color='#647f91'/></linearGradient></defs>
+<!-- Cały wycinek 12 px jest nieprzezroczysty; środek nie jest rysowany. -->
+<path d='M0 0h64v64H0ZM12 12v40h40V12Z' fill='url(#steel)' fill-rule='evenodd'/>
+<path d='M6 0v64m52-64v64M0 6h64M0 58h64' fill='none' stroke='#243d4d' stroke-width='3'/>
+
 <path d='M9 .5h46l8.5 8.5v46L55 63.5H9L.5 55V9Z' fill='none' stroke='url(#steel)'/>
 <path d='M10 2.5h44l7.5 7.5v44L54 61.5H10L2.5 54V10Z' fill='none' stroke='#172a36' stroke-width='3'/>
 <path d='m2 11 9-9m42 60 9-9' fill='none' stroke='#12c9bd' stroke-width='1.2'/>

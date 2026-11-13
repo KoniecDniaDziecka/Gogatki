@@ -14,7 +14,7 @@ for asset in ("hud-frame", "game-frame", "game-rail-top", "game-rail-bottom", "g
     if count != 1:
         raise ValueError(f"Brak jednoznacznego miejsca na grafikę {asset}")
 (ROOT / "cyberpunk-ni.css").write_text(CSS)
-BUNDLE = {"id": "cyberpunk-ni", "schema": 1, "version": "0.2.37", "css": CSS}
+BUNDLE = {"id": "cyberpunk-ni", "schema": 1, "version": "0.2.38", "css": CSS}
 HEADER = """// ==UserScript==
 // @name         Cyberpunk NI
 // @namespace    local.margonem.cyberpunk-ni
