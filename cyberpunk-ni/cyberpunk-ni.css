@@ -1,4 +1,4 @@
-/* Cyberpunk NI 0.2.57 — motyw dla nowego interfejsu Margonem.
+/* Cyberpunk NI 0.2.58 — motyw dla nowego interfejsu Margonem.
  * Skrypt .user.js włącza go atrybutem data-cyberpunk-ni="on" na <html>.
  * Zmienne poniżej sterują paletą. Nie wymaga zewnętrznych grafik ani fontów.
  * Najlepiej używać z wyłączonym DarknessNI i innymi motywami całego NI.
@@ -1447,7 +1447,8 @@ html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator > .cp-hp-disc > .cp-hp-
   left: 0 !important;
   bottom: 0 !important;
   width: 100% !important;
-  height: var(--cp-hp-level, 0%) !important;
+  /* Stały rozmiar: zmiana HP skaluje tylko wypełnienie, bez layoutu. */
+  height: 100% !important;
   min-width: 0 !important;
   min-height: 0 !important;
   max-width: none !important;
@@ -1463,7 +1464,9 @@ html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator > .cp-hp-disc > .cp-hp-
     radial-gradient(ellipse at 36% 29%, #e73538 0%, #c41b28 37%, #9c101f 70%, #640d20 100%) !important;
   overflow: hidden !important;
   box-shadow: none !important;
-  transform: none !important;
+  transform: scaleY(var(--cp-hp-level, 0%)) !important;
+  transform-origin: center bottom !important;
+  will-change: transform !important;
   translate: none !important;
   filter: none !important;
   clip-path: none !important;
@@ -1473,12 +1476,8 @@ html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator > .cp-hp-disc > .cp-hp-
   pointer-events: none !important;
 }
 
-html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator[data-cp-hp="100"] > .cp-hp-disc > .cp-hp-fill {
-  height: 100% !important;
-}
-
 /* Statyczne pasma energii i odbicie: bez ciągłego odrysowywania podczas ruchu.
- * Wysokość HP i okrągła maska pozostają sterowane poziomem życia. */
+ * Poziom HP zmienia skalę wypełnienia; szkło i pierścień są nieruchome. */
 html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator > .cp-hp-disc > .cp-hp-fill::before,
 html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator > .cp-hp-disc > .cp-hp-fill::after {
   content: "" !important;
