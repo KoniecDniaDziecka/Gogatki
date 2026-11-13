@@ -1,4 +1,4 @@
-/* Cyberpunk NI 0.2.44 — motyw dla nowego interfejsu Margonem.
+/* Cyberpunk NI 0.2.45 — motyw dla nowego interfejsu Margonem.
  * Skrypt .user.js włącza go atrybutem data-cyberpunk-ni="on" na <html>.
  * Zmienne poniżej sterują paletą. Nie wymaga zewnętrznych grafik ani fontów.
  * Najlepiej używać z wyłączonym DarknessNI i innymi motywami całego NI.
@@ -2636,6 +2636,29 @@ html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .t
 }
 html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) .close-button:not(.disabled):not([disabled]):not([aria-disabled="true"]):hover .ie-icon-close {
   filter: var(--cp-sprite-tint) brightness(.7) !important;
+}
+}
+
+/* Natywne tory EXP mają po 235 px. Ta sama nierozciągana podziałka
+ * pokrywa tor i przycinane szerokością wypełnienie, więc znaczniki nie
+ * przesuwają się przy zmianie procentu. Nie dodajemy warstw nad tooltipem. */
+@layer cyberpunk-ni-bottom-meters {
+html[data-cyberpunk-ni="on"] {
+  --cp-exp-ticks: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='235'%20height='11'%20viewBox='0%200%20235%2011'%20preserveAspectRatio='none'%3E%3Cpath%20d='M23.5%200v11%20M47%200v11%20M70.5%200v11%20M94%200v11%20M117.5%200v11%20M141%200v11%20M164.5%200v11%20M188%200v11%20M211.5%200v11'%20fill='none'%20stroke='%23354f60'%20stroke-width='1'%20stroke-opacity='.8'/%3E%3C/svg%3E");
+}
+html[data-cyberpunk-ni="on"] .bottom-panel .exp-bar-wrapper .exp-progress .progress {
+  background-image: var(--cp-exp-ticks) !important;
+  background-position: left top !important;
+  background-size: 235px 100% !important;
+  background-repeat: no-repeat !important;
+}
+html[data-cyberpunk-ni="on"] .bottom-panel .exp-bar-wrapper .exp-progress .progress .inner {
+  background: var(--cp-exp-ticks) left top / 235px 100% no-repeat,
+    linear-gradient(#71ddd4, var(--cp-cyan)) !important;
+}
+html[data-cyberpunk-ni="on"] .bottom-panel .exp-bar-wrapper .exp-progress .progress.noexp .inner {
+  background: var(--cp-exp-ticks) left top / 235px 100% no-repeat,
+    linear-gradient(#44616a, #253941) !important;
 }
 }
 
