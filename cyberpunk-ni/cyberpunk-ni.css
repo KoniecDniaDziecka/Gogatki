@@ -1,4 +1,4 @@
-/* Cyberpunk NI 0.2.45 — motyw dla nowego interfejsu Margonem.
+/* Cyberpunk NI 0.2.46 — motyw dla nowego interfejsu Margonem.
  * Skrypt .user.js włącza go atrybutem data-cyberpunk-ni="on" na <html>.
  * Zmienne poniżej sterują paletą. Nie wymaga zewnętrznych grafik ani fontów.
  * Najlepiej używać z wyłączonym DarknessNI i innymi motywami całego NI.
@@ -2659,6 +2659,28 @@ html[data-cyberpunk-ni="on"] .bottom-panel .exp-bar-wrapper .exp-progress .progr
 html[data-cyberpunk-ni="on"] .bottom-panel .exp-bar-wrapper .exp-progress .progress.noexp .inner {
   background: var(--cp-exp-ticks) left top / 235px 100% no-repeat,
     linear-gradient(#44616a, #253941) !important;
+}
+}
+
+/* Jedna oś symetrii dla HP i obu pól. Natywne centrowanie kontenera
+ * etykiet może mieć inny offset niż wrapper HP; resetujemy wyłącznie X.
+ * Wspólna szerokość i lustrzane odsunięcia pól pozostają bez zmian. */
+@layer cyberpunk-ni-bottom-meters {
+html[data-cyberpunk-ni="on"] .bottom-panel .bottom-panel-pointer-bg {
+  position: absolute !important;
+  left: calc(50% - 121.5px) !important;
+  right: auto !important;
+  width: 243px !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  transform: none !important;
+  translate: none !important;
+}
+@supports (position-anchor: --cp-hp-orb) {
+  html[data-cyberpunk-ni="on"] .bottom-panel .bottom-panel-pointer-bg {
+    position-anchor: --cp-hp-orb !important;
+    left: calc(anchor(center, 50%) - 121.5px) !important;
+  }
 }
 }
 
