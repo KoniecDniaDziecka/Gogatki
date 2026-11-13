@@ -1,0 +1,28 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='340' height='74' viewBox='0 0 340 74' preserveAspectRatio='none'>
+<defs>
+ <linearGradient id='metal' x1='0' y1='0' x2='.3' y2='1'><stop stop-color='#8aa3b3'/><stop offset='.12' stop-color='#344d5f'/><stop offset='.45' stop-color='#182934'/><stop offset='.77' stop-color='#3b5668'/><stop offset='1' stop-color='#7b95a5'/></linearGradient>
+ <linearGradient id='body' x1='0' y1='0' x2='0' y2='1'><stop stop-color='#25323e'/><stop offset='.42' stop-color='#171f28'/><stop offset='1' stop-color='#101a23'/></linearGradient>
+ <linearGradient id='title' x1='0' y1='0' x2='1' y2='0'><stop stop-color='#1c303d'/><stop offset='.5' stop-color='#10232c'/><stop offset='1' stop-color='#1c303d'/></linearGradient>
+</defs>
+<!-- Skrzydła i nacięcia obudowy. -->
+<path id='wing' d='M1 .5h22v13l-9 9H6v-8h6l5-5V6H1Z' fill='#203442' stroke='#668298'/>
+<use href='#wing' transform='translate(340 0) scale(-1 1)'/>
+<path d='M3 3h13m308 0h13' stroke='#12c9bd'/><path d='M9 17h4l5-5m304 0 5 5h4' fill='none' stroke='#2c5d68'/>
+<!-- Szeroka stalowa obręcz i ciemny rdzeń. -->
+<path d='M23 .5h294v47l-7 16-13 10H43L30 63l-7-16Z' fill='url(#metal)' stroke='#6e899b'/>
+<path d='M27 4h286v42l-7 15-10 9H44l-10-9-7-15Z' fill='url(#body)' stroke='#0a141e'/>
+<path d='M29 9v34l7 15m275-49v34l-7 15' fill='none' stroke='#4c6a7d' stroke-width='.7'/>
+<!-- Segmenty energii w krawędziach, poza wierszami tekstu. -->
+<path d='M25 11v14m0 5v8m290-27v14m0 5v8' stroke='#12c9bd' stroke-width='1.6'/>
+<path d='m35 63 9 7h53m146 0h53l9-7' fill='none' stroke='#12c9bd' stroke-width='1.2'/>
+<path d='M101 71h22m94 0h22' stroke='#426d7e'/><path d='M126 71h9m70 0h9' stroke='#b08aff' stroke-width='1.4'/>
+<!-- Tabliczka nazwy i drobne łączniki. -->
+<path d='M38 3h264l3 3v13l-3 3H38l-3-3V6Z' fill='url(#title)' stroke='#4e7085'/>
+<path d='M39 5h31m200 0h31M37 8v8m266-8v8' fill='none' stroke='#12c9bd' stroke-width='.9'/>
+<path d='M76 4h14m160 0h14' stroke='#537483'/><path d='M91 22h39m80 0h39' stroke='#344e5e'/>
+<path d='M33 25h21m232 0h21M35 28h8m254 0h8' stroke='#324a59' stroke-width='.7'/>
+<!-- Obejmy walut i mikrodetale przy dolnej krawędzi. -->
+<path d='M42 49v10l4 4h16m101-14v10l4 4h16' fill='none' stroke='#395667'/>
+<g fill='#162531' stroke='#6a8597' stroke-width='.65'><circle cx='35' cy='6' r='1.3'/><circle cx='305' cy='6' r='1.3'/><circle cx='39' cy='63' r='1.3'/><circle cx='301' cy='63' r='1.3'/></g>
+<path d='m48 67 2 2m2-2 2 2m2-2 2 2m224-2 2 2m2-2 2 2m2-2 2 2' stroke='#547182' stroke-width='.7'/>
+<g transform='translate(43 47)' stroke='#e5c85a' stroke-width='.8'><ellipse cx='10' cy='14' rx='8.5' ry='5.5' fill='#866222'/><path d='M1.5 10v4c0 3 17 3 17 0v-4' fill='#b18b2e'/><ellipse cx='10' cy='10' rx='8.5' ry='5.5' fill='#e1bc43'/><ellipse cx='10' cy='10' rx='5.5' ry='3.2' fill='#bd922b'/><path d='m9 7 3 1-2 2 1 2-3-1 2-2Z' fill='#f4de84' stroke='none'/></g><g transform='translate(166 47)' stroke='#b6c86c' stroke-width='.8'><path d='m10 0 8 6-1 10-8 5-7-6L3 5Z' fill='#3f7837'/><path d='m10 2 6 5-7 4-4-5Zm-1 10 6-3-1 6-5 4-4-5Z' fill='#77a849' stroke-width='.5'/><path d='m10 2-1 9v8' fill='none' stroke='#284e2a'/></g></svg>

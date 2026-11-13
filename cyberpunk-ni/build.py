@@ -1,13 +1,19 @@
 """Buduje instalator i zdalną paczkę motywu. Bez zależności."""
 import json
+import re
+from urllib.parse import quote
 from pathlib import Path
 from window_assets import inline_graphics
 
 ROOT = Path(__file__).resolve().parent
 CSS = (ROOT / "cyberpunk-ni.css").read_text()
 CSS = inline_graphics(CSS, ROOT)
+HUD_URI = "data:image/svg+xml," + quote((ROOT / "assets/hud-frame.svg").read_text(), safe="='/:,.-")
+CSS, HUD_COUNT = re.subn(r"(?m)^  --cp-hud-frame: .*;$", lambda _m: f'  --cp-hud-frame: url("{HUD_URI}");', CSS)
+if HUD_COUNT != 1:
+    raise ValueError("Brak jednoznacznego miejsca na grafikę HUD")
 (ROOT / "cyberpunk-ni.css").write_text(CSS)
-BUNDLE = {"id": "cyberpunk-ni", "schema": 1, "version": "0.2.33", "css": CSS}
+BUNDLE = {"id": "cyberpunk-ni", "schema": 1, "version": "0.2.34", "css": CSS}
 HEADER = """// ==UserScript==
 // @name         Cyberpunk NI
 // @namespace    local.margonem.cyberpunk-ni

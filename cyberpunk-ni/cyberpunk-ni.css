@@ -1,4 +1,4 @@
-/* Cyberpunk NI 0.2.33 — motyw dla nowego interfejsu Margonem.
+/* Cyberpunk NI 0.2.34 — motyw dla nowego interfejsu Margonem.
  * Skrypt .user.js włącza go atrybutem data-cyberpunk-ni="on" na <html>.
  * Zmienne poniżej sterują paletą. Nie wymaga zewnętrznych grafik ani fontów.
  * Najlepiej używać z wyłączonym DarknessNI i innymi motywami całego NI.
@@ -11,6 +11,7 @@ html[data-cyberpunk-ni="on"] {
   --cp-raised: #252b31;
   --cp-line: #668298;
   --cp-cyan: #12c9bd;
+  --cp-hud-frame: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='340'%20height='74'%20viewBox='0%200%20340%2074'%20preserveAspectRatio='none'%3E%0A%3Cdefs%3E%0A%20%3ClinearGradient%20id='metal'%20x1='0'%20y1='0'%20x2='.3'%20y2='1'%3E%3Cstop%20stop-color='%238aa3b3'/%3E%3Cstop%20offset='.12'%20stop-color='%23344d5f'/%3E%3Cstop%20offset='.45'%20stop-color='%23182934'/%3E%3Cstop%20offset='.77'%20stop-color='%233b5668'/%3E%3Cstop%20offset='1'%20stop-color='%237b95a5'/%3E%3C/linearGradient%3E%0A%20%3ClinearGradient%20id='body'%20x1='0'%20y1='0'%20x2='0'%20y2='1'%3E%3Cstop%20stop-color='%2325323e'/%3E%3Cstop%20offset='.42'%20stop-color='%23171f28'/%3E%3Cstop%20offset='1'%20stop-color='%23101a23'/%3E%3C/linearGradient%3E%0A%20%3ClinearGradient%20id='title'%20x1='0'%20y1='0'%20x2='1'%20y2='0'%3E%3Cstop%20stop-color='%231c303d'/%3E%3Cstop%20offset='.5'%20stop-color='%2310232c'/%3E%3Cstop%20offset='1'%20stop-color='%231c303d'/%3E%3C/linearGradient%3E%0A%3C/defs%3E%0A%3C%21--%20Skrzyd%C5%82a%20i%20naci%C4%99cia%20obudowy.%20--%3E%0A%3Cpath%20id='wing'%20d='M1%20.5h22v13l-9%209H6v-8h6l5-5V6H1Z'%20fill='%23203442'%20stroke='%23668298'/%3E%0A%3Cuse%20href='%23wing'%20transform='translate%28340%200%29%20scale%28-1%201%29'/%3E%0A%3Cpath%20d='M3%203h13m308%200h13'%20stroke='%2312c9bd'/%3E%3Cpath%20d='M9%2017h4l5-5m304%200%205%205h4'%20fill='none'%20stroke='%232c5d68'/%3E%0A%3C%21--%20Szeroka%20stalowa%20obr%C4%99cz%20i%20ciemny%20rdze%C5%84.%20--%3E%0A%3Cpath%20d='M23%20.5h294v47l-7%2016-13%2010H43L30%2063l-7-16Z'%20fill='url%28%23metal%29'%20stroke='%236e899b'/%3E%0A%3Cpath%20d='M27%204h286v42l-7%2015-10%209H44l-10-9-7-15Z'%20fill='url%28%23body%29'%20stroke='%230a141e'/%3E%0A%3Cpath%20d='M29%209v34l7%2015m275-49v34l-7%2015'%20fill='none'%20stroke='%234c6a7d'%20stroke-width='.7'/%3E%0A%3C%21--%20Segmenty%20energii%20w%20kraw%C4%99dziach,%20poza%20wierszami%20tekstu.%20--%3E%0A%3Cpath%20d='M25%2011v14m0%205v8m290-27v14m0%205v8'%20stroke='%2312c9bd'%20stroke-width='1.6'/%3E%0A%3Cpath%20d='m35%2063%209%207h53m146%200h53l9-7'%20fill='none'%20stroke='%2312c9bd'%20stroke-width='1.2'/%3E%0A%3Cpath%20d='M101%2071h22m94%200h22'%20stroke='%23426d7e'/%3E%3Cpath%20d='M126%2071h9m70%200h9'%20stroke='%23b08aff'%20stroke-width='1.4'/%3E%0A%3C%21--%20Tabliczka%20nazwy%20i%20drobne%20%C5%82%C4%85czniki.%20--%3E%0A%3Cpath%20d='M38%203h264l3%203v13l-3%203H38l-3-3V6Z'%20fill='url%28%23title%29'%20stroke='%234e7085'/%3E%0A%3Cpath%20d='M39%205h31m200%200h31M37%208v8m266-8v8'%20fill='none'%20stroke='%2312c9bd'%20stroke-width='.9'/%3E%0A%3Cpath%20d='M76%204h14m160%200h14'%20stroke='%23537483'/%3E%3Cpath%20d='M91%2022h39m80%200h39'%20stroke='%23344e5e'/%3E%0A%3Cpath%20d='M33%2025h21m232%200h21M35%2028h8m254%200h8'%20stroke='%23324a59'%20stroke-width='.7'/%3E%0A%3C%21--%20Obejmy%20walut%20i%20mikrodetale%20przy%20dolnej%20kraw%C4%99dzi.%20--%3E%0A%3Cpath%20d='M42%2049v10l4%204h16m101-14v10l4%204h16'%20fill='none'%20stroke='%23395667'/%3E%0A%3Cg%20fill='%23162531'%20stroke='%236a8597'%20stroke-width='.65'%3E%3Ccircle%20cx='35'%20cy='6'%20r='1.3'/%3E%3Ccircle%20cx='305'%20cy='6'%20r='1.3'/%3E%3Ccircle%20cx='39'%20cy='63'%20r='1.3'/%3E%3Ccircle%20cx='301'%20cy='63'%20r='1.3'/%3E%3C/g%3E%0A%3Cpath%20d='m48%2067%202%202m2-2%202%202m2-2%202%202m224-2%202%202m2-2%202%202m2-2%202%202'%20stroke='%23547182'%20stroke-width='.7'/%3E%0A%3Cg%20transform='translate%2843%2047%29'%20stroke='%23e5c85a'%20stroke-width='.8'%3E%3Cellipse%20cx='10'%20cy='14'%20rx='8.5'%20ry='5.5'%20fill='%23866222'/%3E%3Cpath%20d='M1.5%2010v4c0%203%2017%203%2017%200v-4'%20fill='%23b18b2e'/%3E%3Cellipse%20cx='10'%20cy='10'%20rx='8.5'%20ry='5.5'%20fill='%23e1bc43'/%3E%3Cellipse%20cx='10'%20cy='10'%20rx='5.5'%20ry='3.2'%20fill='%23bd922b'/%3E%3Cpath%20d='m9%207%203%201-2%202%201%202-3-1%202-2Z'%20fill='%23f4de84'%20stroke='none'/%3E%3C/g%3E%3Cg%20transform='translate%28166%2047%29'%20stroke='%23b6c86c'%20stroke-width='.8'%3E%3Cpath%20d='m10%200%208%206-1%2010-8%205-7-6L3%205Z'%20fill='%233f7837'/%3E%3Cpath%20d='m10%202%206%205-7%204-4-5Zm-1%2010%206-3-1%206-5%204-4-5Z'%20fill='%2377a849'%20stroke-width='.5'/%3E%3Cpath%20d='m10%202-1%209v8'%20fill='none'%20stroke='%23284e2a'/%3E%3C/g%3E%3C/svg%3E%0A");
   --cp-hp-red: #f21b14;
   --cp-violet: #b08aff;
   --cp-text: #c7d0d9;
@@ -1190,7 +1191,7 @@ html[data-cyberpunk-ni="on"] {
 }
 
 html[data-cyberpunk-ni="on"] .layer.interface-layer .positioner.top .hud-container {
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 340 74' preserveAspectRatio='none'%3E%3Cdefs%3E%3ClinearGradient id='shell' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop stop-color='%236b8191'/%3E%3Cstop offset='.2' stop-color='%232b3a46'/%3E%3Cstop offset='.7' stop-color='%2317222b'/%3E%3Cstop offset='1' stop-color='%23425868'/%3E%3C/linearGradient%3E%3ClinearGradient id='panel' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop stop-color='%23252b31'/%3E%3Cstop offset='1' stop-color='%23171b20'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath id='wing' d='M1 1h22v13l-9 9H6v-8h6l5-5V6H1Z' fill='%2327343e' stroke='%23668298'/%3E%3Cuse href='%23wing' transform='translate%28340 0%29 scale%28-1 1%29'/%3E%3Cpath d='M3 4h13m308 0h13' stroke='%2312c9bd'/%3E%3Cpath d='M23 .5h294v46c0 17-9 27-26 27H49c-17 0-26-10-26-27Z' fill='url%28%23shell%29' stroke='%23668298'/%3E%3Cpath d='M26 3h288v43c0 16-8 24-23 24H49c-15 0-23-8-23-24Z' fill='url%28%23panel%29' stroke='%230c1118'/%3E%3Cpath d='M34 61c4 7 9 10 20 10h232c11 0 16-3 20-10' fill='none' stroke='%2312c9bd' stroke-opacity='.55'/%3E%3Crect x='37' y='3' width='266' height='18' rx='1' fill='%23171b20' stroke='%23425868'/%3E%3Cg transform='translate%2843 47%29' stroke='%23e5c85a' stroke-width='.8'%3E%3Cellipse cx='10' cy='14' rx='8.5' ry='5.5' fill='%23866222'/%3E%3Cpath d='M1.5 10v4c0 3 17 3 17 0v-4' fill='%23b18b2e'/%3E%3Cellipse cx='10' cy='10' rx='8.5' ry='5.5' fill='%23e1bc43'/%3E%3Cellipse cx='10' cy='10' rx='5.5' ry='3.2' fill='%23bd922b'/%3E%3Cpath d='m9 7 3 1-2 2 1 2-3-1 2-2Z' fill='%23f4de84' stroke='none'/%3E%3C/g%3E%3Cg transform='translate%28166 47%29' stroke='%23b6c86c' stroke-width='.8'%3E%3Cpath d='m10 0 8 6-1 10-8 5-7-6L3 5Z' fill='%233f7837'/%3E%3Cpath d='m10 2 6 5-7 4-4-5Zm-1 10 6-3-1 6-5 4-4-5Z' fill='%2377a849' stroke-width='.5'/%3E%3Cpath d='m10 2-1 9v8' fill='none' stroke='%23284e2a'/%3E%3C/g%3E%3C/svg%3E") center / 100% 100% no-repeat !important;
+  background: var(--cp-hud-frame) center / 100% 100% no-repeat !important;
   border-image: none !important;
   border-color: transparent !important;
   border-radius: 0 !important;
@@ -2435,6 +2436,49 @@ html[data-cyberpunk-ni="on"] .layer.interface-layer .main-column .extended-stats
 
 html[data-cyberpunk-ni="on"] .additional-bar-br .layer.interface-layer .main-column .extended-stats::after {
   background: rgba(23, 27, 32, .86) !important;
+}
+}
+
+/* Obrabiane krawędzie i mały puls światła. Położenie danych, obszary
+ * przycisków oraz atlas statusu mapy pozostają natywne. */
+@layer cyberpunk-ni-top-hud {
+html[data-cyberpunk-ni="on"] .layer.interface-layer .positioner.top .hud-container::after {
+  content: "" !important;
+  position: absolute !important;
+  left: calc(50% - 17px) !important;
+  right: auto !important;
+  top: auto !important;
+  bottom: 2px !important;
+  width: 34px !important;
+  height: 1px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: linear-gradient(90deg, transparent, #51e1d2 35% 65%, transparent) !important;
+  pointer-events: none !important;
+  animation: cp-ni-hud-light 4.8s ease-in-out infinite alternate !important;
+}
+html[data-cyberpunk-ni="on"] .layer.interface-layer .positioner.top .hud-container .herogold {
+  background: linear-gradient(#243441, #14222e) !important;
+  box-shadow: inset 0 1px #3d5361, inset 0 -1px #9d8a50 !important;
+}
+html[data-cyberpunk-ni="on"] .layer.interface-layer .positioner.top .hud-container .herocredits {
+  background: linear-gradient(#213a42, #14262f) !important;
+  box-shadow: inset 0 1px #3c5c68, inset 0 -1px #429e93 !important;
+}
+html[data-cyberpunk-ni="on"] .layer.interface-layer .positioner.top .hud-container .btn-min {
+  background-color: #203946 !important;
+  box-shadow: inset 0 0 0 1px #6c8c9e !important;
+}
+html[data-cyberpunk-ni="on"] .layer.interface-layer .positioner.top .hud-container .btn-min:not(.disabled):not([disabled]):not([aria-disabled="true"]):hover {
+  box-shadow: inset 0 0 0 1px #12c9bd !important;
+}
+@keyframes cp-ni-hud-light { from { opacity: .4; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  html[data-cyberpunk-ni="on"] .layer.interface-layer .positioner.top .hud-container::after {
+    animation: none !important;
+    opacity: .8 !important;
+  }
 }
 }
 
