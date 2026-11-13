@@ -76,14 +76,14 @@
     {
       "id": "strategy",
       "name": "Strategy",
-      "description": "Kolejka ruchów z ikonami, wykonywana w Twojej turze.",
-      "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/strategy.js?v=2.1.0"
+      "description": "Kolejkowanie ruchów w walce",
+      "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/strategy.js?v=2.1.1"
     },
     {
       "id": "kamyki",
       "name": "Kamyki",
-      "description": "Obrazki potworów na kamieniach teleportujących. Piramida w docku włącza i wyłącza nakładki.",
-      "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/kamyki.js?v=0.25.0"
+      "description": "Dodanie grafik potworów do tp",
+      "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/kamyki.js?v=0.25.1"
     }
   ]
 }

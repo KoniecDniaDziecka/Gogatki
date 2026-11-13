@@ -1,6 +1,6 @@
-// Strategy 2.1.0 — battle queue inspired by Spell Trigger (Maddonz, Barlag).
+// Strategy 2.1.1 — battle queue inspired by Spell Trigger (Maddonz, Barlag).
 GogatkiRuntime.register({
- id:'strategy',name:'Strategy',description:'Kolejka ruchów z ikonami, wykonywana w Twojej turze.',
+ id:'strategy',name:'Strategy',description:'Kolejkowanie ruchów w walce',
  start(){
   const window=unsafeWindow;
   (()=>{
@@ -195,7 +195,7 @@ GogatkiRuntime.register({
     const resize=()=>{placeHost(host,'right','top');placeHost(battleHost,'battleQueueRight','battleQueueTop');save();};window.addEventListener('resize',resize);cleanups.push(()=>window.removeEventListener('resize',resize));
     started=true;save();render();
     const initial=current?.battle?.warriorsList||window.g?.battle?.f;if(initial&&Object.keys(initial).length&&((current?.lock||window.g?.lock)?.check?.('battle')))receive({f:{init:1,w:Object.fromEntries(Object.entries(initial).map(([id,value])=>[id,{...(value.d||value)}]))}});
-    window.SpellTriggerStandalone={version:'2.1.0',enqueue:addMove,clear:clearQueue,get queue(){return queue.map(move=>({...move}));},destroy};
+    window.SpellTriggerStandalone={version:'2.1.1',enqueue:addMove,clear:clearQueue,get queue(){return queue.map(move=>({...move}));},destroy};
    }
    function pulse(){
     if(disposed)return;

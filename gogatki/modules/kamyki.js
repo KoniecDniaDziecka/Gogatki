@@ -1,4 +1,4 @@
-GogatkiRuntime.register({id:'kamyki', name:'Kamyki', start() {
+GogatkiRuntime.register({id:'kamyki', name:'Kamyki', description:'Dodanie grafik potworów do tp', start() {
 (function () {
     'use strict';
     const config = {
