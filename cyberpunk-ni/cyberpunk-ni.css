@@ -1,4 +1,4 @@
-/* Cyberpunk NI 0.2.62 — motyw dla nowego interfejsu Margonem.
+/* Cyberpunk NI 0.2.63 — motyw dla nowego interfejsu Margonem.
  * Skrypt .user.js włącza go atrybutem data-cyberpunk-ni="on" na <html>.
  * Zmienne poniżej sterują paletą. Nie wymaga zewnętrznych grafik ani fontów.
  * Najlepiej używać z wyłączonym DarknessNI i innymi motywami całego NI.
@@ -1282,7 +1282,34 @@ html[data-cyberpunk-ni="on"] .layer.interface-layer .positioner.top .hud-contain
   text-align: right !important;
 }
 
-/* Oryginalny atlas nadal wybiera kolor statusu. Przycinamy tylko jego kształt. */
+/* Statusy mapy zachowują natywne klasy i rozróżnienie kolorów.
+ * Statyczna paleta zastępuje jaskrawe kolory atlasu, bez filtrów i animacji. */
+html[data-cyberpunk-ni="on"] .layer.interface-layer :is(.positioner.top .hud-container .map_ball, .location-wrapper-light-mode .location-wrapper-border .map-ball) {
+  --cp-map-status-hi: #9ab0bd;
+  --cp-map-status-mid: #607c8e;
+  --cp-map-status-low: #293d49;
+  background: linear-gradient(135deg, var(--cp-map-status-hi), var(--cp-map-status-mid) 45%, var(--cp-map-status-low)) center / 100% 100% no-repeat !important;
+}
+html[data-cyberpunk-ni="on"] .layer.interface-layer :is(.positioner.top .hud-container .map_ball, .location-wrapper-light-mode .location-wrapper-border .map-ball).green {
+  --cp-map-status-hi: #70c6b8;
+  --cp-map-status-mid: #299b89;
+  --cp-map-status-low: #174942;
+}
+html[data-cyberpunk-ni="on"] .layer.interface-layer :is(.positioner.top .hud-container .map_ball, .location-wrapper-light-mode .location-wrapper-border .map-ball).yellow {
+  --cp-map-status-hi: #dbc98a;
+  --cp-map-status-mid: #b49e50;
+  --cp-map-status-low: #54482b;
+}
+html[data-cyberpunk-ni="on"] .layer.interface-layer :is(.positioner.top .hud-container .map_ball, .location-wrapper-light-mode .location-wrapper-border .map-ball).orange {
+  --cp-map-status-hi: #d4a074;
+  --cp-map-status-mid: #b37547;
+  --cp-map-status-low: #573a2c;
+}
+html[data-cyberpunk-ni="on"] .layer.interface-layer :is(.positioner.top .hud-container .map_ball, .location-wrapper-light-mode .location-wrapper-border .map-ball).red {
+  --cp-map-status-hi: #d78892;
+  --cp-map-status-mid: #b64e60;
+  --cp-map-status-low: #552736;
+}
 html[data-cyberpunk-ni="on"] .layer.interface-layer .positioner.top .hud-container .map_ball {
   clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%) !important;
   border-radius: 0 !important;
@@ -1297,7 +1324,7 @@ html[data-cyberpunk-ni="on"] .layer.interface-layer .positioner.top .hud-contain
   height: 70% !important;
   box-sizing: border-box !important;
   transform: rotate(45deg) !important;
-  border: 1px solid var(--cp-line) !important;
+  border: 1px solid var(--cp-map-status-hi) !important;
   background: none !important;
   pointer-events: none !important;
 }
@@ -2458,7 +2485,7 @@ html[data-cyberpunk-ni="on"] .additional-bar-br .layer.interface-layer .main-col
 }
 
 /* Obrabiane krawędzie i nieruchomy akcent światła. Położenie danych, obszary
- * przycisków oraz atlas statusu mapy pozostają natywne. */
+ * przycisków oraz klasy statusu mapy pozostają natywne. */
 @layer cyberpunk-ni-top-hud {
 html[data-cyberpunk-ni="on"] .layer.interface-layer .positioner.top .hud-container::after {
   content: "" !important;
