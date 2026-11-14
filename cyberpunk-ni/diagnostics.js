@@ -182,6 +182,7 @@ function installCyberpunkNiDiagnostics(window, theme, readValue) {
         if (window.PerformanceObserver.supportedEntryTypes?.includes('long-animation-frame')) {
           animationObserver = new window.PerformanceObserver(list => {
             for (const entry of list.getEntries()) {
+              if (entry.startTime < started) continue;
               if (report.longAnimationFrames.entries.length >= 100) break;
               report.longAnimationFrames.entries.push({
                 start: entry.startTime - started, duration: entry.duration,

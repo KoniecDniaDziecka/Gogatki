@@ -53,7 +53,7 @@ const assert = require('node:assert/strict');
     assert.equal(await page.evaluate(file => sourceRequests.includes(file), modulePath), false);
     await toggle.check();
     await page.waitForFunction(() => document.documentElement.dataset.cyberpunkNi === 'on');
-    assert.equal(await page.locator('#cyberpunk-ni-style').textContent(), theme.css, 'panel ships the exact approved theme');
+    assert.equal(await page.locator('#cyberpunk-ni-style').textContent(), theme.css.replace(/\[style(?=[\s*^$|~=\]])/gi, '[data-cp-inline-style'), 'panel ships the approved theme with UI-only inline guards');
     assert.equal(await page.locator('#cyberpunk-ni-style').getAttribute('data-version'), theme.version);
     assert.equal(await page.locator('#gogatek-panel [data-cyberpunk-diagnostics]').textContent(), `Sprawdź motyw · ${theme.version}`);
     assert.equal(await page.locator('.hp-indicator').getAttribute('data-cp-hp'), '100');

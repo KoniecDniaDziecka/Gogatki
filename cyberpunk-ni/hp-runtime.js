@@ -7,6 +7,7 @@ function createCyberpunkNiRuntime(window, getTheme, isEnabled) {
   const attribute = 'data-cyberpunk-ni';
   const styleId = 'cyberpunk-ni-style';
   const entries = new Map();
+  const inlineStyles = createCyberpunkNiInlineStyles(window);
   let style = null;
   let appliedTheme = null;
   let active = false;
@@ -64,6 +65,7 @@ function createCyberpunkNiRuntime(window, getTheme, isEnabled) {
   }
 
   function release() {
+    inlineStyles.stop();
     for (const entry of entries.values()) {
       entry.observer.disconnect();
       clearIndicator(entry);
@@ -148,7 +150,8 @@ function createCyberpunkNiRuntime(window, getTheme, isEnabled) {
       }
       // Nie odczytujemy ani nie porównujemy całego CSS przy aktualizacji HP.
       if (current !== style || theme !== appliedTheme) {
-        current.textContent = theme.css;
+        inlineStyles.start();
+        current.textContent = inlineStyles.css(theme.css);
         current.dataset.version = theme.version;
         style = current;
         appliedTheme = theme;
@@ -200,4 +203,85 @@ function createCyberpunkNiRuntime(window, getTheme, isEnabled) {
     layer = null;
   }
   return { apply, destroy };
+}
+
+// CSS nie odczytuje atrybutu style: pozwala to przeglądarce zachować szybką
+// ścieżkę zmian inline podczas animacji. Kopiujemy tylko style elementów UI,
+// dla których motyw chroni obrazki lub ostrzegawcze kolory inline.
+function createCyberpunkNiInlineStyles(window) {
+  const document = window.document;
+  const attribute = 'data-cp-inline-style';
+  const windows = '.c-window,.border-window,.dialogue-window,.trade-window,.loot-window,' +
+    '.quest-log,.quest-window,.quest-observe-window,.barter-window,.quest-box,.skills-window,' +
+    '.friend-enemy-list,.news-panel,.news-window,.settings-window,.mails-window,.mail-box,' +
+    '.help-window2,.world-window,.left-grouped-list-and-right-description-window,.divide-panel,' +
+    '.divide-list-group,.addons-panel,.clan,.auctions,.auction-window,.showcase,.depo,' +
+    '.recovery-item,.premium-panel,.pre-premium-panel,.chests-window,.promo-window,.gold-shop,' +
+    '.stamina-shop,.matchmaking-summary,.console-window,.who-is-here-edit,.window-list-edit,' +
+    '.crafting,.crafting-window,.crafting__contents,.matchmaking-panel,.quest-bring-item';
+  const targets = '.widget-button,.button,.card,.enhance__item,.item-wrapper,' +
+    '.skill-usable-slot,.time-progress-bar,.time-inner,.time';
+  const containers = '.layer,.game-window-positioner,' + windows;
+  const watched = new Map();
+  let started = false;
+
+  function update(element) {
+    const source = element.getAttribute('style');
+    if (source && (source.includes('screen-background.png') ||
+        element.matches(targets) || element.closest(windows))) {
+      if (element.getAttribute(attribute) !== source) element.setAttribute(attribute, source);
+    } else if (element.hasAttribute(attribute)) element.removeAttribute(attribute);
+  }
+  const styleObserver = new window.MutationObserver(records => {
+    const changed = new Set(records.map(record => record.target));
+    for (const element of changed) if (element.isConnected) update(element);
+  });
+  const structureObserver = new window.MutationObserver(records => {
+    let removed = false;
+    for (const record of records) {
+      for (const node of record.addedNodes) if (node.nodeType === 1) scan(node);
+      removed ||= [...record.removedNodes].some(node => node.nodeType === 1);
+    }
+    if (removed) {
+      let rebuild = false;
+      for (const element of watched.keys()) if (!element.isConnected) { watched.delete(element); rebuild = true; }
+      if (rebuild) {
+        structureObserver.disconnect();
+        for (const [element, subtree] of watched) structureObserver.observe(element, { childList: true, subtree });
+      }
+    }
+  });
+  function watch(element) {
+    const subtree = element.matches(windows);
+    if (watched.has(element)) return;
+    watched.set(element, subtree);
+    structureObserver.observe(element, { childList: true, subtree });
+  }
+  function scan(element) {
+    update(element);
+    if (element.matches(containers)) watch(element);
+    if (element.firstElementChild) {
+      for (const child of element.querySelectorAll('[style],' + containers)) {
+        if (child.hasAttribute('style')) update(child);
+        if (child.matches(containers)) watch(child);
+      }
+    }
+  }
+  function start() {
+    if (started) return;
+    started = true;
+    scan(document.documentElement);
+    watch(document.documentElement);
+    if (document.body) watch(document.body);
+    styleObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['style'], subtree: true });
+  }
+  function stop() {
+    if (!started) return;
+    started = false;
+    styleObserver.disconnect();
+    structureObserver.disconnect();
+    watched.clear();
+    for (const element of document.querySelectorAll('[' + attribute + ']')) element.removeAttribute(attribute);
+  }
+  return { start, stop, css: source => source.replace(/\[style(?=[\s*^$|~=\]])/gi, '[' + attribute) };
 }

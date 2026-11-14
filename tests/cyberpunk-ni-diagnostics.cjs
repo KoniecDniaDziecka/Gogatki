@@ -109,6 +109,7 @@ const assert = require('node:assert/strict');
     assert(report.diagnosticWork.setupDuration >= 0);
     assert(report.diagnosticWork.menuSnapshots.some(snapshot => snapshot.found > 0));
     assert.equal(report.longAnimationFrames.supported, true);
+    assert(report.longAnimationFrames.entries.every(entry => entry.start >= 0), 'frames from before capture are excluded');
     const scripts = report.longAnimationFrames.entries.flatMap(entry => entry.scripts);
     assert(scripts.some(script => script.sourceURL === 'https://assets.fixture.invalid/combat-probe.js' && script.duration >= 50), 'slow callback is attributed to its source script');
     assert(scripts.every(script => !script.sourceURL?.includes('?')), 'script queries are removed');
