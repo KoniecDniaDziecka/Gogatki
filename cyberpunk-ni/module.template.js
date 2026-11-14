@@ -19,7 +19,7 @@ GogatkiRuntime.register({
     __DIAGNOSTICS__
     const runtime = createCyberpunkNiRuntime(window, () => theme, () => true);
     runtime.apply();
-    const removeDiagnostics = installCyberpunkNiDiagnostics(window, theme, GM_getValue);
+    const removeDiagnostics = installCyberpunkNiDiagnostics(window, theme, GM_getValue, runtime);
     window.addEventListener('pagehide', () => {
       removeDiagnostics();
       runtime.destroy();

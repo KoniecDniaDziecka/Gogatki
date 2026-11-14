@@ -1,6 +1,6 @@
 // Raport lokalny, uruchamiany wyłącznie przyciskiem w panelu Gogatków.
 // Bez poleceń do gry, zmian wyglądu postaci i wysyłania danych.
-function installCyberpunkNiDiagnostics(window, theme, readValue) {
+function installCyberpunkNiDiagnostics(window, theme, readValue, runtime) {
   const document = window.document;
   const panel = document.getElementById('gogatek-panel')?.shadowRoot;
   const footer = panel?.querySelector('footer');
@@ -12,8 +12,16 @@ function installCyberpunkNiDiagnostics(window, theme, readValue) {
   button.textContent = `Sprawdź motyw · ${theme.version}`;
   button.title = 'Zapisuje lokalny raport wydajności: przez 10 sekund poruszaj się lub walcz.';
   footer.insertBefore(button, footer.querySelector('.apply'));
+  const comparison = document.createElement('button');
+  comparison.type = 'button';
+  comparison.className = 'refresh-list';
+  comparison.dataset.cyberpunkComparison = 'true';
+  comparison.textContent = 'Porównaj płynność';
+  comparison.title = 'Przez około 22 sekundy walcz lub poruszaj się. Test porówna motyw włączony i wyłączony, a następnie go przywróci. Esc przerywa test.';
+  if (runtime?.setSuspended) footer.insertBefore(comparison, footer.querySelector('.apply'));
   let disposed = false;
   let cancel = null;
+  let comparing = false;
   const properties = ['display', 'visibility', 'position', 'background-image', 'background-color',
     'background-position', 'background-size', 'border-image-source', 'border-top-color',
     'color', 'font-family', 'font-size', 'box-shadow', 'filter', 'opacity', 'transform',
@@ -123,7 +131,7 @@ function installCyberpunkNiDiagnostics(window, theme, readValue) {
       .filter(visible).slice(0, 16).map(describe);
   }
 
-  function capture() {
+  function capture({ duration = 10000, message = null } = {}) {
     return new Promise(resolve => {
       const started = window.performance.now();
       const report = { schema: 3, kind: 'cyberpunk-ni-performance', createdAt: new Date().toISOString(),
@@ -156,7 +164,7 @@ function installCyberpunkNiDiagnostics(window, theme, readValue) {
       for (const parent of new Set(surfaces.flatMap(surface => [surface.parentElement, surface.parentElement?.parentElement]).filter(Boolean))) surfaceParentsObserver.observe(parent, { childList: true });
       const toast = document.createElement('div');
       toast.style.cssText = 'position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:2147483647;pointer-events:none;background:#171b20;color:#c7d0d9;border:1px solid #668298;padding:8px 12px;border-radius:4px;font:12px Arial;text-shadow:none';
-      toast.textContent = 'Przez 10 sekund poruszaj się lub walcz. Raport zapisze się automatycznie.';
+      toast.textContent = message || 'Przez 10 sekund poruszaj się lub walcz. Raport zapisze się automatycznie.';
       document.body.append(toast);
       const gaps = [], tasks = [], menuTimers = new Set();
       let frame = 0, previous = null, hidden = document.hidden, ended = false;
@@ -257,26 +265,75 @@ function installCyberpunkNiDiagnostics(window, theme, readValue) {
         report.battleAtEnd = battleSnapshot();
         resolve(report);
       }
-      const timer = window.setTimeout(() => finish(false), 10000);
+      const timer = window.setTimeout(() => finish(false), duration);
       cancel = () => finish(true);
     });
   }
 
+  function downloadReport(report, filename) {
+    const objectUrl = window.URL.createObjectURL(new window.Blob([JSON.stringify(report, null, 2)], { type: 'application/json' }));
+    const link = document.createElement('a');
+    link.href = objectUrl;
+    link.download = filename;
+    document.body.append(link); link.click(); link.remove();
+    window.setTimeout(() => window.URL.revokeObjectURL(objectUrl), 10000);
+  }
+  function busy(value) { button.disabled = value; comparison.disabled = value; }
+  function settlePhase() {
+    return new Promise(resolve => {
+      const timer = window.setTimeout(() => { cancel = null; resolve(true); }, 500);
+      cancel = () => { window.clearTimeout(timer); cancel = null; resolve(false); };
+    });
+  }
+  comparison.addEventListener('click', async () => {
+    if (comparison.disabled || disposed) return;
+    busy(true);
+    comparing = true;
+    let cancelled = false;
+    const onEscape = event => { if (event.key === 'Escape') { cancelled = true; cancel?.(); } };
+    document.addEventListener('keydown', onEscape, true);
+    panel.querySelector('section header button[aria-label="Zamknij"]')?.click();
+    const report = { schema: 1, kind: 'cyberpunk-ni-theme-comparison', createdAt: new Date().toISOString(),
+      start: null, phaseOrder: ['on', 'off', 'off', 'on'], settleMs: 500, phaseMs: 5000, phases: [] };
+    try {
+      report.start = state();
+      for (const [index, enabled] of [true, false, false, true].entries()) {
+        if (disposed || cancelled) return;
+        runtime.setSuspended(!enabled);
+        if (!await settlePhase() || disposed || cancelled) return;
+        const measurement = await capture({ duration: 5000,
+          message: `Porównanie ${index + 1}/4: motyw ${enabled ? 'włączony' : 'wyłączony'}. Walcz lub poruszaj się dalej. Esc: przerwij.` });
+        if (!measurement || disposed || cancelled) return;
+        report.phases.push({ themeEnabled: enabled, ...measurement });
+      }
+    } catch (error) {
+      if (!disposed) window.alert('Nie udało się porównać płynności: ' + error.name);
+    } finally {
+      document.removeEventListener('keydown', onEscape, true);
+      runtime.setSuspended(false);
+      comparing = false;
+      if (!disposed) busy(false);
+    }
+    if (!disposed && !cancelled && report.phases.length === 4) {
+      report.end = state();
+      downloadReport(report, 'cyberpunk-ni-porownanie.json');
+    }
+  });
   button.addEventListener('click', async () => {
     if (button.disabled || disposed) return;
-    button.disabled = true;
+    busy(true);
     panel.querySelector('section header button[aria-label="Zamknij"]')?.click();
     try {
       const report = await capture();
       if (!report || disposed) return;
-      const objectUrl = window.URL.createObjectURL(new window.Blob([JSON.stringify(report, null, 2)], { type: 'application/json' }));
-      const link = document.createElement('a');
-      link.href = objectUrl;
-      link.download = 'cyberpunk-ni-ruch-menu.json';
-      document.body.append(link); link.click(); link.remove();
-      window.setTimeout(() => window.URL.revokeObjectURL(objectUrl), 10000);
+      downloadReport(report, 'cyberpunk-ni-ruch-menu.json');
     } catch (error) { window.alert('Nie udało się zapisać raportu motywu: ' + error.name); }
-    finally { if (!disposed) button.disabled = false; }
+    finally { if (!disposed) busy(false); }
   });
-  return () => { disposed = true; cancel?.(); button.remove(); };
+  return () => {
+    disposed = true;
+    cancel?.();
+    if (comparing) runtime.setSuspended(false);
+    button.remove(); comparison.remove();
+  };
 }

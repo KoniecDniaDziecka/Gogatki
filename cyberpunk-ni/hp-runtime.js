@@ -12,6 +12,7 @@ function createCyberpunkNiRuntime(window, getTheme, isEnabled) {
   let appliedTheme = null;
   let active = false;
   let disposed = false;
+  let suspended = false;
   let frame = 0;
   let layer = null;
   let watchedParents = new Set();
@@ -136,7 +137,7 @@ function createCyberpunkNiRuntime(window, getTheme, isEnabled) {
     if (disposed) return;
     structureObserver.disconnect();
     bootstrapObserver.disconnect();
-    if (!isEnabled()) { release(); return; }
+    if (suspended || !isEnabled()) { release(); return; }
     layer = document.querySelector('.layer.interface-layer');
     const indicators = layer ? [...layer.querySelectorAll('.bottom-panel .hp-indicator')] : [];
     if (!layer) release();
@@ -202,7 +203,12 @@ function createCyberpunkNiRuntime(window, getTheme, isEnabled) {
     watchedParents.clear();
     layer = null;
   }
-  return { apply, destroy };
+  function setSuspended(value) {
+    if (disposed || suspended === Boolean(value)) return;
+    suspended = Boolean(value);
+    apply();
+  }
+  return { apply, destroy, setSuspended };
 }
 
 // CSS nie odczytuje atrybutu style: pozwala to przeglądarce zachować szybką
