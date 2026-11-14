@@ -1,4 +1,4 @@
-/* Cyberpunk NI 0.2.58 — motyw dla nowego interfejsu Margonem.
+/* Cyberpunk NI 0.2.59 — motyw dla nowego interfejsu Margonem.
  * Skrypt .user.js włącza go atrybutem data-cyberpunk-ni="on" na <html>.
  * Zmienne poniżej sterują paletą. Nie wymaga zewnętrznych grafik ani fontów.
  * Najlepiej używać z wyłączonym DarknessNI i innymi motywami całego NI.
@@ -1385,7 +1385,7 @@ html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator[data-cp-hp-renderer="di
 html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator[data-cp-hp-renderer="disc"] .hpp {
   width: 98px !important;
   height: 78px !important;
-  line-height: 98px !important;
+  line-height: 80px !important;
 }
 
 html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator[data-cp-hp-renderer="disc"] :is(.hpp, .hpp .value) {
@@ -2880,18 +2880,29 @@ html[data-cyberpunk-ni="on"] .skills-window :is(.left-column, .right-column) :is
   unicode-range: U+0020, U+0025, U+002B-0039;
 }
 
+@layer cyberpunk-ni-window-details {
 html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator[data-cp-hp-renderer="disc"] :is(.hpp, .hpp .value) {
   font-family: "Cyberpunk NI Digits", Arial, sans-serif !important;
-  font-size: 23px !important;
+  font-size: 30px !important;
   font-weight: 600 !important;
   font-style: normal !important;
   font-variant-numeric: lining-nums tabular-nums !important;
   font-synthesis: none !important;
   letter-spacing: 0.5px !important;
-  color: #e7eff2 !important;
-  -webkit-text-fill-color: currentColor !important;
+  color: #b1c0cb !important;
+  -webkit-text-fill-color: transparent !important;
   -webkit-text-stroke: 0 !important;
   text-shadow: none !important;
+}
+/* Granica koloru liter pokrywa się z poziomem czerwieni w kuli 84 × 84:
+ * ciemne cyfry na pełnym HP, stonowane jasne nad pustą częścią. */
+html[data-cyberpunk-ni="on"] .bottom-panel .hp-indicator[data-cp-hp-renderer="disc"] .hpp {
+  background: linear-gradient(to top,
+    #29151b 0%, #29151b var(--cp-hp-level, 0%),
+    #b1c0cb var(--cp-hp-level, 0%), #b1c0cb 100%) 0 7px / 98px 84px no-repeat !important;
+  background-clip: text !important;
+  -webkit-background-clip: text !important;
+}
 }
 /* CP-HP-TYPE-END */
 
