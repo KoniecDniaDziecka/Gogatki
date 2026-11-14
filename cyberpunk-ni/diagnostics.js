@@ -10,7 +10,7 @@ function installCyberpunkNiDiagnostics(window, theme, readValue) {
   button.className = 'refresh-list';
   button.dataset.cyberpunkDiagnostics = 'true';
   button.textContent = `Sprawdź motyw · ${theme.version}`;
-  button.title = 'Zapisuje lokalny raport: przez 10 sekund chodź i otwórz menu przedmiotu.';
+  button.title = 'Zapisuje lokalny raport wydajności: przez 10 sekund poruszaj się lub walcz.';
   footer.insertBefore(button, footer.querySelector('.apply'));
   let disposed = false;
   let cancel = null;
@@ -56,11 +56,11 @@ function installCyberpunkNiDiagnostics(window, theme, readValue) {
       styleCount: styles.length, themeFlag: document.documentElement.getAttribute('data-cyberpunk-ni'),
       panelFlag: document.documentElement.getAttribute('data-cyberpunk-ni-gogatki'), catalogueUrl };
   }
-  function menuSnapshot() {
+  function menuSnapshot(discoverUnknown) {
     const roots = [...document.querySelectorAll('.scroll-wrapper.menu-wrapper,#hmenu,.popup-menu,[role="menu"]')].filter(element => visible(element) && /Ekwipuj|Zniszcz|Item Marker/.test(element.textContent));
     // Gdy menu pochodzi z innej wersji interfejsu lub dodatku, rozpoznaj jego
     // rzeczywistą strukturę po grupie widocznych akcji; nie zakładaj klas NI.
-    if (!roots.length) {
+    if (!roots.length && discoverUnknown) {
       const leaves = [];
       const walker = document.createTreeWalker(document.body, window.NodeFilter.SHOW_ELEMENT);
       let element, visited = 0;
@@ -111,15 +111,30 @@ function installCyberpunkNiDiagnostics(window, theme, readValue) {
     });
   }
 
+  function visibleSurfaces() {
+    return [...document.querySelectorAll('canvas,#hero,.hero,.hero-outfit')]
+      .filter(visible)
+      .map(element => { const r = element.getBoundingClientRect(); return { element, area: r.width * r.height }; })
+      .sort((a, b) => b.area - a.area)
+      .slice(0, 12).map(item => item.element);
+  }
+  function battleSnapshot() {
+    return [...document.querySelectorAll('.battle-controller,.battle-controller .graphics,.battle-controller .time-wrapper,.battle-controller .skill-usable-slot')]
+      .filter(visible).slice(0, 16).map(describe);
+  }
+
   function capture() {
     return new Promise(resolve => {
       const started = window.performance.now();
-      const report = { schema: 2, kind: 'cyberpunk-ni-movement-menu', createdAt: new Date().toISOString(),
+      const report = { schema: 3, kind: 'cyberpunk-ni-performance', createdAt: new Date().toISOString(),
         start: state(), browser: window.navigator.userAgent,
         viewport: { width: window.innerWidth, height: window.innerHeight, pixelRatio: window.devicePixelRatio },
         themeWrites: { rootAttributes: 0, stylesheetChanges: 0, stylesheetReplacements: 0 }, menus: [] };
-      const surfaces = [...document.querySelectorAll('canvas,#hero,.hero,.hero-outfit')].slice(0, 12);
+      report.diagnosticWork = { setupDuration: 0, menuSnapshots: [] };
+      report.battleAtStart = battleSnapshot();
+      const surfaces = visibleSurfaces();
       report.mapSurfacesAtStart = surfaces.map(describe);
+      report.surfaceSelection = 'up to 12 visible surfaces, largest first';
       report.surfaceChanges = { attributes: { src: 0, width: 0, height: 0, style: 0, class: 0 }, replacements: 0, samples: [] };
       const surfaceObserver = new window.MutationObserver(records => {
         for (const record of records) {
@@ -141,7 +156,7 @@ function installCyberpunkNiDiagnostics(window, theme, readValue) {
       for (const parent of new Set(surfaces.flatMap(surface => [surface.parentElement, surface.parentElement?.parentElement]).filter(Boolean))) surfaceParentsObserver.observe(parent, { childList: true });
       const toast = document.createElement('div');
       toast.style.cssText = 'position:fixed;left:50%;top:12px;transform:translateX(-50%);z-index:2147483647;pointer-events:none;background:#171b20;color:#c7d0d9;border:1px solid #668298;padding:8px 12px;border-radius:4px;font:12px Arial;text-shadow:none';
-      toast.textContent = 'Przez 10 sekund chodź i otwórz menu przedmiotu. Raport zapisze się automatycznie.';
+      toast.textContent = 'Przez 10 sekund poruszaj się lub walcz. Raport zapisze się automatycznie.';
       document.body.append(toast);
       const gaps = [], tasks = [], menuTimers = new Set();
       let frame = 0, previous = null, hidden = document.hidden, ended = false;
@@ -161,20 +176,59 @@ function installCyberpunkNiDiagnostics(window, theme, readValue) {
       observeStyle();
       let taskObserver;
       try { taskObserver = new window.PerformanceObserver(list => { for (const entry of list.getEntries()) if (tasks.length < 100) tasks.push({ start: entry.startTime - started, duration: entry.duration }); }); taskObserver.observe({ type: 'longtask' }); } catch {}
-      const takeMenu = () => {
+      report.longAnimationFrames = { supported: false, entries: [] };
+      let animationObserver;
+      try {
+        if (window.PerformanceObserver.supportedEntryTypes?.includes('long-animation-frame')) {
+          animationObserver = new window.PerformanceObserver(list => {
+            for (const entry of list.getEntries()) {
+              if (report.longAnimationFrames.entries.length >= 100) break;
+              report.longAnimationFrames.entries.push({
+                start: entry.startTime - started, duration: entry.duration,
+                blockingDuration: entry.blockingDuration,
+                renderStart: entry.renderStart ? entry.renderStart - started : null,
+                styleAndLayoutStart: entry.styleAndLayoutStart ? entry.styleAndLayoutStart - started : null,
+                scripts: [...(entry.scripts || [])].slice(0, 30).map(script => ({
+                  start: script.startTime - started, duration: script.duration,
+                  executionStart: script.executionStart ? script.executionStart - started : null,
+                  forcedStyleAndLayoutDuration: script.forcedStyleAndLayoutDuration,
+                  pauseDuration: script.pauseDuration,
+                  sourceURL: script.sourceURL ? url(script.sourceURL) : null,
+                  sourceFunctionName: String(script.sourceFunctionName || '').slice(0, 160),
+                  sourceCharPosition: script.sourceCharPosition,
+                  invokerType: script.invokerType, windowAttribution: script.windowAttribution
+                }))
+              });
+            }
+          });
+          animationObserver.observe({ type: 'long-animation-frame' });
+          report.longAnimationFrames.supported = true;
+        }
+      } catch { animationObserver?.disconnect(); }
+      const takeMenu = (discoverUnknown = false) => {
+        if (report.diagnosticWork.menuSnapshots.length >= 6) return;
         const at = window.performance.now() - started;
-        try { const menus = menuSnapshot(); if (menus.length && report.menus.length < 3) report.menus.push({ at, captureDuration: window.performance.now() - started - at, menus }); }
+        let found = 0;
+        try {
+          const menus = menuSnapshot(discoverUnknown);
+          found = menus.length;
+          if (menus.length && report.menus.length < 3) report.menus.push({ at, captureDuration: window.performance.now() - started - at, menus });
+        }
         catch (error) { report.menuError = error.name; }
+        finally { report.diagnosticWork.menuSnapshots.push({ start: at, duration: window.performance.now() - started - at, found }); }
       };
       const onMenu = event => {
-        if (report.menus.length >= 3 || menuTimers.size) return;
+        if (report.menus.length >= 3 || report.diagnosticWork.menuSnapshots.length >= 6 || menuTimers.size) return;
         if (event.type !== 'contextmenu' && !event.target?.closest?.('[data-item],[iid],[id^="item"],[class*="item-id-"]')) return;
-        const timer = window.setTimeout(() => { menuTimers.delete(timer); takeMenu(); }, 120);
+        // Kliknięcia w walce nie uruchamiają szukania nieznanego menu po całym DOM.
+        const discoverUnknown = event.type === 'contextmenu';
+        const timer = window.setTimeout(() => { menuTimers.delete(timer); takeMenu(discoverUnknown); }, 120);
         menuTimers.add(timer);
       };
       document.addEventListener('contextmenu', onMenu, true);
       document.addEventListener('pointerup', onMenu, true);
       document.addEventListener('visibilitychange', onVisibility);
+      report.diagnosticWork.setupDuration = window.performance.now() - started;
       frame = window.requestAnimationFrame(frameTick);
       function finish(cancelled) {
         if (ended) return;
@@ -183,6 +237,7 @@ function installCyberpunkNiDiagnostics(window, theme, readValue) {
         window.cancelAnimationFrame(frame);
         for (const pending of menuTimers) window.clearTimeout(pending);
         cssObserver.disconnect(); rootObserver.disconnect(); headObserver.disconnect(); taskObserver?.disconnect();
+        animationObserver?.disconnect();
         surfaceObserver.disconnect(); surfaceParentsObserver.disconnect();
         document.removeEventListener('contextmenu', onMenu, true);
         document.removeEventListener('pointerup', onMenu, true);
@@ -197,7 +252,8 @@ function installCyberpunkNiDiagnostics(window, theme, readValue) {
         report.longTasks = tasks;
         report.end = state();
         report.images = window.performance.getEntriesByType('resource').filter(entry => entry.startTime >= started && !entry.name.startsWith('data:') && /\.(?:png|gif|jpe?g|webp|avif)(?:[?#]|$)/i.test(entry.name)).slice(0, 150).map(entry => ({ url: url(entry.name), start: entry.startTime - started, duration: entry.duration, transferSize: entry.transferSize, decodedSize: entry.decodedBodySize, initiator: entry.initiatorType }));
-        report.mapSurfaces = [...document.querySelectorAll('canvas,#hero,.hero,.hero-outfit')].slice(0, 12).map(describe);
+        report.mapSurfaces = visibleSurfaces().map(describe);
+        report.battleAtEnd = battleSnapshot();
         resolve(report);
       }
       const timer = window.setTimeout(() => finish(false), 10000);
