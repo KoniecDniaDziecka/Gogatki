@@ -1,4 +1,4 @@
-/* Cyberpunk NI 0.2.73 — motyw dla nowego interfejsu Margonem.
+/* Cyberpunk NI 0.2.74 — motyw dla nowego interfejsu Margonem.
  * Skrypt .user.js włącza go atrybutem data-cyberpunk-ni="on" na <html>.
  * Zmienne poniżej sterują paletą. Nie wymaga zewnętrznych grafik ani fontów.
  * Najlepiej używać z wyłączonym DarknessNI i innymi motywami całego NI.
@@ -2619,11 +2619,15 @@ html[data-cyberpunk-ni="on"] .layer.interface-layer .positioner.top .bg {
 html[data-cyberpunk-ni="on"] .layer.interface-layer .positioner.bottom .bg {
   background: var(--cp-game-rail-bottom) left top / 240px 100% repeat-x !important;
   border-image: none !important;
+  border-color: transparent !important;
   box-shadow: none !important;
 }
-/* CP-WIDGET-STEP-BEGIN: natywny profil i alfa atlasu; tylko stalowy odcień pustej warstwy grafiki. */
+/* CP-WIDGET-STEP-BEGIN: bez atlasowego garbu; górny rząd zachowuje wspólną skórkę kafelków NI. */
 html[data-cyberpunk-ni="on"] .layer.interface-layer .positioner.bottom :is(.bg-additional-widget-left, .bg-additional-widget-right) {
-  filter: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter%20id='steel'%20color-interpolation-filters='sRGB'%20x='0%25'%20y='0%25'%20width='100%25'%20height='100%25'%3E%3CfeColorMatrix%20type='matrix'%20values='.10984%20.36955%20.03731%200%20-.04747%20.13748%20.46250%20.04669%200%20-.05050%20.15554%20.52328%20.05288%200%20-.03813%200%200%200%201%200'/%3E%3C/filter%3E%3C/svg%3E#steel") !important;
+  background: none !important;
+  border-image: none !important;
+  box-shadow: none !important;
+  filter: none !important;
 }
 /* CP-WIDGET-STEP-END */
 html[data-cyberpunk-ni="on"] .layer.interface-layer .main-column.left-column .border:not(.extended-stats .border) {
