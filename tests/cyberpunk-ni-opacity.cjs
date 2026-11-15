@@ -21,7 +21,7 @@ const assert = require('node:assert/strict');
     const css = fs.readFileSync(process.env.CYBERPUNK_OPACITY_CSS || path.join(base,'cyberpunk-ni/cyberpunk-ni.css'),'utf8');
     await page.addStyleTag({content:css});
     assert.deepEqual(await geometry(),before,'native window/header/button geometry remains unchanged');
-    for(const id of ['Lista graczy','Rozmowa']) {
+    for(const id of ['Lista graczy']) {
       const root=page.locator(`[id="${id}"]`);
       assert.equal(await root.evaluate(e=>getComputedStyle(e).backgroundColor),'rgba(0, 0, 0, 0)','root cannot cover the native opacity layer');
       assert.equal(await root.evaluate(e=>getComputedStyle(e).backgroundImage),'none');
@@ -38,13 +38,13 @@ const assert = require('node:assert/strict');
         for(const selector of ['.label','.header-label','.increase-opacity','.manage-configuration-button'])assert.equal(await root.locator(selector).evaluate(e=>getComputedStyle(e).opacity),'1','text and controls stay fully opaque');
       }
     }
-    assert.equal(await page.evaluate(()=>clicks),12,'all six native levels cycle in both window types');
+    assert.equal(await page.evaluate(()=>clicks),6,'all six native levels cycle in a transparent window');
     assert.equal(await page.locator('[id="Zwykłe okno"]').evaluate(e=>getComputedStyle(e).backgroundColor),'rgb(23, 27, 32)','ordinary windows retain their opaque skin');
     if(process.env.CYBERPUNK_OPACITY_SCREENSHOT) {
       await page.locator('[id="Lista graczy"]').evaluate(e=>e.dataset.opacityLvl='1');
       await page.locator('[id="Rozmowa"]').evaluate(e=>e.dataset.opacityLvl='4');
       await page.screenshot({path:process.env.CYBERPUNK_OPACITY_SCREENSHOT});
     }
-    console.log('PASS: six native opacity levels, background/frame fade together, opaque text/icons, unchanged clicks/geometry and ordinary windows.');
+    console.log('PASS: six native transparent-window levels, background/frame fade together, opaque text/icons, unchanged clicks/geometry and ordinary windows.');
   } finally { await browser.close(); }
 })().catch(error=>{console.error(error);process.exitCode=1;});

@@ -1,4 +1,4 @@
-/* Cyberpunk NI 0.2.66 — motyw dla nowego interfejsu Margonem.
+/* Cyberpunk NI 0.2.67 — motyw dla nowego interfejsu Margonem.
  * Skrypt .user.js włącza go atrybutem data-cyberpunk-ni="on" na <html>.
  * Zmienne poniżej sterują paletą. Nie wymaga zewnętrznych grafik ani fontów.
  * Najlepiej używać z wyłączonym DarknessNI i innymi motywami całego NI.
@@ -2459,29 +2459,29 @@ html[data-cyberpunk-ni="on"] .matchmaking-panel .warning-points {
 /* Oprawa jest dzieckiem natywnej .border-image: jej opacity nadal kontroluje
  * gra przez data-opacity-lvl. Tekst, ikony i przyciski są poza tą warstwą. */
 @layer cyberpunk-ni-glass {
-html[data-cyberpunk-ni="on"] :is(.border-window.transparent, .dialogue-window[data-opacity-lvl]) {
+html[data-cyberpunk-ni="on"] .border-window.transparent:not(.dialogue-window) {
   --cp-opacity-frame-inset: 0px;
   --cp-window-backdrop: rgba(23, 27, 32, .86);
   background: none !important;
   box-shadow: none !important;
 }
-html[data-cyberpunk-ni="on"] .border-window.transparent {
+html[data-cyberpunk-ni="on"] .border-window.transparent:not(.dialogue-window) {
   --cp-opacity-frame-inset: -2px;
 }
-html[data-cyberpunk-ni="on"] :is(.border-window.transparent, .dialogue-window)[data-opacity-lvl="5"] {
+html[data-cyberpunk-ni="on"] .border-window.transparent:not(.dialogue-window)[data-opacity-lvl="5"] {
   --cp-window-backdrop: var(--cp-bg);
 }
 
-html[data-cyberpunk-ni="on"] :is(.border-window.transparent, .dialogue-window[data-opacity-lvl]) :is(
+html[data-cyberpunk-ni="on"] .border-window.transparent:not(.dialogue-window) :is(
   .header-label-positioner, .content, .inner-content, .border-image, .window-list,
   .who-is-here, .scroll-wrapper, .scroll-pane
 ) {
   background: none !important;
 }
-html[data-cyberpunk-ni="on"] :is(.border-window.transparent, .dialogue-window[data-opacity-lvl]) .header-label-positioner {
+html[data-cyberpunk-ni="on"] .border-window.transparent:not(.dialogue-window) .header-label-positioner {
   box-shadow: none !important;
 }
-html[data-cyberpunk-ni="on"] :is(.border-window.transparent, .dialogue-window[data-opacity-lvl]) > .border-image::before {
+html[data-cyberpunk-ni="on"] .border-window.transparent:not(.dialogue-window) > .border-image::before {
   content: "" !important;
   position: absolute !important;
   inset: var(--cp-opacity-frame-inset) !important;
@@ -2503,6 +2503,39 @@ html[data-cyberpunk-ni="on"] :is(.border-window.transparent, .dialogue-window[da
   background-origin: border-box !important;
   background-clip: border-box !important;
   box-shadow: 0 0 0 1px var(--cp-line) !important;
+}
+
+/* Dialog nie wymaga bezpośredniej .border-image. Wypełnienie jest na jego
+ * własnym kontenerze, a natywny przycisk nadal zmienia data-opacity-lvl. */
+html[data-cyberpunk-ni="on"] .dialogue-window {
+  --cp-dialogue-backdrop: rgba(23, 27, 32, .86);
+  background-color: var(--cp-dialogue-backdrop) !important;
+}
+html[data-cyberpunk-ni="on"] .dialogue-window[data-opacity-lvl="0"] { --cp-dialogue-backdrop: rgba(23, 27, 32, 0); }
+html[data-cyberpunk-ni="on"] .dialogue-window[data-opacity-lvl="1"] { --cp-dialogue-backdrop: rgba(23, 27, 32, .215); }
+html[data-cyberpunk-ni="on"] .dialogue-window[data-opacity-lvl="2"] { --cp-dialogue-backdrop: rgba(23, 27, 32, .43); }
+html[data-cyberpunk-ni="on"] .dialogue-window[data-opacity-lvl="3"] { --cp-dialogue-backdrop: rgba(23, 27, 32, .645); }
+html[data-cyberpunk-ni="on"] .dialogue-window[data-opacity-lvl="4"] { --cp-dialogue-backdrop: rgba(23, 27, 32, .86); }
+html[data-cyberpunk-ni="on"] .dialogue-window[data-opacity-lvl="5"] { --cp-dialogue-backdrop: var(--cp-bg); }
+html[data-cyberpunk-ni="on"] .dialogue-window :is(.background, .content, .inner-content, .border-image, .scroll-wrapper, .scroll-pane) {
+  background: none !important;
+}
+html[data-cyberpunk-ni="on"] .dialogue-window .background > :is(.left, .right, .top, .bottom, .middle, .upper-left, .upper-right, .bottom-left, .bottom-right) {
+  background: none !important;
+  border-image: none !important;
+}
+html[data-cyberpunk-ni="on"] .dialogue-window .increase-opacity {
+  z-index: 3 !important;
+  background-color: #171f27 !important;
+  border-radius: 2px !important;
+  box-shadow: inset 0 0 0 1px #496776 !important;
+}
+html[data-cyberpunk-ni="on"] .dialogue-window:not(.disabled):not([aria-disabled="true"]) .increase-opacity:not(.disabled):not([disabled]):not([aria-disabled="true"]) {
+  opacity: 1 !important;
+}
+html[data-cyberpunk-ni="on"] .dialogue-window:not(.disabled):not([aria-disabled="true"]) .increase-opacity:not(.disabled):not([disabled]):not([aria-disabled="true"]):is(:hover, :focus-visible) {
+  background-color: #20323c !important;
+  box-shadow: inset 0 0 0 1px #759ba5 !important;
 }
 
 html[data-cyberpunk-ni="on"] .layer.interface-layer .main-column .extended-stats {
