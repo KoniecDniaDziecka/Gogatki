@@ -1,14 +1,11 @@
-<svg xmlns='http://www.w3.org/2000/svg' width='177' height='49' viewBox='0 0 177 49' preserveAspectRatio='none'>
+<svg xmlns='http://www.w3.org/2000/svg' width='108' height='52' viewBox='0 0 108 52'>
   <defs>
-    <linearGradient id='step-fill' x1='0' y1='0' x2='0' y2='1'>
-      <stop stop-color='#263943'/>
-      <stop offset='.45' stop-color='#1c2d37'/>
+    <linearGradient id='step-fill' gradientUnits='userSpaceOnUse' x1='0' y1='9' x2='0' y2='50'>
+      <stop stop-color='#25343e'/>
       <stop offset='1' stop-color='#171f28'/>
     </linearGradient>
   </defs>
-  <path d='M0 49v-1h29l8-3 53-36 11-4h76v44Z' fill='url(#step-fill)'/>
-  <path d='M0 48h29l8-3 53-36 11-4h75.5V49' fill='none' stroke='#668298' stroke-width='1' vector-effect='non-scaling-stroke'/>
-  <path d='M0 50h30l9-3 53-36 10-4h72.5v42' fill='none' stroke='#2d4858' stroke-width='.8' vector-effect='non-scaling-stroke'/>
-  <path d='M138 8h23' fill='none' stroke='#12c9bd' stroke-width='1.2' vector-effect='non-scaling-stroke'/>
-  <path d='m94 16-14 10m-6 4-8 5M163 9h7' fill='none' stroke='#6f8c9d' stroke-width='.7' vector-effect='non-scaling-stroke'/>
+  <path d='M16 52v-2l12-4 64-34 12-4h4v44Z' fill='url(#step-fill)'/>
+  <path d='M16 50.5l12-4 64-34 12-4h4' fill='none' stroke='#668298' stroke-width='1'/>
+  <path d='m90 20-13 7m-6 3-6 3' fill='none' stroke='#405d6e' stroke-width='.7'/>
 </svg>

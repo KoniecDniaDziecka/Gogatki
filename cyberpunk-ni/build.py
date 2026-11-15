@@ -9,7 +9,7 @@ from window_assets import inline_graphics
 ROOT = Path(__file__).resolve().parent
 CSS = (ROOT / "cyberpunk-ni.css").read_text()
 CSS = inline_graphics(CSS, ROOT)
-for asset in ("hud-frame", "game-frame", "game-rail-top", "game-rail-bottom", "game-rail-left", "game-rail-right", "window-search"):
+for asset in ("hud-frame", "game-frame", "game-rail-top", "game-rail-bottom", "game-rail-left", "game-rail-right", "widget-step", "window-search"):
     uri = "data:image/svg+xml," + quote((ROOT / f"assets/{asset}.svg").read_text(), safe="='/:,.-")
     CSS, count = re.subn(rf"(?m)^  --cp-{asset}: .*;$", lambda _m: f'  --cp-{asset}: url("{uri}");', CSS)
     if count != 1:
@@ -30,7 +30,7 @@ for icon in ("opacity", "settings"):
         if count != 1:
             raise ValueError(f"Brak jednoznacznego miejsca na ikonę {marker}")
 (ROOT / "cyberpunk-ni.css").write_text(CSS)
-BUNDLE = {"id": "cyberpunk-ni", "schema": 1, "version": "0.2.75", "css": CSS}
+BUNDLE = {"id": "cyberpunk-ni", "schema": 1, "version": "0.2.76", "css": CSS}
 HEADER = """// ==UserScript==
 // @name         Cyberpunk NI
 // @namespace    local.margonem.cyberpunk-ni

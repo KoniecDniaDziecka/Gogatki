@@ -1,4 +1,4 @@
-/* Cyberpunk NI 0.2.75 — motyw dla nowego interfejsu Margonem.
+/* Cyberpunk NI 0.2.76 — motyw dla nowego interfejsu Margonem.
  * Skrypt .user.js włącza go atrybutem data-cyberpunk-ni="on" na <html>.
  * Zmienne poniżej sterują paletą. Nie wymaga zewnętrznych grafik ani fontów.
  * Najlepiej używać z wyłączonym DarknessNI i innymi motywami całego NI.
@@ -2622,12 +2622,22 @@ html[data-cyberpunk-ni="on"] .layer.interface-layer .positioner.bottom .bg {
   border-color: transparent !important;
   box-shadow: none !important;
 }
-/* CP-WIDGET-STEP-BEGIN: bez atlasowego garbu; górny rząd zachowuje wspólną skórkę kafelków NI. */
+/* CP-WIDGET-STEP-BEGIN: natywna warstwa 109 px zaczyna się 50 px nad belką.
+ * Stały skos 108 px, pozostała szerokość pod kafelkami. Dwa piksele zakrycia
+ * chowają prostą krawędź belki pod podwyższeniem, reszta belki zostaje natywna. */
 html[data-cyberpunk-ni="on"] .layer.interface-layer .positioner.bottom :is(.bg-additional-widget-left, .bg-additional-widget-right) {
-  background: none !important;
+  --cp-widget-step: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='108'%20height='52'%20viewBox='0%200%20108%2052'%3E%0A%20%20%3Cdefs%3E%0A%20%20%20%20%3ClinearGradient%20id='step-fill'%20gradientUnits='userSpaceOnUse'%20x1='0'%20y1='9'%20x2='0'%20y2='50'%3E%0A%20%20%20%20%20%20%3Cstop%20stop-color='%2325343e'/%3E%0A%20%20%20%20%20%20%3Cstop%20offset='1'%20stop-color='%23171f28'/%3E%0A%20%20%20%20%3C/linearGradient%3E%0A%20%20%3C/defs%3E%0A%20%20%3Cpath%20d='M16%2052v-2l12-4%2064-34%2012-4h4v44Z'%20fill='url%28%23step-fill%29'/%3E%0A%20%20%3Cpath%20d='M16%2050.5l12-4%2064-34%2012-4h4'%20fill='none'%20stroke='%23668298'%20stroke-width='1'/%3E%0A%20%20%3Cpath%20d='m90%2020-13%207m-6%203-6%203'%20fill='none'%20stroke='%23405d6e'%20stroke-width='.7'/%3E%0A%3C/svg%3E%0A");
+  background:
+    var(--cp-widget-step) left top / 108px 52px no-repeat,
+    linear-gradient(#12c9bd, #12c9bd) right 13px top 11px / 23px 1px no-repeat,
+    linear-gradient(transparent 8px, #668298 8px 9px, #25343e 9px, #171f28 50px, #171f28 52px) right top / calc(100% - 107px) 52px no-repeat !important;
   border-image: none !important;
   box-shadow: none !important;
   filter: none !important;
+}
+/* Szara dolna krawędź kolumny wypada 1 px nad nową belką i dubluje jej linię. */
+html[data-cyberpunk-ni="on"] .layer.interface-layer .main-column:is(.left-column, .right-column) {
+  border-bottom-color: transparent !important;
 }
 /* CP-WIDGET-STEP-END */
 html[data-cyberpunk-ni="on"] .layer.interface-layer .main-column.left-column .border:not(.extended-stats .border) {
