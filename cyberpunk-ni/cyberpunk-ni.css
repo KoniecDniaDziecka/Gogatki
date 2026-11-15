@@ -1,4 +1,4 @@
-/* Cyberpunk NI 0.2.71 — motyw dla nowego interfejsu Margonem.
+/* Cyberpunk NI 0.2.72 — motyw dla nowego interfejsu Margonem.
  * Skrypt .user.js włącza go atrybutem data-cyberpunk-ni="on" na <html>.
  * Zmienne poniżej sterują paletą. Nie wymaga zewnętrznych grafik ani fontów.
  * Najlepiej używać z wyłączonym DarknessNI i innymi motywami całego NI.
@@ -255,11 +255,7 @@ html[data-cyberpunk-ni="on"] .layer.interface-layer .additional-skill-panel {
 }
 
 /* Pozostałe części HUD mają osobne sprite'y, niezależne od tła panelu. */
-html[data-cyberpunk-ni="on"] .layer.interface-layer :is(
-  .positioner.bottom .bg-additional-widget-left,
-  .positioner.bottom .bg-additional-widget-right,
-  .main-column .extended-stats .border
-) {
+html[data-cyberpunk-ni="on"] .layer.interface-layer .main-column .extended-stats .border {
   background: var(--cp-panel) !important;
   box-shadow: inset 0 0 0 1px #354956 !important;
 }
@@ -2625,12 +2621,9 @@ html[data-cyberpunk-ni="on"] .layer.interface-layer .positioner.bottom .bg {
   border-image: none !important;
   box-shadow: none !important;
 }
-/* CP-WIDGET-STEP-BEGIN: styk z belką na 48 px, bez rozciągania skosu w obszar dolnego rzędu. */
+/* CP-WIDGET-STEP-BEGIN: natywny profil i alfa atlasu; tylko stalowy odcień pustej warstwy grafiki. */
 html[data-cyberpunk-ni="on"] .layer.interface-layer .positioner.bottom :is(.bg-additional-widget-left, .bg-additional-widget-right) {
-  --cp-widget-step: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='177'%20height='49'%20viewBox='0%200%20177%2049'%20preserveAspectRatio='none'%3E%0A%20%20%3Cdefs%3E%0A%20%20%20%20%3ClinearGradient%20id='step-fill'%20x1='0'%20y1='0'%20x2='0'%20y2='1'%3E%0A%20%20%20%20%20%20%3Cstop%20stop-color='%23263943'/%3E%0A%20%20%20%20%20%20%3Cstop%20offset='.45'%20stop-color='%231c2d37'/%3E%0A%20%20%20%20%20%20%3Cstop%20offset='1'%20stop-color='%23171f28'/%3E%0A%20%20%20%20%3C/linearGradient%3E%0A%20%20%3C/defs%3E%0A%20%20%3Cpath%20d='M0%2049v-1h29l8-3%2053-36%2011-4h76v44Z'%20fill='url%28%23step-fill%29'/%3E%0A%20%20%3Cpath%20d='M0%2048h29l8-3%2053-36%2011-4h75.5V49'%20fill='none'%20stroke='%23668298'%20stroke-width='1'%20vector-effect='non-scaling-stroke'/%3E%0A%20%20%3Cpath%20d='M0%2050h30l9-3%2053-36%2010-4h72.5v42'%20fill='none'%20stroke='%232d4858'%20stroke-width='.8'%20vector-effect='non-scaling-stroke'/%3E%0A%20%20%3Cpath%20d='M138%208h23'%20fill='none'%20stroke='%2312c9bd'%20stroke-width='1.2'%20vector-effect='non-scaling-stroke'/%3E%0A%20%20%3Cpath%20d='m94%2016-14%2010m-6%204-8%205M163%209h7'%20fill='none'%20stroke='%236f8c9d'%20stroke-width='.7'%20vector-effect='non-scaling-stroke'/%3E%0A%3C/svg%3E%0A");
-  background: var(--cp-widget-step) left top / 100% 49px no-repeat !important;
-  border-image: none !important;
-  box-shadow: none !important;
+  filter: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter%20id='steel'%20color-interpolation-filters='sRGB'%20x='0%25'%20y='0%25'%20width='100%25'%20height='100%25'%3E%3CfeColorMatrix%20type='matrix'%20values='.10984%20.36955%20.03731%200%20-.04747%20.13748%20.46250%20.04669%200%20-.05050%20.15554%20.52328%20.05288%200%20-.03813%200%200%200%201%200'/%3E%3C/filter%3E%3C/svg%3E#steel") !important;
 }
 /* CP-WIDGET-STEP-END */
 html[data-cyberpunk-ni="on"] .layer.interface-layer .main-column.left-column .border:not(.extended-stats .border) {
