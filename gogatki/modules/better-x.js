@@ -1,4 +1,4 @@
-// Better X 1.0.3 — samodzielna adaptacja Wild Hunt (Maddonz, Barlag) dla Gogatków.
+// Better X 1.0.4 — samodzielna adaptacja Wild Hunt (Maddonz, Barlag) dla Gogatków.
 GogatkiRuntime.register({
   id: 'better-x', name: 'Better X',
   description: 'Atakowanie i dobijanie graczy; domyślny skrót X, próby co 200–350 ms.',
@@ -7,7 +7,7 @@ GogatkiRuntime.register({
 (() => {
   'use strict';
   if (window.WildHuntStandalone) return;
-  const defaults = { minLevel: '', maxLevel: '', enemy: true, clanEnemy: true, otherEnemy: false, collapsed: false, right: 20, top: 160, nearestKey: 'x', stopKey: 'j' };
+  const defaults = { minLevel: '', maxLevel: '', enemy: true, clanEnemy: true, otherEnemy: true, collapsed: false, right: 20, top: 160, nearestKey: 'x', stopKey: 'j' };
   const key = 'better-x:global:v1';
   let saved = GM_getValue(key, null);
   if (saved === null) {
@@ -15,6 +15,9 @@ GogatkiRuntime.register({
   }
   if (!saved || typeof saved !== 'object' || Array.isArray(saved)) saved = {};
   let settings = { ...defaults, ...saved };
+  // Apply the enabled default once; later manual opt-outs remain saved.
+  if (saved.otherEnemyDefaultApplied !== true) settings.otherEnemy = true;
+  settings.otherEnemyDefaultApplied = true;
   for (const name of ['nearestKey', 'stopKey']) {
     settings[name] = String(settings[name] ?? '').replace(/^Key([A-Z])$/, '$1').toLocaleLowerCase();
   }
