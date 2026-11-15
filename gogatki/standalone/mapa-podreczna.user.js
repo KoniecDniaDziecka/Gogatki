@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Mapa podręczna+ — samodzielna (NI)
 // @namespace    gogatki.local.mapa-podreczna.standalone
-// @version      1.0.9
+// @version      1.0.10
 // @description  Oznaczenia, filtry i wyszukiwarka w istniejącej mapie podręcznej NI, bez panelu Gogatków.
 // @author       Gogatki; model danych na podstawie Dark-Sad 6.1.5
 // @match        https://*.margonem.pl/*
@@ -36,7 +36,7 @@
     let definition;
     // A private registry keeps the identical module independent of Gogatki's loader.
     const GogatkiRuntime = Object.freeze({ register(value) { definition = value; } });
-// Mapa podręczna+ 1.0.9 — enhancement of the native NI window.
+// Mapa podręczna+ 1.0.10 — enhancement of the native NI window.
 GogatkiRuntime.register({
     id: 'mapa-podreczna',
     name: 'Mapa+',
@@ -57,10 +57,10 @@ function createMapModel(PAGE, state, search, onChange) {
  const anyHandlers=[],handlers=new Map();
  const net={onAny(fn){anyHandlers.push(fn);},on(key,fn){if(!handlers.has(key))handlers.set(key,[]);handlers.get(key).push(fn);},heroLvl(){const d=PAGE.Engine?.hero?.d||PAGE.hero||{};return Number(d.oplvl||d.lvl||0);}};
 const COLORS = {
-            hero: '#ff2a2a', other: '#ff3b3b', grave: '#ffffff', friend: '#08ad00', clan: '#08ad00', ally: '#9eff91', enemy: '#ff3b3b',
-            npc: '#ddff00', mob: '#3a3a3a', elite: '#00ffe9', elite2: '#039689', elite3: '#ff9f1a',
-            heros: '#ffd23f', herosEvent: '#ff4dd2', titan: '#b6ff1a', collosus: '#809912', item: '#f56bff', gw: '#2b3cff',
-            resp: '#c6ba35', respEvent: '#00bfff', marker: '#ff00d4', party: '#b45cff',
+            hero: '#87fdff', other: '#ffffff', grave: '#101010', friend: '#46a31d', clan: '#4cfa4f', ally: '#ffba37', enemy: '#c71618', clanEnemy: '#fc3e40',
+            npc: '#ffff33', mob: '#9da1a7', elite: '#87fdff', elite2: '#38b8eb', elite3: '#ffba37',
+            heros: '#ff00ff', herosEvent: '#ff00ff', titan: '#244bff', collosus: '#a500fc', item: '#f5a6f5', gw: '#244bff',
+            resp: '#ffba37', respEvent: '#ffba37', marker: '#ff00d4', party: '#b45cff',
         };
 
 const TYPE_NAMES = {
@@ -337,19 +337,19 @@ function otherKind(o) {
             // gra bywa, że podaje relację tekstem („fr”, „cl”, „en”, „cl-en”…) zamiast liczbą
             const rel = String(o.relation ?? '').toLowerCase();
             if (rel && isNaN(Number(rel))) {
-                if (/en/.test(rel)) return 'enemy';
-                if (rel === 'cl') return 'clan';
-                if (rel === 'fr') return 'friend';
-                if (/cl|fr/.test(rel)) return 'ally';
-                return 'other';
+                const kinds = { fr: 'friend', friend: 'friend', cl: 'clan', clan: 'clan', en: 'enemy', enemy: 'enemy',
+                    clen: 'clanEnemy', clanenemy: 'clanEnemy', enemyclan: 'clanEnemy', clfr: 'ally', clanfriend: 'ally', clanally: 'ally',
+                    factionfriend: 'ally', fractionfriend: 'ally', factionally: 'ally', fractionally: 'ally',
+                    factionenemy: 'enemy', fractionenemy: 'enemy' };
+                return kinds[rel.replace(/[\s_-]+/g, '')] || 'other';
             }
             switch (Number(o.relation)) {
                 case REL.FRIEND: return 'friend';
                 case REL.CLAN: return 'clan';
                 case REL.CLAN_ALLY:
                 case REL.FRACTION_ALLY: return 'ally';
+                case REL.CLAN_ENEMY: return 'clanEnemy';
                 case REL.ENEMY:
-                case REL.CLAN_ENEMY:
                 case REL.FRACTION_ENEMY: return 'enemy';
                 default: return 'other';
             }
@@ -441,7 +441,7 @@ function getPlayers() {
                 const kind = otherKind(o);
                 const dist = h ? Math.hypot(o.x - h.x, o.y - h.y) : 999;
                 const clan = typeof o.clan === 'object' && o.clan ? (o.clan.name || '') : (typeof o.clan === 'string' ? o.clan : '');
-                out.push({ id: String(id), nick: o.nick || '?', x: Number(o.x), y: Number(o.y), lvl: o.lvl, prof: o.prof || '', clan, kind, dist, hostile: kind === 'enemy' || kind === 'other' });
+                out.push({ id: String(id), nick: o.nick || '?', x: Number(o.x), y: Number(o.y), lvl: o.lvl, prof: o.prof || '', clan, kind, dist, hostile: kind === 'enemy' || kind === 'clanEnemy' || kind === 'other' });
             }
             return out.sort((a, b) => a.dist - b.dist);
         }
@@ -682,10 +682,10 @@ net.on('cl', (cl) => {
 
 }
 
-        const MAP_MARKER_CSS = "/* Marker styles adapted from Dark-Sad Panel dodatków 6.1.5; isolated in Shadow DOM. */\n:host { all: initial; pointer-events: none; }\n* { box-sizing: border-box; pointer-events: none; }\n.pa-mm-objects { position: absolute; inset: 0; pointer-events: none; }\n.pa-mm-obj {\n  position: absolute;\n  left: 0;\n  top: 0;\n  will-change: transform;\n  border-radius: 50%;\n  box-shadow: 0 0 0 1px rgba(0,0,0,.55);\n  pointer-events: none;\n}\n.pa-mm-obj.pa-mm-anim { transition: transform .45s linear; }\n.pa-mm-obj.pa-mm-grave { box-shadow: 0 0 0 1.5px #000, 0 0 4px rgba(0,0,0,.8); }\n.pa-mm-obj.pa-mm-mob { background: transparent !important; box-shadow: 0 0 0 1px rgba(255,255,255,.85), 0 0 0 2px rgba(0,0,0,.5); }\n.pa-mm-obj.pa-mm-gw { border-radius: 3px; box-shadow: 0 0 0 1px rgba(255,255,255,.35); }\n.pa-mm-obj.pa-mm-player { box-shadow: 0 0 0 1px rgba(0,0,0,.8); }\n.pa-mm-obj.pa-mm-pulse {\n  overflow: visible;\n  box-shadow: 0 0 0 2px #000, 0 0 10px 2px currentColor;\n  animation: pa-mm-glow .9s ease-in-out infinite;\n}\n.pa-mm-obj.pa-mm-pulse::before, .pa-mm-obj.pa-mm-pulse::after {\n  content: '';\n  position: absolute;\n  inset: -2px;\n  border: 2px solid currentColor;\n  border-radius: 50%;\n  animation: pa-mm-ring 1.6s ease-out infinite;\n  pointer-events: none;\n}\n.pa-mm-obj.pa-mm-pulse::after { animation-delay: .8s; }\n@keyframes pa-mm-ring { 0% { transform: scale(1); opacity: .95; } 100% { transform: scale(3.4); opacity: 0; } }\n.pa-mm-obj.pa-mm-resp, .pa-mm-obj.pa-mm-respEvent { background: transparent !important; border: 2px solid #c6ba35; box-shadow: none; }\n.pa-mm-obj.pa-mm-respEvent { border-color: #00bfff; }\n.pa-mm-obj.pa-mm-resp.pa-mm-near {\n  border: 3px solid #fff36b;\n  background: rgba(255, 236, 80, .45) !important;\n  box-shadow: 0 0 0 1px #000, 0 0 10px 3px rgba(255, 236, 80, .8);\n  z-index: 150 !important;\n}\n/* resp, przy którym stoi inny gracz – wygląda jak heros (może tam być) */\n.pa-mm-obj.pa-mm-resp.pa-mm-suspect, .pa-mm-obj.pa-mm-respEvent.pa-mm-suspect {\n  border: 0 !important; background: #ffd23f !important; color: #ffd23f !important;\n  box-shadow: 0 0 0 1.5px #000, 0 0 10px 3px rgba(255,210,63,.75); z-index: 160 !important;\n}\n.pa-mm-obj.pa-mm-respEvent.pa-mm-suspect { background: #ff4dd2 !important; color: #ff4dd2 !important; box-shadow: 0 0 0 1.5px #000, 0 0 10px 3px rgba(255,77,210,.75); }\n.pa-mm-obj.pa-mm-marker { animation: pa-mm-flash .5s steps(2) infinite; border-radius: 3px; }\n@keyframes pa-mm-flash { 50% { filter: invert(1); } }\n@keyframes pa-mm-glow { 50% { box-shadow: 0 0 0 2px #fff, 0 0 18px 6px currentColor; filter: brightness(1.2); } }\n.pa-mm-hero {\n  position: absolute;\n  z-index: 300;\n  left: 0;\n  top: 0;\n  border-radius: 2px;\n  background: #ff2a2a;\n  box-shadow: 0 0 0 1.5px #fff, 0 0 8px rgba(255,42,42,.9);\n  pointer-events: none;\n  will-change: transform;\n}\n.pa-mm-view {\n  position: absolute;\n  z-index: 250;\n  left: 0;\n  top: 0;\n  border: 1px solid rgba(255,230,90,.9);\n  border-radius: 3px;\n  background: rgba(255,230,90,.06);\n  box-sizing: border-box;\n  pointer-events: none;\n  will-change: transform;\n}\n";
+        const MAP_MARKER_CSS = "/* Marker styles adapted from Dark-Sad Panel dodatków 6.1.5; isolated in Shadow DOM. */\n:host { all: initial; pointer-events: none; }\n* { box-sizing: border-box; pointer-events: none; }\n.pa-mm-objects { position: absolute; inset: 0; pointer-events: none; }\n.pa-mm-obj {\n  position: absolute;\n  left: 0;\n  top: 0;\n  will-change: transform;\n  border-radius: 50%;\n  box-shadow: 0 0 0 1px rgba(0,0,0,.55);\n  pointer-events: none;\n}\n.pa-mm-obj.pa-mm-anim { transition: transform .45s linear; }\n.pa-mm-obj.pa-mm-grave { box-shadow: 0 0 0 1px #b1c0cb, 0 0 0 2px #000; }\n.pa-mm-obj.pa-mm-mob { background: transparent !important; box-shadow: 0 0 0 1px currentColor, 0 0 0 2px rgba(0,0,0,.5); }\n.pa-mm-obj.pa-mm-gw { border-radius: 3px; box-shadow: 0 0 0 1px rgba(255,255,255,.35); }\n.pa-mm-obj.pa-mm-player { box-shadow: 0 0 0 1px rgba(0,0,0,.8); }\n.pa-mm-obj.pa-mm-pulse {\n  overflow: visible;\n  box-shadow: 0 0 0 2px #000, 0 0 10px 2px currentColor;\n  animation: pa-mm-glow .9s ease-in-out infinite;\n}\n.pa-mm-obj.pa-mm-pulse::before, .pa-mm-obj.pa-mm-pulse::after {\n  content: '';\n  position: absolute;\n  inset: -2px;\n  border: 2px solid currentColor;\n  border-radius: 50%;\n  animation: pa-mm-ring 1.6s ease-out infinite;\n  pointer-events: none;\n}\n.pa-mm-obj.pa-mm-pulse::after { animation-delay: .8s; }\n@keyframes pa-mm-ring { 0% { transform: scale(1); opacity: .95; } 100% { transform: scale(3.4); opacity: 0; } }\n.pa-mm-obj.pa-mm-resp, .pa-mm-obj.pa-mm-respEvent { background: transparent !important; border: 2px solid currentColor; box-shadow: none; }\n.pa-mm-obj.pa-mm-resp.pa-mm-near {\n  border: 3px solid currentColor;\n  background: color-mix(in srgb, currentColor 45%, transparent) !important;\n  box-shadow: 0 0 0 1px #000, 0 0 10px 3px currentColor;\n  z-index: 150 !important;\n}\n/* resp, przy którym stoi inny gracz – wygląda jak heros (może tam być) */\n.pa-mm-obj.pa-mm-resp.pa-mm-suspect, .pa-mm-obj.pa-mm-respEvent.pa-mm-suspect {\n  border: 0 !important; background: var(--map-color-heros) !important; color: var(--map-color-heros) !important;\n  box-shadow: 0 0 0 1.5px #000, 0 0 10px 3px currentColor; z-index: 160 !important;\n}\n.pa-mm-obj.pa-mm-marker { animation: pa-mm-flash .5s steps(2) infinite; border-radius: 3px; }\n@keyframes pa-mm-flash { 50% { filter: invert(1); } }\n@keyframes pa-mm-glow { 50% { box-shadow: 0 0 0 2px #fff, 0 0 18px 6px currentColor; filter: brightness(1.2); } }\n.pa-mm-hero {\n  position: absolute;\n  z-index: 300;\n  left: 0;\n  top: 0;\n  border-radius: 2px;\n  background: var(--map-color-hero);\n  box-shadow: 0 0 0 1.5px #fff, 0 0 8px var(--map-color-hero);\n  pointer-events: none;\n  will-change: transform;\n}\n.pa-mm-view {\n  position: absolute;\n  z-index: 250;\n  left: 0;\n  top: 0;\n  border: 1px solid rgba(255,230,90,.9);\n  border-radius: 3px;\n  background: rgba(255,230,90,.06);\n  box-sizing: border-box;\n  pointer-events: none;\n  will-change: transform;\n}\n";
         const MARKER_LAYERS = { gw: 70, item: 80, grave: 85, resp: 90, respEvent: 90, npc: 110, mob: 110,
             elite: 120, elite2: 130, elite3: 130, other: 140, friend: 140, clan: 140, ally: 140,
-            party: 142, enemy: 145, titan: 150, collosus: 150, heros: 160, herosEvent: 160, marker: 200 };
+            party: 142, enemy: 145, clanEnemy: 145, titan: 150, collosus: 150, heros: 160, herosEvent: 160, marker: 200 };
         const PULSE = new Set(['titan', 'collosus', 'heros', 'herosEvent', 'elite3']);
 
         const defaults = { mmShowMobs: true, mmShowNpcs: true, mmShowOthers: true, mmShowSpawns: true,
@@ -803,7 +803,7 @@ net.on('cl', (cl) => {
                 return { tag: node.tagName, class: String(node.className || '').slice(0, 120), visible: isVisible(node), width: Math.round(r.width * 100) / 100, height: Math.round(r.height * 100) / 100,
                     image: shortURL(node.currentSrc || node.src || css.backgroundImage), selected: node === binding.surface };
             }).filter(Boolean).slice(0, 40) : [];
-            return JSON.stringify({ version: '1.0.9', status: binding?.status.textContent, active: binding?.overlay.style.display !== 'none',
+            return JSON.stringify({ version: '1.0.10', status: binding?.status.textContent, active: binding?.overlay.style.display !== 'none',
                 dimensions: { model: { w: snapshot?.town?.w, h: snapshot?.town?.h }, engine: { x: d.x, y: d.y }, size: { x: map?.size?.x, y: map?.size?.y } },
                 file: shortURL(snapshot?.town?.file), image: shortURL(map?.img?.currentSrc || map?.img?.src), background: binding?.background ? { ready: !!binding.background.ready, failed: binding.background.failed, source: shortURL(binding.background.source) } : null, nodes }, null, 2);
         }
@@ -951,7 +951,7 @@ net.on('cl', (cl) => {
                 input[type=checkbox]::before,input[type=checkbox]::after{content:none}input:checked::after{content:'✓';color:#12c9bd;font:12px/12px Arial}
                 .status{font-size:11px;color:#b1c0cb;margin:6px 0;overflow-wrap:anywhere}.entry{border-top:1px solid #384651;padding:5px 0}.name{font-size:11px;overflow-wrap:anywhere}.actions{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}.actions button{font-size:11px;background:#38566c}.coords{color:#b1c0cb;font-size:11px;margin-top:2px}
             </style><button type="button" class="toggle" aria-label="Ustawienia mapy+" aria-expanded="false" title="Ustawienia mapy+"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.5"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3M5 5l2 2m10 10 2 2M5 19l2-2M17 7l2-2"/></svg></button>
-            <section class="drawer" aria-label="Rozszerzenia mapy podręcznej" hidden><input type="search" placeholder="Nazwa lub x,y" aria-label="Szukaj na mapie"><div class="options"></div><p class="status" role="status"></p><button type="button" class="stop" hidden>Zatrzymaj podążanie</button><details><summary>Pomoc · 1.0.9</summary><button type="button" class="diagnose">Kopiuj diagnostykę</button><textarea aria-label="Diagnostyka mapy" readonly hidden style="width:100%;height:100px;color:#c7d0d9;background:#252b31"></textarea></details><div class="list"></div></section>`;
+            <section class="drawer" aria-label="Rozszerzenia mapy podręcznej" hidden><input type="search" placeholder="Nazwa lub x,y" aria-label="Szukaj na mapie"><div class="options"></div><p class="status" role="status"></p><button type="button" class="stop" hidden>Zatrzymaj podążanie</button><details><summary>Pomoc · 1.0.10</summary><button type="button" class="diagnose">Kopiuj diagnostykę</button><textarea aria-label="Diagnostyka mapy" readonly hidden style="width:100%;height:100px;color:#c7d0d9;background:#252b31"></textarea></details><div class="list"></div></section>`;
             const drawer = root.querySelector('.drawer'), toggle = root.querySelector('.toggle');
             drawer.hidden = !state.drawer; toggle.setAttribute('aria-expanded', String(state.drawer));
             const options = [['mmShowMobs', 'Moby'], ['mmShowNpcs', 'NPC'], ['mmShowOthers', 'Gracze'], ['mmShowSpawns', 'Respy'], ['fog', 'Zasięg widzenia'], ['mmGwAvail', 'Dostępne przejścia'], ['attack', 'Atakuj w pościgu']];
@@ -1002,6 +1002,7 @@ net.on('cl', (cl) => {
             markerHost.dataset.gogatkiMapMarkers = '';
             markerHost.setAttribute('aria-hidden', 'true');
             markerHost.style.cssText = 'position:absolute;pointer-events:none;overflow:hidden;z-index:100001;display:none;';
+            for (const [kind, color] of Object.entries(snapshot.colors)) markerHost.style.setProperty('--map-color-' + kind, color);
             const markerRoot = markerHost.attachShadow({ mode: 'open' });
             const markerStyle = document.createElement('style'); markerStyle.textContent = MAP_MARKER_CSS;
             const markerLayer = document.createElement('div'); markerLayer.className = 'pa-mm-objects';
@@ -1161,7 +1162,7 @@ net.on('cl', (cl) => {
             startHeroAnimation();
         }
         function renderRows(objects) {
-            const rank = o => ({ titan: 1, collosus: 2, herosEvent: 3, heros: 4, elite3: 5, elite2: 6, enemy: 7, gw: 8, marker: 0 }[o.kind] ?? 20);
+            const rank = o => ({ titan: 1, collosus: 2, herosEvent: 3, heros: 4, elite3: 5, elite2: 6, enemy: 7, clanEnemy: 7, gw: 8, marker: 0 }[o.kind] ?? 20);
             const list = [...objects].sort((a, b) => rank(a) - rank(b) || String(a.nick).localeCompare(String(b.nick), 'pl')).slice(0, 80), wanted = new Set();
             for (const [index, o] of list.entries()) {
                 const key = o.id || `${o.kind}:${o.x},${o.y}`; wanted.add(key);

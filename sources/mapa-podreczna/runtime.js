@@ -1,4 +1,4 @@
-// Mapa podręczna+ 1.0.9 — enhancement of the native NI window.
+// Mapa podręczna+ 1.0.10 — enhancement of the native NI window.
 GogatkiRuntime.register({
     id: 'mapa-podreczna',
     name: 'Mapa+',
@@ -16,7 +16,7 @@ GogatkiRuntime.register({
         // __MARKER_STYLE__
         const MARKER_LAYERS = { gw: 70, item: 80, grave: 85, resp: 90, respEvent: 90, npc: 110, mob: 110,
             elite: 120, elite2: 130, elite3: 130, other: 140, friend: 140, clan: 140, ally: 140,
-            party: 142, enemy: 145, titan: 150, collosus: 150, heros: 160, herosEvent: 160, marker: 200 };
+            party: 142, enemy: 145, clanEnemy: 145, titan: 150, collosus: 150, heros: 160, herosEvent: 160, marker: 200 };
         const PULSE = new Set(['titan', 'collosus', 'heros', 'herosEvent', 'elite3']);
 
         const defaults = { mmShowMobs: true, mmShowNpcs: true, mmShowOthers: true, mmShowSpawns: true,
@@ -134,7 +134,7 @@ GogatkiRuntime.register({
                 return { tag: node.tagName, class: String(node.className || '').slice(0, 120), visible: isVisible(node), width: Math.round(r.width * 100) / 100, height: Math.round(r.height * 100) / 100,
                     image: shortURL(node.currentSrc || node.src || css.backgroundImage), selected: node === binding.surface };
             }).filter(Boolean).slice(0, 40) : [];
-            return JSON.stringify({ version: '1.0.9', status: binding?.status.textContent, active: binding?.overlay.style.display !== 'none',
+            return JSON.stringify({ version: '1.0.10', status: binding?.status.textContent, active: binding?.overlay.style.display !== 'none',
                 dimensions: { model: { w: snapshot?.town?.w, h: snapshot?.town?.h }, engine: { x: d.x, y: d.y }, size: { x: map?.size?.x, y: map?.size?.y } },
                 file: shortURL(snapshot?.town?.file), image: shortURL(map?.img?.currentSrc || map?.img?.src), background: binding?.background ? { ready: !!binding.background.ready, failed: binding.background.failed, source: shortURL(binding.background.source) } : null, nodes }, null, 2);
         }
@@ -282,7 +282,7 @@ GogatkiRuntime.register({
                 input[type=checkbox]::before,input[type=checkbox]::after{content:none}input:checked::after{content:'✓';color:#12c9bd;font:12px/12px Arial}
                 .status{font-size:11px;color:#b1c0cb;margin:6px 0;overflow-wrap:anywhere}.entry{border-top:1px solid #384651;padding:5px 0}.name{font-size:11px;overflow-wrap:anywhere}.actions{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}.actions button{font-size:11px;background:#38566c}.coords{color:#b1c0cb;font-size:11px;margin-top:2px}
             </style><button type="button" class="toggle" aria-label="Ustawienia mapy+" aria-expanded="false" title="Ustawienia mapy+"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.5"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3M5 5l2 2m10 10 2 2M5 19l2-2M17 7l2-2"/></svg></button>
-            <section class="drawer" aria-label="Rozszerzenia mapy podręcznej" hidden><input type="search" placeholder="Nazwa lub x,y" aria-label="Szukaj na mapie"><div class="options"></div><p class="status" role="status"></p><button type="button" class="stop" hidden>Zatrzymaj podążanie</button><details><summary>Pomoc · 1.0.9</summary><button type="button" class="diagnose">Kopiuj diagnostykę</button><textarea aria-label="Diagnostyka mapy" readonly hidden style="width:100%;height:100px;color:#c7d0d9;background:#252b31"></textarea></details><div class="list"></div></section>`;
+            <section class="drawer" aria-label="Rozszerzenia mapy podręcznej" hidden><input type="search" placeholder="Nazwa lub x,y" aria-label="Szukaj na mapie"><div class="options"></div><p class="status" role="status"></p><button type="button" class="stop" hidden>Zatrzymaj podążanie</button><details><summary>Pomoc · 1.0.10</summary><button type="button" class="diagnose">Kopiuj diagnostykę</button><textarea aria-label="Diagnostyka mapy" readonly hidden style="width:100%;height:100px;color:#c7d0d9;background:#252b31"></textarea></details><div class="list"></div></section>`;
             const drawer = root.querySelector('.drawer'), toggle = root.querySelector('.toggle');
             drawer.hidden = !state.drawer; toggle.setAttribute('aria-expanded', String(state.drawer));
             const options = [['mmShowMobs', 'Moby'], ['mmShowNpcs', 'NPC'], ['mmShowOthers', 'Gracze'], ['mmShowSpawns', 'Respy'], ['fog', 'Zasięg widzenia'], ['mmGwAvail', 'Dostępne przejścia'], ['attack', 'Atakuj w pościgu']];
@@ -333,6 +333,7 @@ GogatkiRuntime.register({
             markerHost.dataset.gogatkiMapMarkers = '';
             markerHost.setAttribute('aria-hidden', 'true');
             markerHost.style.cssText = 'position:absolute;pointer-events:none;overflow:hidden;z-index:100001;display:none;';
+            for (const [kind, color] of Object.entries(snapshot.colors)) markerHost.style.setProperty('--map-color-' + kind, color);
             const markerRoot = markerHost.attachShadow({ mode: 'open' });
             const markerStyle = document.createElement('style'); markerStyle.textContent = MAP_MARKER_CSS;
             const markerLayer = document.createElement('div'); markerLayer.className = 'pa-mm-objects';
@@ -492,7 +493,7 @@ GogatkiRuntime.register({
             startHeroAnimation();
         }
         function renderRows(objects) {
-            const rank = o => ({ titan: 1, collosus: 2, herosEvent: 3, heros: 4, elite3: 5, elite2: 6, enemy: 7, gw: 8, marker: 0 }[o.kind] ?? 20);
+            const rank = o => ({ titan: 1, collosus: 2, herosEvent: 3, heros: 4, elite3: 5, elite2: 6, enemy: 7, clanEnemy: 7, gw: 8, marker: 0 }[o.kind] ?? 20);
             const list = [...objects].sort((a, b) => rank(a) - rank(b) || String(a.nick).localeCompare(String(b.nick), 'pl')).slice(0, 80), wanted = new Set();
             for (const [index, o] of list.entries()) {
                 const key = o.id || `${o.kind}:${o.x},${o.y}`; wanted.add(key);

@@ -4,6 +4,16 @@ const path = require('node:path');
 const assert = require('node:assert/strict');
 
 (async () => {
+    const createModel = new Function(fs.readFileSync(path.join(__dirname, '../sources/mapa-podreczna/model.js'), 'utf8') + '\nreturn createMapModel;')();
+    const relations = [[1, 'other'], [2, 'friend'], [3, 'enemy'], [4, 'clan'], [5, 'ally'], [6, 'clanEnemy'], [7, 'ally'], [8, 'enemy'],
+        ['friend', 'friend'], ['fr', 'friend'], ['cl-en', 'clanEnemy'], ['clanEnemy', 'clanEnemy'], ['cl-fr', 'ally']];
+    const players = Object.fromEntries(relations.map(([relation], id) => [id, { d: { id, relation, nick: 'Test', x: 1, y: 1 } }]));
+    const model = createModel({ Engine: { hero: { d: { id: 100, x: 0, y: 0 } }, map: { d: { id: 1, x: 32, y: 16 } }, others: { check: () => players } } }, { mmShowOthers: true }, { text: '' }, () => {});
+    const snapshot = model.snapshot();
+    for (const [id, [, kind]] of relations.entries()) {
+        assert.equal(snapshot.objects.find(object => object.id === 'o' + id)?.kind, kind, 'Relations retain distinct player categories');
+        assert.equal(snapshot.players.find(player => player.id === String(id))?.hostile, ['enemy', 'clanEnemy', 'other'].includes(kind), 'Separate clan enemy color retains hostile behavior');
+    }
     const browser = await chromium.launch({ headless: true, executablePath: process.env.CHROMIUM_PATH || '/usr/bin/chromium', args: ['--no-sandbox'] });
     try {
         const page = await browser.newPage({ viewport: { width: 1000, height: 700 } });
@@ -110,9 +120,9 @@ const assert = require('node:assert/strict');
         const heroStyle = await markerStyle('[data-kind=hero]');
         assert.equal(heroStyle.width, 7, 'Own position marker is smaller and remains visible');
         assert.equal(heroStyle.radius, '2px', 'Own character is a rounded square, not a circle');
-        assert.equal(heroStyle.background, 'rgb(255, 42, 42)');
+        assert.equal(heroStyle.background, 'rgb(135, 253, 255)');
         assert(heroStyle.shadow.includes('255, 255, 255'));
-        assert((await markerStyle('[data-kind=mob]')).shadow.includes('255, 255, 255'), 'Ordinary mobs have the original white outline');
+        assert((await markerStyle('[data-kind=mob]')).shadow.includes('157, 161, 167'), 'Ordinary mobs have a gray outline');
         const mobStyle = await markerStyle('[data-kind=mob]');
         assert.equal(mobStyle.background, 'rgba(0, 0, 0, 0)', 'Ordinary mob markers have an empty center');
         const elite2Style = await markerStyle('[data-kind=elite2]');
@@ -277,7 +287,7 @@ const assert = require('node:assert/strict');
         assert.deepEqual(parser, [123, true, 'preserved']);
         await marks.locator('[data-kind=resp]').waitFor({ state: 'attached' });
         assert.equal((await markerStyle('[data-kind=resp]')).border, '2px');
-        assert.equal((await markerStyle('[data-kind=respEvent]')).borderColor, 'rgb(0, 191, 255)');
+        assert.equal((await markerStyle('[data-kind=respEvent]')).borderColor, 'rgb(255, 186, 55)');
         await ui.getByRole('button', { name: 'Goń', exact: true }).click();
         await page.waitForFunction(() => walks.length > 1);
         assert.equal(await page.evaluate(() => requests.length), 0, 'Chase starts without enabling attacks');
@@ -290,14 +300,14 @@ const assert = require('node:assert/strict');
         assert.equal(await page.evaluate(() => requests.length), await page.evaluate(() => attackCount));
         await page.evaluate(() => { Engine.hero.d.x = 12; Engine.hero.d.y = 6; });
         await page.waitForFunction(() => document.querySelector('[data-gogatki-map-markers]').shadowRoot.querySelector('[data-kind=resp]').classList.contains('pa-mm-near'));
-        assert.equal((await markerStyle('[data-kind=resp]')).borderColor, 'rgb(255, 243, 107)');
+        assert.equal((await markerStyle('[data-kind=resp]')).borderColor, 'rgb(255, 186, 55)');
         assert.equal((await markerStyle('[data-kind=resp]')).border, '3px');
         await page.evaluate(() => {
             Engine.hero.d.x = 2; Engine.hero.d.y = 1;
             Engine.communication.parseJSON({ other: { 21: { nick: 'Obserwator', x: 22, y: 11, relation: 1 } } });
         });
         await page.waitForFunction(() => document.querySelector('[data-gogatki-map-markers]').shadowRoot.querySelector('[data-kind=respEvent]').classList.contains('pa-mm-suspect'));
-        assert.equal((await markerStyle('[data-kind=respEvent]')).background, 'rgb(255, 77, 210)');
+        assert.equal((await markerStyle('[data-kind=respEvent]')).background, 'rgb(255, 0, 255)');
         assert.equal((await markerStyle('[data-kind=respEvent]')).border, '0px');
         await ui.getByRole('button', { name: 'Ustawienia mapy+', exact: true }).click();
         await page.screenshot({ path: '/tmp/mapa-podreczna-markers.png' });
@@ -321,7 +331,7 @@ const assert = require('node:assert/strict');
         await ui.locator('summary').click();
         await ui.getByRole('button', { name: 'Kopiuj diagnostykę', exact: true }).click();
         const report = JSON.parse(await ui.getByLabel('Diagnostyka mapy', { exact: true }).inputValue());
-        assert.equal(report.version, '1.0.9');
+        assert.equal(report.version, '1.0.10');
         assert.equal(report.active, false);
         assert(report.status.includes('Nie rozpoznano obszaru mapy'));
         assert(report.nodes.some(node => node.tag === 'CANVAS' && !node.visible));

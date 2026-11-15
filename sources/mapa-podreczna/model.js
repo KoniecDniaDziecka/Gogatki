@@ -5,10 +5,10 @@ function createMapModel(PAGE, state, search, onChange) {
  const anyHandlers=[],handlers=new Map();
  const net={onAny(fn){anyHandlers.push(fn);},on(key,fn){if(!handlers.has(key))handlers.set(key,[]);handlers.get(key).push(fn);},heroLvl(){const d=PAGE.Engine?.hero?.d||PAGE.hero||{};return Number(d.oplvl||d.lvl||0);}};
 const COLORS = {
-            hero: '#ff2a2a', other: '#ff3b3b', grave: '#ffffff', friend: '#08ad00', clan: '#08ad00', ally: '#9eff91', enemy: '#ff3b3b',
-            npc: '#ddff00', mob: '#3a3a3a', elite: '#00ffe9', elite2: '#039689', elite3: '#ff9f1a',
-            heros: '#ffd23f', herosEvent: '#ff4dd2', titan: '#b6ff1a', collosus: '#809912', item: '#f56bff', gw: '#2b3cff',
-            resp: '#c6ba35', respEvent: '#00bfff', marker: '#ff00d4', party: '#b45cff',
+            hero: '#87fdff', other: '#ffffff', grave: '#101010', friend: '#46a31d', clan: '#4cfa4f', ally: '#ffba37', enemy: '#c71618', clanEnemy: '#fc3e40',
+            npc: '#ffff33', mob: '#9da1a7', elite: '#87fdff', elite2: '#38b8eb', elite3: '#ffba37',
+            heros: '#ff00ff', herosEvent: '#ff00ff', titan: '#244bff', collosus: '#a500fc', item: '#f5a6f5', gw: '#244bff',
+            resp: '#ffba37', respEvent: '#ffba37', marker: '#ff00d4', party: '#b45cff',
         };
 
 const TYPE_NAMES = {
@@ -285,19 +285,19 @@ function otherKind(o) {
             // gra bywa, że podaje relację tekstem („fr”, „cl”, „en”, „cl-en”…) zamiast liczbą
             const rel = String(o.relation ?? '').toLowerCase();
             if (rel && isNaN(Number(rel))) {
-                if (/en/.test(rel)) return 'enemy';
-                if (rel === 'cl') return 'clan';
-                if (rel === 'fr') return 'friend';
-                if (/cl|fr/.test(rel)) return 'ally';
-                return 'other';
+                const kinds = { fr: 'friend', friend: 'friend', cl: 'clan', clan: 'clan', en: 'enemy', enemy: 'enemy',
+                    clen: 'clanEnemy', clanenemy: 'clanEnemy', enemyclan: 'clanEnemy', clfr: 'ally', clanfriend: 'ally', clanally: 'ally',
+                    factionfriend: 'ally', fractionfriend: 'ally', factionally: 'ally', fractionally: 'ally',
+                    factionenemy: 'enemy', fractionenemy: 'enemy' };
+                return kinds[rel.replace(/[\s_-]+/g, '')] || 'other';
             }
             switch (Number(o.relation)) {
                 case REL.FRIEND: return 'friend';
                 case REL.CLAN: return 'clan';
                 case REL.CLAN_ALLY:
                 case REL.FRACTION_ALLY: return 'ally';
+                case REL.CLAN_ENEMY: return 'clanEnemy';
                 case REL.ENEMY:
-                case REL.CLAN_ENEMY:
                 case REL.FRACTION_ENEMY: return 'enemy';
                 default: return 'other';
             }
@@ -389,7 +389,7 @@ function getPlayers() {
                 const kind = otherKind(o);
                 const dist = h ? Math.hypot(o.x - h.x, o.y - h.y) : 999;
                 const clan = typeof o.clan === 'object' && o.clan ? (o.clan.name || '') : (typeof o.clan === 'string' ? o.clan : '');
-                out.push({ id: String(id), nick: o.nick || '?', x: Number(o.x), y: Number(o.y), lvl: o.lvl, prof: o.prof || '', clan, kind, dist, hostile: kind === 'enemy' || kind === 'other' });
+                out.push({ id: String(id), nick: o.nick || '?', x: Number(o.x), y: Number(o.y), lvl: o.lvl, prof: o.prof || '', clan, kind, dist, hostile: kind === 'enemy' || kind === 'clanEnemy' || kind === 'other' });
             }
             return out.sort((a, b) => a.dist - b.dist);
         }

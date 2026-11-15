@@ -12,8 +12,8 @@
   pointer-events: none;
 }
 .pa-mm-obj.pa-mm-anim { transition: transform .45s linear; }
-.pa-mm-obj.pa-mm-grave { box-shadow: 0 0 0 1.5px #000, 0 0 4px rgba(0,0,0,.8); }
-.pa-mm-obj.pa-mm-mob { background: transparent !important; box-shadow: 0 0 0 1px rgba(255,255,255,.85), 0 0 0 2px rgba(0,0,0,.5); }
+.pa-mm-obj.pa-mm-grave { box-shadow: 0 0 0 1px #b1c0cb, 0 0 0 2px #000; }
+.pa-mm-obj.pa-mm-mob { background: transparent !important; box-shadow: 0 0 0 1px currentColor, 0 0 0 2px rgba(0,0,0,.5); }
 .pa-mm-obj.pa-mm-gw { border-radius: 3px; box-shadow: 0 0 0 1px rgba(255,255,255,.35); }
 .pa-mm-obj.pa-mm-player { box-shadow: 0 0 0 1px rgba(0,0,0,.8); }
 .pa-mm-obj.pa-mm-pulse {
@@ -32,20 +32,18 @@
 }
 .pa-mm-obj.pa-mm-pulse::after { animation-delay: .8s; }
 @keyframes pa-mm-ring { 0% { transform: scale(1); opacity: .95; } 100% { transform: scale(3.4); opacity: 0; } }
-.pa-mm-obj.pa-mm-resp, .pa-mm-obj.pa-mm-respEvent { background: transparent !important; border: 2px solid #c6ba35; box-shadow: none; }
-.pa-mm-obj.pa-mm-respEvent { border-color: #00bfff; }
+.pa-mm-obj.pa-mm-resp, .pa-mm-obj.pa-mm-respEvent { background: transparent !important; border: 2px solid currentColor; box-shadow: none; }
 .pa-mm-obj.pa-mm-resp.pa-mm-near {
-  border: 3px solid #fff36b;
-  background: rgba(255, 236, 80, .45) !important;
-  box-shadow: 0 0 0 1px #000, 0 0 10px 3px rgba(255, 236, 80, .8);
+  border: 3px solid currentColor;
+  background: color-mix(in srgb, currentColor 45%, transparent) !important;
+  box-shadow: 0 0 0 1px #000, 0 0 10px 3px currentColor;
   z-index: 150 !important;
 }
 /* resp, przy którym stoi inny gracz – wygląda jak heros (może tam być) */
 .pa-mm-obj.pa-mm-resp.pa-mm-suspect, .pa-mm-obj.pa-mm-respEvent.pa-mm-suspect {
-  border: 0 !important; background: #ffd23f !important; color: #ffd23f !important;
-  box-shadow: 0 0 0 1.5px #000, 0 0 10px 3px rgba(255,210,63,.75); z-index: 160 !important;
+  border: 0 !important; background: var(--map-color-heros) !important; color: var(--map-color-heros) !important;
+  box-shadow: 0 0 0 1.5px #000, 0 0 10px 3px currentColor; z-index: 160 !important;
 }
-.pa-mm-obj.pa-mm-respEvent.pa-mm-suspect { background: #ff4dd2 !important; color: #ff4dd2 !important; box-shadow: 0 0 0 1.5px #000, 0 0 10px 3px rgba(255,77,210,.75); }
 .pa-mm-obj.pa-mm-marker { animation: pa-mm-flash .5s steps(2) infinite; border-radius: 3px; }
 @keyframes pa-mm-flash { 50% { filter: invert(1); } }
 @keyframes pa-mm-glow { 50% { box-shadow: 0 0 0 2px #fff, 0 0 18px 6px currentColor; filter: brightness(1.2); } }
@@ -55,8 +53,8 @@
   left: 0;
   top: 0;
   border-radius: 2px;
-  background: #ff2a2a;
-  box-shadow: 0 0 0 1.5px #fff, 0 0 8px rgba(255,42,42,.9);
+  background: var(--map-color-hero);
+  box-shadow: 0 0 0 1.5px #fff, 0 0 8px var(--map-color-hero);
   pointer-events: none;
   will-change: transform;
 }
