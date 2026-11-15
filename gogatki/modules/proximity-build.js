@@ -1,4 +1,4 @@
-// Zestaw pod przeciwnika 1.0.5 — integracja z Gogatkami.
+// Zestaw pod przeciwnika 1.0.6 — integracja z Gogatkami.
 (() => {
 'use strict';
 const PROFESSIONS = {w:'Wojownik',p:'Paladyn',b:'Tancerz ostrzy',m:'Mag',t:'Tropiciel',h:'Łowca'};
@@ -145,16 +145,16 @@ installGogatkiBuildCapture(w);
     const root=host.attachShadow({mode:'open'});
     root.innerHTML=`<style>
     :host{all:initial;position:fixed;right:18px;top:135px;z-index:2147483646;font:12px/1.45 Arial;color:#c7d0d9}*{box-sizing:border-box;font-family:Arial}button,input,select{font:inherit;color:inherit}button,select{cursor:pointer}button,select,input{background:#252b31;border:1px solid #668298;border-radius:3px;padding:5px}button:hover{border-color:#12c9bd}.gear{display:flex;align-items:center;justify-content:center;width:26px;height:26px;padding:3px;color:#74838d;background:#252b31}.gear.active{color:#12c9bd}svg{display:block;pointer-events:none}button{background:#38566c;border-color:#6d879a}.collapsed{width:var(--tile,28px);height:var(--tile,28px);overflow:hidden}.collapsed header{padding:0;height:100%}.collapsed strong,.collapsed .body,.collapsed .status{display:none}.collapsed .gear{width:100%;height:100%}header{height:28px}strong{flex:1}section{margin-top:0;max-height:calc(100vh - 30px);overflow:auto;width:262px;max-width:calc(100vw - 30px);background:#171b20;border:1px solid #668298;border-radius:4px;box-shadow:0 6px 22px #0009}header{padding:7px 9px;background:#252b31;display:flex;justify-content:space-between;align-items:center;cursor:move;touch-action:none}strong,th{color:#12c9bd}header button{border:0;padding:0 5px}.body{padding:10px}label{display:flex;align-items:center;justify-content:space-between;gap:7px;margin-bottom:9px}input[type=checkbox]{appearance:none;display:grid;place-content:center;width:14px;min-width:14px;height:14px;flex:none;margin:0;padding:0;border:1px solid #668298;border-radius:3px;background:#252b31;cursor:pointer}input[type=checkbox]::before,input[type=checkbox]::after{content:none}input[type=checkbox]:checked::after{content:'✓';font:12px/12px Arial;color:#12c9bd}table{width:100%;border-collapse:collapse;table-layout:fixed;font:inherit;color:inherit}th:first-child,td:first-child{width:44%}th,td{text-align:left;padding:5px 2px}select{max-width:205px;width:100%;min-width:0}label select{width:100px;flex-shrink:0}tr:last-child td{border-top:1px solid #66829855}p{margin:9px 0;color:#b1c0cb}.status{border-top:1px solid #66829855;padding:9px;overflow-wrap:anywhere}[hidden]{display:none!important}:focus-visible{outline:2px solid #12c9bd}
-    </style><section class="panel"><header><strong>Zestaw pod przeciwnika</strong><button class="gear" type="button" aria-label="Ustawienia zestawu pod przeciwnika" title="LPM: ustawienia · PPM: zwiń"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3 21 7v6c0 4-9 8-9 8s-9-4-9-8V7z"/><path d="m8 12 3 3 5-6"/></svg></button></header><div class="body"><label>Nieznajomi są wrogami <input type="checkbox" id="strangers"></label><label>Zmieniaj w grupie <input type="checkbox" id="skip-group"></label><label>Zmieniaj na mapach tytanowych <input type="checkbox" id="skip-boss"></label><table><thead><tr><th>Przeciwnik / sytuacja</th><th>Twój zestaw</th></tr></thead><tbody></tbody></table><button id="refresh">Odśwież listę zestawów</button><p>Automatycznie zmienia zestaw pod pobliskiego przeciwnika lub grupę na czerwonych mapach.</p></div><div class="status" role="status"></div></section>`;
+    </style><section class="panel"><header><strong>Zestaw pod przeciwnika</strong><button class="gear" type="button" aria-label="Ustawienia zestawu pod przeciwnika" title="LPM: rozwiń lub zwiń do docku · PPM: zwiń"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3 21 7v6c0 4-9 8-9 8s-9-4-9-8V7z"/><path d="m8 12 3 3 5-6"/></svg></button></header><div class="body"><label>Nieznajomi są wrogami <input type="checkbox" id="strangers"></label><label>Zmieniaj w grupie <input type="checkbox" id="skip-group"></label><label>Zmieniaj na mapach tytanowych <input type="checkbox" id="skip-boss"></label><table><thead><tr><th>Przeciwnik / sytuacja</th><th>Twój zestaw</th></tr></thead><tbody></tbody></table><button id="refresh">Odśwież listę zestawów</button><p>Automatycznie zmienia zestaw pod pobliskiego przeciwnika lub grupę na czerwonych mapach.</p></div><div class="status" role="status"></div></section>`;
     document.body.appendChild(host);
     const status=root.querySelector('.status'), panel=root.querySelector('section'), tile=root.querySelector('.gear');
     const say=text=>{status.textContent=text;};
     const windowStateKey='gogatki:proximity:window-open:v1:'+profile;
-    let settingsOpen=GM_getValue('gogatki:proximity:settings:v1:'+profile,true)===true;
     function setOpen(value,persist=true){
       panel.classList.toggle('collapsed',!value);
-      root.querySelector('.body').hidden=!value || !settingsOpen;
-      tile.setAttribute('aria-expanded',String(value && settingsOpen));
+      root.querySelector('.body').hidden=!value;
+      tile.setAttribute('aria-expanded',String(value));
+      tile.setAttribute('aria-label',value?'Zwiń zestaw pod przeciwnika do docku':'Rozwiń zestaw pod przeciwnika');
       host.dataset.compact=String(!value);
       const launcher=document.querySelector('#gogatek-panel')?.shadowRoot?.querySelector('.launcher');
       panel.style.setProperty('--tile',(launcher?.getBoundingClientRect().height || 28)+'px');
@@ -162,10 +162,7 @@ installGogatkiBuildCapture(w);
       if(value)renderBuilds();
       clampPosition();
     }
-    tile.onclick=()=>{
-      if(panel.classList.contains('collapsed'))setOpen(true);
-      else {settingsOpen=!settingsOpen;GM_setValue('gogatki:proximity:settings:v1:'+profile,settingsOpen);setOpen(true);}
-    };
+    tile.onclick=()=>setOpen(panel.classList.contains('collapsed'));
     tile.addEventListener('contextmenu',event=>{event.preventDefault();setOpen(false);});
     root.addEventListener('keydown',e=>{if(e.key==='Escape')setOpen(false);});
     function refreshEnabled(){
