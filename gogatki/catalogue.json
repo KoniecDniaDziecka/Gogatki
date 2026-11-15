@@ -95,7 +95,7 @@
       "id": "proximity-build",
       "name": "Zestaw pod przeciwnika",
       "description": "NI: dobór pełnego zestawu do profesji przeciwnika lub grupy w pobliżu.",
-      "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/proximity-build.js?v=1.0.2"
+      "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/proximity-build.js?v=1.0.3"
     }
   ]
 }
