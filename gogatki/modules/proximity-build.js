@@ -1,4 +1,4 @@
-// Zestaw pod przeciwnika 1.0.0 — integracja z Gogatkami.
+// Zestaw pod przeciwnika 1.0.1 — integracja z Gogatkami.
 (() => {
 'use strict';
 const PROFESSIONS = {w:'Wojownik',p:'Paladyn',b:'Tancerz ostrzy',m:'Mag',t:'Tropiciel',h:'Łowca'};
@@ -144,8 +144,8 @@ installGogatkiBuildCapture(w);
     const host=document.createElement('div'); host.id='gogatki-proximity-build';
     const root=host.attachShadow({mode:'open'});
     root.innerHTML=`<style>
-    :host{all:initial;position:fixed;right:18px;top:135px;z-index:2147483646;font:12px/1.45 Arial;color:#c7d0d9}*{box-sizing:border-box;font-family:Arial}button,input,select{font:inherit;color:inherit}button,select{cursor:pointer}button,select,input{background:#252b31;border:1px solid #668298;border-radius:3px;padding:5px}button:hover{border-color:#12c9bd}.gear{display:flex;align-items:center;justify-content:center;width:26px;height:26px;padding:3px;color:#12c9bd;background:#252b31}svg{display:block;pointer-events:none}button{background:#38566c;border-color:#6d879a}.collapsed{width:var(--tile,28px);height:var(--tile,28px);overflow:hidden}.collapsed header{padding:0;height:100%}.collapsed strong,.collapsed .body,.collapsed .status{display:none}.collapsed .gear{width:100%;height:100%}header{height:28px}strong{flex:1}section{margin-top:0;max-height:calc(100vh - 30px);overflow:auto;width:355px;max-width:calc(100vw - 30px);background:#171b20;border:1px solid #668298;border-radius:4px;box-shadow:0 6px 22px #0009}header{padding:7px 9px;background:#252b31;display:flex;justify-content:space-between;align-items:center;cursor:move;touch-action:none}strong,th{color:#12c9bd}header button{border:0;padding:0 5px}.body{padding:10px}label{display:flex;align-items:center;justify-content:space-between;gap:7px;margin-bottom:9px}input{accent-color:#12c9bd}table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:5px 2px}select{max-width:205px;width:100%}label select{width:100px;flex-shrink:0}tr:last-child td{border-top:1px solid #66829855}p{margin:9px 0;color:#b1c0cb}.status{border-top:1px solid #66829855;padding:9px;overflow-wrap:anywhere}[hidden]{display:none!important}:focus-visible{outline:2px solid #12c9bd}
-    </style><section class="panel"><header><strong>Zestaw pod przeciwnika</strong><button class="gear" type="button" aria-label="Ustawienia zestawu pod przeciwnika" title="LPM: ustawienia · PPM: zwiń"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3 21 7v6c0 4-9 8-9 8s-9-4-9-8V7z"/><path d="m8 12 3 3 5-6"/></svg></button></header><div class="body"><label>Automatyczna zmiana <select id="enabled"><option value="no">Nie</option><option value="yes">Tak</option></select></label><label>Nieznajomi są wrogami <select id="strangers"><option value="no">Nie</option><option value="yes">Tak</option></select></label><label>W grupie nie zmieniaj zestawu <select id="skip-group"><option value="no">Nie</option><option value="yes">Tak</option></select></label><label>Na mapach tytanów/kolosów i w przedsionkach nie zmieniaj <select id="skip-boss"><option value="no">Nie</option><option value="yes">Tak</option></select></label><table><thead><tr><th>Przeciwnik / sytuacja</th><th>Twój zestaw</th></tr></thead><tbody></tbody></table><button id="refresh">Odśwież listę zestawów</button><p>Działa wyłącznie na aktualnie czerwonych mapach. Zielone, żółte i pozostałe tryby są zawsze pomijane.</p><p>Przełączane są pełne zapisane zestawy postaci, tak jak w Auto Otchłani — także ekwipunek, jeśli jest przypisany do zestawu.</p><p>Zestaw dla dwóch lub więcej przeciwników ma pierwszeństwo, jeśli go przypiszesz. W przeciwnym razie wybierana jest profesja najbliższego przeciwnika. Nieznajomi są uwzględniani tylko przy opcji „Tak”. Stały zasięg: 5 kratek w pionie lub poziomie, 4 po ukosie. Pozycje przesunięte w obu osiach używają progu ukosu; odległość to większa z różnic współrzędnych. Przyjaciele, klan i sojusznicy są pomijani. Po oddaleniu zestaw pozostaje bez zmian.</p></div><div class="status" role="status"></div></section>`;
+    :host{all:initial;position:fixed;right:18px;top:135px;z-index:2147483646;font:12px/1.45 Arial;color:#c7d0d9}*{box-sizing:border-box;font-family:Arial}button,input,select{font:inherit;color:inherit}button,select{cursor:pointer}button,select,input{background:#252b31;border:1px solid #668298;border-radius:3px;padding:5px}button:hover{border-color:#12c9bd}.gear{display:flex;align-items:center;justify-content:center;width:26px;height:26px;padding:3px;color:#12c9bd;background:#252b31}svg{display:block;pointer-events:none}button{background:#38566c;border-color:#6d879a}.collapsed{width:var(--tile,28px);height:var(--tile,28px);overflow:hidden}.collapsed header{padding:0;height:100%}.collapsed strong,.collapsed .body,.collapsed .status{display:none}.collapsed .gear{width:100%;height:100%}header{height:28px}strong{flex:1}section{margin-top:0;max-height:calc(100vh - 30px);overflow:auto;width:355px;max-width:calc(100vw - 30px);background:#171b20;border:1px solid #668298;border-radius:4px;box-shadow:0 6px 22px #0009}header{padding:7px 9px;background:#252b31;display:flex;justify-content:space-between;align-items:center;cursor:move;touch-action:none}strong,th{color:#12c9bd}header button{border:0;padding:0 5px}.body{padding:10px}label{display:flex;align-items:center;justify-content:space-between;gap:7px;margin-bottom:9px}input[type=checkbox]{appearance:none;display:grid;place-content:center;width:14px;min-width:14px;height:14px;flex:none;margin:0;padding:0;border:1px solid #668298;border-radius:3px;background:#252b31;cursor:pointer}input[type=checkbox]::before,input[type=checkbox]::after{content:none}input[type=checkbox]:checked::after{content:'✓';font:12px/12px Arial;color:#12c9bd}table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:5px 2px}select{max-width:205px;width:100%}label select{width:100px;flex-shrink:0}tr:last-child td{border-top:1px solid #66829855}p{margin:9px 0;color:#b1c0cb}.status{border-top:1px solid #66829855;padding:9px;overflow-wrap:anywhere}[hidden]{display:none!important}:focus-visible{outline:2px solid #12c9bd}
+    </style><section class="panel"><header><strong>Zestaw pod przeciwnika</strong><button class="gear" type="button" aria-label="Ustawienia zestawu pod przeciwnika" title="LPM: ustawienia · PPM: zwiń"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3 21 7v6c0 4-9 8-9 8s-9-4-9-8V7z"/><path d="m8 12 3 3 5-6"/></svg></button></header><div class="body"><label>Automatyczna zmiana <input type="checkbox" id="enabled"></label><label>Nieznajomi są wrogami <input type="checkbox" id="strangers"></label><label>Zmieniaj w grupie <input type="checkbox" id="skip-group"></label><label>Zmieniaj na mapach tytanowych <input type="checkbox" id="skip-boss"></label><table><thead><tr><th>Przeciwnik / sytuacja</th><th>Twój zestaw</th></tr></thead><tbody></tbody></table><button id="refresh">Odśwież listę zestawów</button><p>Działa wyłącznie na aktualnie czerwonych mapach. Zielone, żółte i pozostałe tryby są zawsze pomijane.</p><p>Przełączane są pełne zapisane zestawy postaci, tak jak w Auto Otchłani — także ekwipunek, jeśli jest przypisany do zestawu.</p><p>Zestaw dla dwóch lub więcej przeciwników ma pierwszeństwo, jeśli go przypiszesz. W przeciwnym razie wybierana jest profesja najbliższego przeciwnika. Nieznajomi są uwzględniani po zaznaczeniu opcji „Nieznajomi są wrogami”. Stały zasięg: 5 kratek w pionie lub poziomie, 4 po ukosie. Pozycje przesunięte w obu osiach używają progu ukosu; odległość to większa z różnic współrzędnych. Przyjaciele, klan i sojusznicy są pomijani. Po oddaleniu zestaw pozostaje bez zmian.</p></div><div class="status" role="status"></div></section>`;
     document.body.appendChild(host);
     const status=root.querySelector('.status'), panel=root.querySelector('section'), tile=root.querySelector('.gear');
     const say=text=>{status.textContent=text;};
@@ -168,13 +168,14 @@ installGogatkiBuildCapture(w);
     };
     tile.addEventListener('contextmenu',event=>{event.preventDefault();setOpen(false);});
     root.addEventListener('keydown',e=>{if(e.key==='Escape')setOpen(false);});
-    const enabled=root.querySelector('#enabled'); enabled.value=config.enabled===true?'yes':'no';
-    enabled.onchange=()=>{config.enabled=enabled.value==='yes';save();};
-    const strangers=root.querySelector('#strangers');strangers.value=config.strangersAreEnemies===true?'yes':'no';
-    strangers.onchange=()=>{config.strangersAreEnemies=strangers.value==='yes';save();};
+    const enabled=root.querySelector('#enabled'); enabled.checked=config.enabled===true;
+    enabled.onchange=()=>{config.enabled=enabled.checked;save();};
+    const strangers=root.querySelector('#strangers');strangers.checked=config.strangersAreEnemies===true;
+    strangers.onchange=()=>{config.strangersAreEnemies=strangers.checked;save();};
     for(const [selector,field] of [['#skip-group','skipInGroup'],['#skip-boss','skipBossMaps']]){
-      const input=root.querySelector(selector);input.value=config[field]===true?'yes':'no';
-      input.onchange=()=>{config[field]=input.value==='yes';save();};
+      // Keep legacy skip flags: a checked permission means the block is disabled.
+      const input=root.querySelector(selector);input.checked=config[field]!==true;
+      input.onchange=()=>{config[field]=!input.checked;save();};
     }
     const selects={};
     for(const [prof,name] of Object.entries({...PROFESSIONS,multiple:'2 lub więcej przeciwników'})){
@@ -216,7 +217,7 @@ installGogatkiBuildCapture(w);
         if(map!==lastMap){lastMap=map;pending=null;blockedUntil=Date.now()+600;}
         if(pending){
           if(String(capture.current)===pending.build){say('Zmieniono zestaw na '+(capture.builds[pending.build]?.name || pending.build)+'.');pending=null;}
-          else if(Date.now()-pending.time>5000){config.enabled=false;enabled.value='no';save();say('Brak potwierdzenia zmiany. Automat zatrzymany; sprawdź komunikat gry i zestawy.');pending=null;}
+          else if(Date.now()-pending.time>5000){config.enabled=false;enabled.checked=false;save();say('Brak potwierdzenia zmiany. Automat zatrzymany; sprawdź komunikat gry i zestawy.');pending=null;}
           return;
         }
         if(paused){say(paused);return;}
@@ -236,7 +237,7 @@ installGogatkiBuildCapture(w);
         const request='builds&action=updateCurrent&id='+encodeURIComponent(build)+(w.Engine?.skills?'&skillshop=1':'');
         say('Zmiana zestawu: '+situation);
         w._g(request,packet=>{capture.consume?.(packet);});
-      }catch(error){config.enabled=false;enabled.value='no';save();say('Automat zatrzymany: '+error.message);console.error('[Gogatki: zestawy]',error);}
+      }catch(error){config.enabled=false;enabled.checked=false;save();say('Automat zatrzymany: '+error.message);console.error('[Gogatki: zestawy]',error);}
     }
     const timer=w.setInterval(tick,250);
     const positionKey='gogatki:proximity:window-position:v2:'+profile;
@@ -274,5 +275,6 @@ installGogatkiBuildCapture(w);
   }
 });
 })();
+
 
 
