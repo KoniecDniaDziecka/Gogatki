@@ -1,4 +1,4 @@
-// Mapa podręczna+ 1.0.5 — enhancement of the native NI window.
+// Mapa podręczna+ 1.0.6 — enhancement of the native NI window.
 GogatkiRuntime.register({
     id: 'mapa-podreczna',
     name: 'Mapa podręczna+',
@@ -358,7 +358,7 @@ GogatkiRuntime.register({
                 const transform = `translate(${left.toFixed(2)}px,${top.toFixed(2)}px)`;
                 if (heroTransforms.get(node) !== transform) { node.style.transform = transform; heroTransforms.set(node, transform); }
             };
-            position(marker, (x + 0.5) * geometry.scaleX - geometry.dotSize / 2, (y + 0.5) * geometry.scaleY - geometry.dotSize / 2);
+            position(marker, (x + 0.5) * geometry.scaleX - geometry.heroSize / 2, (y + 0.5) * geometry.scaleY - geometry.heroSize / 2);
             if (state.fog) position(view, (x - geometry.visibility) * geometry.scaleX, (y - geometry.visibility) * geometry.scaleY);
             else if (view) view.style.display = 'none';
             return Boolean(marker);
@@ -390,7 +390,8 @@ GogatkiRuntime.register({
             markerHost.style.clipPath = overlay.style.clipPath;
             const scaleX = rect.width / sx / town.w, scaleY = rect.height / sy / town.h;
             const dotSize = Math.max(7, Math.round(scaleX));
-            binding.heroGeometry = { scaleX, scaleY, dotSize, visibility: town.visibility, map: String(town.id) };
+            const heroSize = Math.max(5, Math.round(dotSize * 0.7));
+            binding.heroGeometry = { scaleX, scaleY, heroSize, visibility: town.visibility, map: String(town.id) };
             const geometryKey = `${town.id}:${geometry.width}:${geometry.height}`;
             const resized = geometryKey !== binding.markerGeometry;
             binding.markerGeometry = geometryKey;
@@ -414,11 +415,11 @@ GogatkiRuntime.register({
                 if (o.kind === 'view') {
                     width = o.size * scaleX; height = o.size * scaleY; left = o.x * scaleX; top = o.y * scaleY;
                 } else {
-                    const size = o.kind === 'hero' ? dotSize + 1 : (pulse || o.kind === 'elite2' ? Math.round(dotSize * 1.5) : dotSize);
+                    const size = o.kind === 'hero' ? heroSize : (pulse || o.kind === 'elite2' ? Math.round(dotSize * 1.5) : dotSize);
                     width = o.spanX ? Math.max(dotSize, o.spanX * scaleX) : size;
                     height = o.spanY ? Math.max(dotSize, o.spanY * scaleY) : size;
-                    left = (Number(o.x) + 0.5) * scaleX - (o.kind === 'hero' ? dotSize : width) / 2;
-                    top = (Number(o.y) + 0.5) * scaleY - (o.kind === 'hero' ? dotSize : height) / 2;
+                    left = (Number(o.x) + 0.5) * scaleX - width / 2;
+                    top = (Number(o.y) + 0.5) * scaleY - height / 2;
                 }
                 mark.style.width = width + 'px'; mark.style.height = height + 'px';
                 mark.style.transform = `translate(${left.toFixed(2)}px,${top.toFixed(2)}px)`;

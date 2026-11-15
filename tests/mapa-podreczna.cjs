@@ -79,7 +79,8 @@ const assert = require('node:assert/strict');
         assert(herosStyle.classes.includes('pa-mm-pulse'));
         assert.equal(herosStyle.ring, 'pa-mm-ring', 'Original expanding rings are retained');
         const heroStyle = await markerStyle('[data-kind=hero]');
-        assert.equal(heroStyle.radius, '3px', 'Own character is a rounded square, not a circle');
+        assert.equal(heroStyle.width, 7, 'Own position marker is smaller and remains visible');
+        assert.equal(heroStyle.radius, '2px', 'Own character is a rounded square, not a circle');
         assert.equal(heroStyle.background, 'rgb(255, 42, 42)');
         assert(heroStyle.shadow.includes('255, 255, 255'));
         assert((await markerStyle('[data-kind=mob]')).shadow.includes('255, 255, 255'), 'Ordinary mobs have the original white outline');
@@ -133,8 +134,8 @@ const assert = require('node:assert/strict');
             return samples;
         });
         assert.deepEqual(livePositions, [
-            { hero: [11.25, 12.5], view: [-28.75, -27.5], tile: [1, 1] },
-            { hero: [13.75, 15], view: [-26.25, -25], tile: [1, 1] }
+            { hero: [12.75, 14], view: [-28.75, -27.5], tile: [1, 1] },
+            { hero: [15.25, 16.5], view: [-26.25, -25], tile: [1, 1] }
         ], 'Hero and visibility frame follow fractional live coordinates while the data timer is paused');
 
         async function assertAlignment() {

@@ -54,7 +54,7 @@
   z-index: 300;
   left: 0;
   top: 0;
-  border-radius: 3px;
+  border-radius: 2px;
   background: #ff2a2a;
   box-shadow: 0 0 0 1.5px #fff, 0 0 8px rgba(255,42,42,.9);
   pointer-events: none;

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Mapa podręczna+ — samodzielna (NI)
 // @namespace    gogatki.local.mapa-podreczna.standalone
-// @version      1.0.5
+// @version      1.0.6
 // @description  Oznaczenia, filtry i wyszukiwarka w istniejącej mapie podręcznej NI, bez panelu Gogatków.
 // @author       Gogatki; model danych na podstawie Dark-Sad 6.1.5
 // @match        https://*.margonem.pl/*
@@ -36,7 +36,7 @@
     let definition;
     // A private registry keeps the identical module independent of Gogatki's loader.
     const GogatkiRuntime = Object.freeze({ register(value) { definition = value; } });
-// Mapa podręczna+ 1.0.5 — enhancement of the native NI window.
+// Mapa podręczna+ 1.0.6 — enhancement of the native NI window.
 GogatkiRuntime.register({
     id: 'mapa-podreczna',
     name: 'Mapa podręczna+',
@@ -674,7 +674,7 @@ net.on('cl', (cl) => {
 
 }
 
-        const MAP_MARKER_CSS = "/* Marker styles adapted from Dark-Sad Panel dodatków 6.1.5; isolated in Shadow DOM. */\n:host { all: initial; pointer-events: none; }\n* { box-sizing: border-box; pointer-events: none; }\n.pa-mm-objects { position: absolute; inset: 0; pointer-events: none; }\n.pa-mm-obj {\n  position: absolute;\n  left: 0;\n  top: 0;\n  will-change: transform;\n  border-radius: 50%;\n  box-shadow: 0 0 0 1px rgba(0,0,0,.55);\n  pointer-events: none;\n}\n.pa-mm-obj.pa-mm-anim { transition: transform .45s linear; }\n.pa-mm-obj.pa-mm-grave { box-shadow: 0 0 0 1.5px #000, 0 0 4px rgba(0,0,0,.8); }\n.pa-mm-obj.pa-mm-mob { background: transparent !important; box-shadow: 0 0 0 1px rgba(255,255,255,.85), 0 0 0 2px rgba(0,0,0,.5); }\n.pa-mm-obj.pa-mm-gw { border-radius: 3px; box-shadow: 0 0 0 1px rgba(255,255,255,.35); }\n.pa-mm-obj.pa-mm-player { box-shadow: 0 0 0 1px rgba(0,0,0,.8); }\n.pa-mm-obj.pa-mm-pulse {\n  overflow: visible;\n  box-shadow: 0 0 0 2px #000, 0 0 10px 2px currentColor;\n  animation: pa-mm-glow .9s ease-in-out infinite;\n}\n.pa-mm-obj.pa-mm-pulse::before, .pa-mm-obj.pa-mm-pulse::after {\n  content: '';\n  position: absolute;\n  inset: -2px;\n  border: 2px solid currentColor;\n  border-radius: 50%;\n  animation: pa-mm-ring 1.6s ease-out infinite;\n  pointer-events: none;\n}\n.pa-mm-obj.pa-mm-pulse::after { animation-delay: .8s; }\n@keyframes pa-mm-ring { 0% { transform: scale(1); opacity: .95; } 100% { transform: scale(3.4); opacity: 0; } }\n.pa-mm-obj.pa-mm-resp, .pa-mm-obj.pa-mm-respEvent { background: transparent !important; border: 2px solid #c6ba35; box-shadow: none; }\n.pa-mm-obj.pa-mm-respEvent { border-color: #00bfff; }\n.pa-mm-obj.pa-mm-resp.pa-mm-near {\n  border: 3px solid #fff36b;\n  background: rgba(255, 236, 80, .45) !important;\n  box-shadow: 0 0 0 1px #000, 0 0 10px 3px rgba(255, 236, 80, .8);\n  z-index: 150 !important;\n}\n/* resp, przy którym stoi inny gracz – wygląda jak heros (może tam być) */\n.pa-mm-obj.pa-mm-resp.pa-mm-suspect, .pa-mm-obj.pa-mm-respEvent.pa-mm-suspect {\n  border: 0 !important; background: #ffd23f !important; color: #ffd23f !important;\n  box-shadow: 0 0 0 1.5px #000, 0 0 10px 3px rgba(255,210,63,.75); z-index: 160 !important;\n}\n.pa-mm-obj.pa-mm-respEvent.pa-mm-suspect { background: #ff4dd2 !important; color: #ff4dd2 !important; box-shadow: 0 0 0 1.5px #000, 0 0 10px 3px rgba(255,77,210,.75); }\n.pa-mm-obj.pa-mm-marker { animation: pa-mm-flash .5s steps(2) infinite; border-radius: 3px; }\n@keyframes pa-mm-flash { 50% { filter: invert(1); } }\n@keyframes pa-mm-glow { 50% { box-shadow: 0 0 0 2px #fff, 0 0 18px 6px currentColor; filter: brightness(1.2); } }\n.pa-mm-hero {\n  position: absolute;\n  z-index: 300;\n  left: 0;\n  top: 0;\n  border-radius: 3px;\n  background: #ff2a2a;\n  box-shadow: 0 0 0 1.5px #fff, 0 0 8px rgba(255,42,42,.9);\n  pointer-events: none;\n  will-change: transform;\n}\n.pa-mm-view {\n  position: absolute;\n  z-index: 250;\n  left: 0;\n  top: 0;\n  border: 1px solid rgba(255,230,90,.9);\n  border-radius: 3px;\n  background: rgba(255,230,90,.06);\n  box-sizing: border-box;\n  pointer-events: none;\n  will-change: transform;\n}\n";
+        const MAP_MARKER_CSS = "/* Marker styles adapted from Dark-Sad Panel dodatków 6.1.5; isolated in Shadow DOM. */\n:host { all: initial; pointer-events: none; }\n* { box-sizing: border-box; pointer-events: none; }\n.pa-mm-objects { position: absolute; inset: 0; pointer-events: none; }\n.pa-mm-obj {\n  position: absolute;\n  left: 0;\n  top: 0;\n  will-change: transform;\n  border-radius: 50%;\n  box-shadow: 0 0 0 1px rgba(0,0,0,.55);\n  pointer-events: none;\n}\n.pa-mm-obj.pa-mm-anim { transition: transform .45s linear; }\n.pa-mm-obj.pa-mm-grave { box-shadow: 0 0 0 1.5px #000, 0 0 4px rgba(0,0,0,.8); }\n.pa-mm-obj.pa-mm-mob { background: transparent !important; box-shadow: 0 0 0 1px rgba(255,255,255,.85), 0 0 0 2px rgba(0,0,0,.5); }\n.pa-mm-obj.pa-mm-gw { border-radius: 3px; box-shadow: 0 0 0 1px rgba(255,255,255,.35); }\n.pa-mm-obj.pa-mm-player { box-shadow: 0 0 0 1px rgba(0,0,0,.8); }\n.pa-mm-obj.pa-mm-pulse {\n  overflow: visible;\n  box-shadow: 0 0 0 2px #000, 0 0 10px 2px currentColor;\n  animation: pa-mm-glow .9s ease-in-out infinite;\n}\n.pa-mm-obj.pa-mm-pulse::before, .pa-mm-obj.pa-mm-pulse::after {\n  content: '';\n  position: absolute;\n  inset: -2px;\n  border: 2px solid currentColor;\n  border-radius: 50%;\n  animation: pa-mm-ring 1.6s ease-out infinite;\n  pointer-events: none;\n}\n.pa-mm-obj.pa-mm-pulse::after { animation-delay: .8s; }\n@keyframes pa-mm-ring { 0% { transform: scale(1); opacity: .95; } 100% { transform: scale(3.4); opacity: 0; } }\n.pa-mm-obj.pa-mm-resp, .pa-mm-obj.pa-mm-respEvent { background: transparent !important; border: 2px solid #c6ba35; box-shadow: none; }\n.pa-mm-obj.pa-mm-respEvent { border-color: #00bfff; }\n.pa-mm-obj.pa-mm-resp.pa-mm-near {\n  border: 3px solid #fff36b;\n  background: rgba(255, 236, 80, .45) !important;\n  box-shadow: 0 0 0 1px #000, 0 0 10px 3px rgba(255, 236, 80, .8);\n  z-index: 150 !important;\n}\n/* resp, przy którym stoi inny gracz – wygląda jak heros (może tam być) */\n.pa-mm-obj.pa-mm-resp.pa-mm-suspect, .pa-mm-obj.pa-mm-respEvent.pa-mm-suspect {\n  border: 0 !important; background: #ffd23f !important; color: #ffd23f !important;\n  box-shadow: 0 0 0 1.5px #000, 0 0 10px 3px rgba(255,210,63,.75); z-index: 160 !important;\n}\n.pa-mm-obj.pa-mm-respEvent.pa-mm-suspect { background: #ff4dd2 !important; color: #ff4dd2 !important; box-shadow: 0 0 0 1.5px #000, 0 0 10px 3px rgba(255,77,210,.75); }\n.pa-mm-obj.pa-mm-marker { animation: pa-mm-flash .5s steps(2) infinite; border-radius: 3px; }\n@keyframes pa-mm-flash { 50% { filter: invert(1); } }\n@keyframes pa-mm-glow { 50% { box-shadow: 0 0 0 2px #fff, 0 0 18px 6px currentColor; filter: brightness(1.2); } }\n.pa-mm-hero {\n  position: absolute;\n  z-index: 300;\n  left: 0;\n  top: 0;\n  border-radius: 2px;\n  background: #ff2a2a;\n  box-shadow: 0 0 0 1.5px #fff, 0 0 8px rgba(255,42,42,.9);\n  pointer-events: none;\n  will-change: transform;\n}\n.pa-mm-view {\n  position: absolute;\n  z-index: 250;\n  left: 0;\n  top: 0;\n  border: 1px solid rgba(255,230,90,.9);\n  border-radius: 3px;\n  background: rgba(255,230,90,.06);\n  box-sizing: border-box;\n  pointer-events: none;\n  will-change: transform;\n}\n";
         const MARKER_LAYERS = { gw: 70, item: 80, grave: 85, resp: 90, respEvent: 90, npc: 110, mob: 110,
             elite: 120, elite2: 130, elite3: 130, other: 140, friend: 140, clan: 140, ally: 140,
             party: 142, enemy: 145, titan: 150, collosus: 150, heros: 160, herosEvent: 160, marker: 200 };
@@ -1019,7 +1019,7 @@ net.on('cl', (cl) => {
                 const transform = `translate(${left.toFixed(2)}px,${top.toFixed(2)}px)`;
                 if (heroTransforms.get(node) !== transform) { node.style.transform = transform; heroTransforms.set(node, transform); }
             };
-            position(marker, (x + 0.5) * geometry.scaleX - geometry.dotSize / 2, (y + 0.5) * geometry.scaleY - geometry.dotSize / 2);
+            position(marker, (x + 0.5) * geometry.scaleX - geometry.heroSize / 2, (y + 0.5) * geometry.scaleY - geometry.heroSize / 2);
             if (state.fog) position(view, (x - geometry.visibility) * geometry.scaleX, (y - geometry.visibility) * geometry.scaleY);
             else if (view) view.style.display = 'none';
             return Boolean(marker);
@@ -1051,7 +1051,8 @@ net.on('cl', (cl) => {
             markerHost.style.clipPath = overlay.style.clipPath;
             const scaleX = rect.width / sx / town.w, scaleY = rect.height / sy / town.h;
             const dotSize = Math.max(7, Math.round(scaleX));
-            binding.heroGeometry = { scaleX, scaleY, dotSize, visibility: town.visibility, map: String(town.id) };
+            const heroSize = Math.max(5, Math.round(dotSize * 0.7));
+            binding.heroGeometry = { scaleX, scaleY, heroSize, visibility: town.visibility, map: String(town.id) };
             const geometryKey = `${town.id}:${geometry.width}:${geometry.height}`;
             const resized = geometryKey !== binding.markerGeometry;
             binding.markerGeometry = geometryKey;
@@ -1075,11 +1076,11 @@ net.on('cl', (cl) => {
                 if (o.kind === 'view') {
                     width = o.size * scaleX; height = o.size * scaleY; left = o.x * scaleX; top = o.y * scaleY;
                 } else {
-                    const size = o.kind === 'hero' ? dotSize + 1 : (pulse || o.kind === 'elite2' ? Math.round(dotSize * 1.5) : dotSize);
+                    const size = o.kind === 'hero' ? heroSize : (pulse || o.kind === 'elite2' ? Math.round(dotSize * 1.5) : dotSize);
                     width = o.spanX ? Math.max(dotSize, o.spanX * scaleX) : size;
                     height = o.spanY ? Math.max(dotSize, o.spanY * scaleY) : size;
-                    left = (Number(o.x) + 0.5) * scaleX - (o.kind === 'hero' ? dotSize : width) / 2;
-                    top = (Number(o.y) + 0.5) * scaleY - (o.kind === 'hero' ? dotSize : height) / 2;
+                    left = (Number(o.x) + 0.5) * scaleX - width / 2;
+                    top = (Number(o.y) + 0.5) * scaleY - height / 2;
                 }
                 mark.style.width = width + 'px'; mark.style.height = height + 'px';
                 mark.style.transform = `translate(${left.toFixed(2)}px,${top.toFixed(2)}px)`;
