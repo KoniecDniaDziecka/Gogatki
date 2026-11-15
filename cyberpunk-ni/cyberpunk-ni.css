@@ -1,4 +1,4 @@
-/* Cyberpunk NI 0.2.64 — motyw dla nowego interfejsu Margonem.
+/* Cyberpunk NI 0.2.65 — motyw dla nowego interfejsu Margonem.
  * Skrypt .user.js włącza go atrybutem data-cyberpunk-ni="on" na <html>.
  * Zmienne poniżej sterują paletą. Nie wymaga zewnętrznych grafik ani fontów.
  * Najlepiej używać z wyłączonym DarknessNI i innymi motywami całego NI.
@@ -3094,3 +3094,27 @@ html[data-cyberpunk-ni="on"] :is(.c-window,.border-window):has(:is(.matchmaking-
   --cp-window-surface: var(--cp-art-matchmaking);
 }
 /* CP-WINDOW-ASSETS-END */
+
+/* CP-WINDOW-UTILITY-ICONS-BEGIN: natywne przyciski 13 × 13, ostre SVG. */
+@layer cyberpunk-ni-window-finishes {
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) :is(.increase-opacity, .manage-configuration-button, .transparent-window-buttons-menu .settings-button) {
+  background-color: transparent !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-size: 13px 13px !important;
+  filter: none !important;
+}
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) .increase-opacity {
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2213%22%20height=%2213%22%20viewBox=%220%200%2013%2013%22%20fill=%22none%22%3E%0A%20%20%3Ccircle%20cx=%226.5%22%20cy=%226.5%22%20r=%224.75%22%20stroke=%22%237f9da8%22%20stroke-width=%221%22/%3E%0A%20%20%3Cpath%20d=%22M6.5%202.25a4.25%204.25%200%200%200%200%208.5Z%22%20fill=%22%237f9da8%22/%3E%0A%3C/svg%3E%0A%0A") !important; /* cp-window-opacity */
+}
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) :is(.manage-configuration-button, .transparent-window-buttons-menu .settings-button) {
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2213%22%20height=%2213%22%20viewBox=%220%200%2013%2013%22%3E%0A%20%20%3Cpath%20d=%22M4.450%202.949L5.398%201.316L7.602%201.316L8.550%202.949L8.550%202.949L10.439%202.954L11.541%204.862L10.600%206.500L10.600%206.500L11.541%208.138L10.439%2010.046L8.550%2010.051L8.550%2010.051L7.602%2011.684L5.398%2011.684L4.450%2010.051L4.450%2010.051L2.561%2010.046L1.459%208.138L2.400%206.500L2.400%206.500L1.459%204.862L2.561%202.954L4.450%202.949Z%20M8.25%206.5a1.75%201.75%200%201%200-3.5%200a1.75%201.75%200%201%200%203.5%200Z%22%20fill=%22%237f9da8%22%20fill-rule=%22evenodd%22/%3E%0A%3C/svg%3E%0A%0A") !important; /* cp-window-settings */
+}
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) .increase-opacity:is(:hover, :focus-visible):not(.disabled):not([disabled]):not([aria-disabled="true"]) {
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2213%22%20height=%2213%22%20viewBox=%220%200%2013%2013%22%20fill=%22none%22%3E%0A%20%20%3Ccircle%20cx=%226.5%22%20cy=%226.5%22%20r=%224.75%22%20stroke=%22%23a2bdc6%22%20stroke-width=%221%22/%3E%0A%20%20%3Cpath%20d=%22M6.5%202.25a4.25%204.25%200%200%200%200%208.5Z%22%20fill=%22%23a2bdc6%22/%3E%0A%3C/svg%3E%0A%0A") !important; /* cp-window-opacity-hover */
+}
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window) :is(.manage-configuration-button, .transparent-window-buttons-menu .settings-button):is(:hover, :focus-visible):not(.disabled):not([disabled]):not([aria-disabled="true"]) {
+  background-image: url("data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2213%22%20height=%2213%22%20viewBox=%220%200%2013%2013%22%3E%0A%20%20%3Cpath%20d=%22M4.450%202.949L5.398%201.316L7.602%201.316L8.550%202.949L8.550%202.949L10.439%202.954L11.541%204.862L10.600%206.500L10.600%206.500L11.541%208.138L10.439%2010.046L8.550%2010.051L8.550%2010.051L7.602%2011.684L5.398%2011.684L4.450%2010.051L4.450%2010.051L2.561%2010.046L1.459%208.138L2.400%206.500L2.400%206.500L1.459%204.862L2.561%202.954L4.450%202.949Z%20M8.25%206.5a1.75%201.75%200%201%200-3.5%200a1.75%201.75%200%201%200%203.5%200Z%22%20fill=%22%23a2bdc6%22%20fill-rule=%22evenodd%22/%3E%0A%3C/svg%3E%0A%0A") !important; /* cp-window-settings-hover */
+}
+}
+/* CP-WINDOW-UTILITY-ICONS-END */

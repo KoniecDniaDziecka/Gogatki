@@ -19,8 +19,18 @@ CSS, count = re.subn(r'(?m)^  src: url\("data:font/ttf;base64,[A-Za-z0-9+/=]*"\)
                      lambda _m: f'  src: url("data:font/ttf;base64,{FONT}") format("truetype");', CSS)
 if count != 1:
     raise ValueError("Brak jednoznacznego miejsca na krój cyfr HP")
+for icon in ("opacity", "settings"):
+    glyph = (ROOT / f"assets/window-{icon}.svg").read_text()
+    for state in ("", "-hover"):
+        source = glyph.replace("#7f9da8", "#a2bdc6") if state else glyph
+        uri = "data:image/svg+xml," + quote(source, safe="='/:,.-")
+        marker = f"cp-window-{icon}{state}"
+        CSS, count = re.subn(rf"(?m)^  background-image: .*; /\* {marker} \*/$",
+                            lambda _m: f'  background-image: url("{uri}") !important; /* {marker} */', CSS)
+        if count != 1:
+            raise ValueError(f"Brak jednoznacznego miejsca na ikonę {marker}")
 (ROOT / "cyberpunk-ni.css").write_text(CSS)
-BUNDLE = {"id": "cyberpunk-ni", "schema": 1, "version": "0.2.64", "css": CSS}
+BUNDLE = {"id": "cyberpunk-ni", "schema": 1, "version": "0.2.65", "css": CSS}
 HEADER = """// ==UserScript==
 // @name         Cyberpunk NI
 // @namespace    local.margonem.cyberpunk-ni
