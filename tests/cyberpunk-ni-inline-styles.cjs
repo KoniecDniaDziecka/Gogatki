@@ -56,6 +56,49 @@ const assert = require('node:assert/strict');
       });
     }
     assert.deepEqual(await snapshot(pages[1]), await snapshot(pages[0]), 'new windows and changed inline images/warnings retain identical styles');
+    const geometryWrites = await pages[1].evaluate(async () => {
+      let writes = 0;
+      const observer = new MutationObserver(records => { writes += records.length; });
+      const element = document.getElementById('dynamic');
+      observer.observe(element, { attributes: true, attributeFilter: ['data-cp-inline-style'] });
+      for (let i = 0; i < 25; i++) {
+        element.style.left = i + 'px';
+        element.style.width = (90 + i) + 'px';
+        element.style.backgroundPosition = (-20 - i) + 'px -10px';
+        element.style.backgroundImage = 'url(frame-' + i + '.png)';
+        await Promise.resolve(); await Promise.resolve();
+        element.getBoundingClientRect();
+      }
+      observer.disconnect();
+      return writes;
+    });
+    assert.equal(geometryWrites, 0, 'geometry, sprite offsets and equivalent image changes must not rewrite CSS guard attributes');
+    const beforeRemoval = await pages[1].locator('#dynamic').getAttribute('data-cp-inline-style');
+    await pages[1].locator('#dynamic').evaluate(el => el.style.removeProperty('background-image'));
+    await pages[1].evaluate(() => settle());
+    assert.notEqual(await pages[1].locator('#dynamic').getAttribute('data-cp-inline-style'), beforeRemoval, 'removing an inline image updates its guard');
+    const guardMismatches = await pages[1].evaluate(async css => {
+      const {guards} = compileCyberpunkNiInlineCSS(css);
+      const samples = [null, '', 'left: 2px; width: 20px;', 'background-image: url(icon.png);',
+        'BACKGROUND-IMAGE: URL(ICON.PNG);', 'color: black;', 'color: #000;', 'color: rgb(0, 0, 0);',
+        'border-color: black;', 'background: url(quest_bar.png);', 'background: url(table_header.png);',
+        'background: url(info-box-2.png);', 'background-image: url(screen-background.png);'];
+      const elements = samples.map(source => {
+        const element = document.createElement('div'); element.className = 'button';
+        if (source !== null) element.setAttribute('style', source);
+        document.querySelector('.fixture').append(element); return element;
+      });
+      await settle();
+      const mismatches = [];
+      for (const element of elements) for (const guard of guards) {
+        const selector = '[style' + (guard.operator ? guard.operator + JSON.stringify(guard.value) + (guard.insensitive ? ' i' : '') : '') + ']';
+        const actual = (element.getAttribute('data-cp-inline-style') || '').split(' ').includes(guard.token);
+        if (actual !== element.matches(selector)) mismatches.push({source:element.getAttribute('style'),selector});
+      }
+      for (const element of elements) element.remove();
+      return mismatches;
+    }, css);
+    assert.deepEqual(guardMismatches, [], 'semantic guard flags match the browser native selector engine');
     assert.equal(await pages[1].locator('.unit[data-cp-inline-style]').count(), 0, 'moving actors are not mirrored');
     assert.equal(await pages[1].evaluate(() => /\[style(?=[\s*^$|~=\]])/i.test(document.getElementById('test-theme').textContent)), false, 'active CSS never inspects native inline style attributes');
     const timings=[];
@@ -79,6 +122,6 @@ const assert = require('node:assert/strict');
     });
     assert.equal(await pages[1].locator('[data-cp-inline-style]').count(), 0, 'mirrors removed on cleanup');
     for (const page of pages) await page.close();
-    console.log('PASS: identical UI appearance across inline changes/new windows; actors excluded, CSS inline-style selectors removed and cleanup complete.');
+    console.log('PASS: identical UI appearance, zero guard writes for geometry/sprite animation, semantic image guards, actors excluded and cleanup complete.');
   } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });

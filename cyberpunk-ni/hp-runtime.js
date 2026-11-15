@@ -151,8 +151,9 @@ function createCyberpunkNiRuntime(window, getTheme, isEnabled) {
       }
       // Nie odczytujemy ani nie porównujemy całego CSS przy aktualizacji HP.
       if (current !== style || theme !== appliedTheme) {
+        const css = inlineStyles.css(theme.css);
         inlineStyles.start();
-        current.textContent = inlineStyles.css(theme.css);
+        current.textContent = css;
         current.dataset.version = theme.version;
         style = current;
         appliedTheme = theme;
@@ -212,8 +213,9 @@ function createCyberpunkNiRuntime(window, getTheme, isEnabled) {
 }
 
 // CSS nie odczytuje atrybutu style: pozwala to przeglądarce zachować szybką
-// ścieżkę zmian inline podczas animacji. Kopiujemy tylko style elementów UI,
+// ścieżkę zmian inline podczas animacji. Śledzimy tylko warunki stylów UI,
 // dla których motyw chroni obrazki lub ostrzegawcze kolory inline.
+// Znacznik zawiera wyniki warunków CSS, a nie zmienne pozycje i rozmiary.
 function createCyberpunkNiInlineStyles(window) {
   const document = window.document;
   const attribute = 'data-cp-inline-style';
@@ -230,12 +232,33 @@ function createCyberpunkNiInlineStyles(window) {
   const containers = '.layer,.game-window-positioner,' + windows;
   const watched = new Map();
   let started = false;
+  let guards = [];
+  let lastSource = null;
+  let lastCSS = null;
 
   function update(element) {
     const source = element.getAttribute('style');
-    if (source && (source.includes('screen-background.png') ||
+    let value = '';
+    if (source !== null && (source.includes('screen-background.png') ||
         element.matches(targets) || element.closest(windows))) {
-      if (element.getAttribute(attribute) !== source) element.setAttribute(attribute, source);
+      const lower = source.toLowerCase();
+      value = guards.filter(guard => {
+        const actual = guard.insensitive ? lower : source;
+        const expected = guard.value;
+        switch (guard.operator) {
+          case null: return true;
+          case '=': return actual === expected;
+          case '*=': return expected !== '' && actual.includes(expected);
+          case '^=': return expected !== '' && actual.startsWith(expected);
+          case '$=': return expected !== '' && actual.endsWith(expected);
+          case '~=': return expected !== '' && actual.split(/\s+/).includes(expected);
+          case '|=': return actual === expected || actual.startsWith(expected + '-');
+          default: return false;
+        }
+      }).map(guard => guard.token).join(' ');
+    }
+    if (value) {
+      if (element.getAttribute(attribute) !== value) element.setAttribute(attribute, value);
     } else if (element.hasAttribute(attribute)) element.removeAttribute(attribute);
   }
   const styleObserver = new window.MutationObserver(records => {
@@ -289,5 +312,33 @@ function createCyberpunkNiInlineStyles(window) {
     watched.clear();
     for (const element of document.querySelectorAll('[' + attribute + ']')) element.removeAttribute(attribute);
   }
-  return { start, stop, css: source => source.replace(/\[style(?=[\s*^$|~=\]])/gi, '[' + attribute) };
+  function css(source) {
+    if (source === lastSource) return lastCSS;
+    const compiled = compileCyberpunkNiInlineCSS(source);
+    guards = compiled.guards;
+    lastSource = source;
+    lastCSS = compiled.css;
+    if (started) scan(document.documentElement);
+    return lastCSS;
+  }
+  return { start, stop, css };
+}
+
+function compileCyberpunkNiInlineCSS(source) {
+  const guards = [];
+  const keys = new Map();
+  const css = source.replace(/\[style(?:\s*([*^$|~]?=)\s*(["'])(.*?)\2\s*([is])?)?\s*\]/gi,
+    (_all, operator, _quote, value = '', flag = '') => {
+      const insensitive = flag.toLowerCase() === 'i';
+      if (insensitive) value = value.toLowerCase();
+      const key = JSON.stringify([operator || null, value, insensitive]);
+      let token = keys.get(key);
+      if (!token) {
+        token = 'i' + guards.length;
+        keys.set(key, token);
+        guards.push({ operator: operator || null, value, insensitive, token });
+      }
+      return '[data-cp-inline-style~="' + token + '"]';
+    });
+  return { css, guards };
 }

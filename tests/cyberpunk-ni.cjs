@@ -2,6 +2,7 @@ const { chromium } = require('playwright');
 const fs = require('node:fs');
 const path = require('node:path');
 const assert = require('node:assert/strict');
+const vm = require('node:vm');
 
 (async () => {
   const browser = await chromium.launch({ headless: true, executablePath: process.env.CHROMIUM_PATH || '/usr/bin/chromium', args: ['--no-sandbox'] });
@@ -14,6 +15,9 @@ const assert = require('node:assert/strict');
     const modulePath = new URL(catalogue.modules.find(item => item.id === 'cyberpunk-ni').url).pathname.split('/gogatki/')[1];
     const sources = Object.fromEntries(['catalogue.json', 'dock.js', modulePath].map(file => [file, fs.readFileSync(path.join(base, 'gogatki', file), 'utf8')]));
     const theme = JSON.parse(fs.readFileSync(path.join(base, 'cyberpunk-ni/theme.json'), 'utf8'));
+    const definitions = vm.createContext({});
+    vm.runInContext(fs.readFileSync(path.join(base, 'cyberpunk-ni/hp-runtime.js'), 'utf8'), definitions);
+    const expectedCSS = definitions.compileCyberpunkNiInlineCSS(theme.css).css;
     const fixture = '<!doctype html><html><head></head><body><div class="layer interface-layer"><div class="bottom-panel"><div class="hp-indicator"><div class="hpp">100%</div></div></div></div></body></html>';
     await page.route('https://fixture.margonem.pl/**', route => route.fulfill({ body: fixture, contentType: 'text/html' }));
     async function boot(si = false, holdModule = false) {
@@ -53,7 +57,7 @@ const assert = require('node:assert/strict');
     assert.equal(await page.evaluate(file => sourceRequests.includes(file), modulePath), false);
     await toggle.check();
     await page.waitForFunction(() => document.documentElement.dataset.cyberpunkNi === 'on');
-    assert.equal(await page.locator('#cyberpunk-ni-style').textContent(), theme.css.replace(/\[style(?=[\s*^$|~=\]])/gi, '[data-cp-inline-style'), 'panel ships the approved theme with UI-only inline guards');
+    assert.equal(await page.locator('#cyberpunk-ni-style').textContent(), expectedCSS, 'panel ships the approved theme with semantic UI guards');
     assert.equal(await page.locator('#cyberpunk-ni-style').getAttribute('data-version'), theme.version);
     assert.equal(await page.locator('#gogatek-panel [data-cyberpunk-diagnostics]').textContent(), `Sprawdź motyw · ${theme.version}`);
     assert.equal(await page.locator('.hp-indicator').getAttribute('data-cp-hp'), '100');
