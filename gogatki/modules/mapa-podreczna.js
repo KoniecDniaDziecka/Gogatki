@@ -1,4 +1,4 @@
-// Mapa podręczna+ 1.0.6 — enhancement of the native NI window.
+// Mapa podręczna+ 1.0.7 — enhancement of the native NI window.
 GogatkiRuntime.register({
     id: 'mapa-podreczna',
     name: 'Mapa podręczna+',
@@ -63,7 +63,15 @@ function engineMapFile() {
 
 function checkEngineMap() {
  const E=PAGE.Engine,d=E?.map?.d;
- if(d?.id!==undefined && (!town || String(town.id)!==String(d.id))) resetTown({...d,file:d.file||d.img||'',x:d.x||E.map.size?.x,y:d.y||E.map.size?.y});
+ if(d?.id===undefined) return;
+ if(!town || String(town.id)!==String(d.id)) resetTown({...d,file:d.file||d.img||'',x:d.x||E.map.size?.x,y:d.y||E.map.size?.y});
+ else {
+  // Engine can expose its map dimensions after the initial map object.
+  // Refresh missing fields without clearing already collected objects.
+  if(!town.w) town.w=Number(d.x||E.map.size?.x)||0;
+  if(!town.h) town.h=Number(d.y||E.map.size?.y)||0;
+  if(!town.file) town.file=d.file||d.img||'';
+ }
 }
 
 function resetTown(t) {
@@ -655,6 +663,7 @@ net.on('cl', (cl) => {
         const setText = (node, value) => { if (node && node.textContent !== value) node.textContent = value; };
         const model = createMapModel(window, state, search, () => {});
         const heroTransforms = new WeakMap();
+        const surfaceRegions = new WeakMap();
         function save() { try { GM_setValue(KEY, { ...state }); } catch { showStatus('Nie udało się zapisać ustawień.'); } }
         function showStatus(text) { hint = text; if (binding) setText(binding.status, text); }
         function isVisible(node) {
@@ -675,7 +684,7 @@ net.on('cl', (cl) => {
         }
         function contentRect(surface) {
             const r = surface.getBoundingClientRect(), css = window.getComputedStyle(surface);
-            const sx = r.width / (surface.offsetWidth || r.width), sy = r.height / (surface.offsetHeight || r.height);
+            const sx = surface.offsetWidth ? r.width / surface.offsetWidth : 1, sy = surface.offsetHeight ? r.height / surface.offsetHeight : 1;
             const left = (parseFloat(css.borderLeftWidth) + parseFloat(css.paddingLeft) || 0) * sx;
             const right = (parseFloat(css.borderRightWidth) + parseFloat(css.paddingRight) || 0) * sx;
             const top = (parseFloat(css.borderTopWidth) + parseFloat(css.paddingTop) || 0) * sy;
@@ -685,25 +694,44 @@ net.on('cl', (cl) => {
         function findSurface(native, town) {
             if (!(town?.w > 0 && town?.h > 0)) return null;
             const ratio = town.w / town.h;
-            const nodes = [...native.querySelectorAll('canvas, img, .handheld-map, .handheld-minimap')];
-            // NI can expose the map as a CSS image rather than an <img>/canvas.
-            if (town.file) for (const node of native.querySelectorAll('.content *, .inner-content *, .window-content *')) {
-                if (!nodes.includes(node) && window.getComputedStyle(node).backgroundImage.includes(town.file)) nodes.push(node);
-            }
-            const candidates = nodes.filter(node => {
-                if (node.closest('[data-gogatki-map-ui]') || !isVisible(node)) return false;
-                if (!/^(CANVAS|IMG)$/.test(node.tagName) && window.getComputedStyle(node).backgroundImage === 'none') return false;
+            const candidates = [];
+            // The native map can be a canvas with side margins, or a CSS image
+            // on an element whose class is not stable between NI layouts.
+            for (const node of native.querySelectorAll('*')) {
+                if (node.closest('[data-gogatki-map-ui], [data-gogatki-map-layer], [data-gogatki-map-markers]') || !isVisible(node)) continue;
+                const css = window.getComputedStyle(node);
+                const source = node.currentSrc || node.src || css.backgroundImage;
+                const terrain = !!town.file && source.includes(town.file);
+                if (!/^(CANVAS|IMG)$/.test(node.tagName) && !terrain) continue;
                 const r = contentRect(node);
-                return r.width >= 64 && r.height >= 64 && Math.abs(r.width / r.height / ratio - 1) < 0.04;
-            });
-            return candidates.sort((a, b) => {
-                const score = node => {
-                    const r = contentRect(node);
-                    const source = node.currentSrc || node.src || '';
-                    return r.width * r.height + (town.file && source.includes(town.file) ? 1e9 : 0);
-                };
-                return score(b) - score(a);
-            })[0] || null;
+                if (Math.min(r.width, r.height) < 8 || Math.max(r.width, r.height) < 64) continue;
+                const matches = Math.abs(r.width / r.height / ratio - 1) < 0.04;
+                if (!matches && node.tagName !== 'CANVAS' && !terrain) continue;
+                // NI fits rectangular maps into the available drawing area.
+                // Match that inner rectangle instead of rejecting a wider canvas.
+                const scale = Math.min(r.width / town.w, r.height / town.h);
+                const width = town.w * scale, height = town.h * scale;
+                surfaceRegions.set(node, matches ? r : { left: r.left + (r.width - width) / 2, top: r.top + (r.height - height) / 2, width, height });
+                candidates.push({ node, score: (terrain ? 1e9 : 0) + (matches ? 1e6 : 0) + width * height });
+            }
+            return candidates.sort((a, b) => b.score - a.score)[0]?.node || null;
+        }
+        function diagnosticReport() {
+            const shortURL = value => {
+                if (typeof value !== 'string') return typeof value;
+                if (value.startsWith('data:')) return '[obraz data URL]';
+                return value.replace(/[?#].*$/, '').slice(0, 180);
+            };
+            const map = window.Engine?.map, d = map?.d || {};
+            const nodes = binding ? [...binding.native.querySelectorAll('*')].filter(node => !node.closest('[data-gogatki-map-ui], [data-gogatki-map-layer], [data-gogatki-map-markers]')).map(node => {
+                const r = contentRect(node), css = window.getComputedStyle(node);
+                if (!/^(CANVAS|IMG)$/.test(node.tagName) && (r.width < 24 || r.height < 24)) return null;
+                return { tag: node.tagName, class: String(node.className || '').slice(0, 120), visible: isVisible(node), width: Math.round(r.width * 100) / 100, height: Math.round(r.height * 100) / 100,
+                    image: shortURL(node.currentSrc || node.src || css.backgroundImage), selected: node === binding.surface };
+            }).filter(Boolean).slice(0, 40) : [];
+            return JSON.stringify({ version: '1.0.7', status: binding?.status.textContent, active: binding?.overlay.style.display !== 'none',
+                dimensions: { model: { w: snapshot?.town?.w, h: snapshot?.town?.h }, engine: { x: d.x, y: d.y }, size: { x: map?.size?.x, y: map?.size?.y } },
+                file: shortURL(snapshot?.town?.file), image: shortURL(map?.img?.currentSrc || map?.img?.src), background: binding?.background ? { ready: !!binding.background.ready, failed: binding.background.failed, source: shortURL(binding.background.source) } : null, nodes }, null, 2);
         }
         function backgroundSource(town) {
             const image = window.Engine?.map?.img;
@@ -849,7 +877,7 @@ net.on('cl', (cl) => {
                 input[type=checkbox]::before,input[type=checkbox]::after{content:none}input:checked::after{content:'✓';color:#12c9bd;font:12px/12px Arial}
                 .status{font-size:11px;color:#b1c0cb;margin:6px 0;overflow-wrap:anywhere}.entry{border-top:1px solid #384651;padding:5px 0}.name{font-size:11px;overflow-wrap:anywhere}.actions{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}.actions button{font-size:11px;background:#38566c}.coords{color:#b1c0cb;font-size:11px;margin-top:2px}
             </style><button type="button" class="toggle" aria-label="Ustawienia mapy+" aria-expanded="false" title="Ustawienia mapy+"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.5"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3M5 5l2 2m10 10 2 2M5 19l2-2M17 7l2-2"/></svg></button>
-            <section class="drawer" aria-label="Rozszerzenia mapy podręcznej" hidden><input type="search" placeholder="Nazwa lub x,y" aria-label="Szukaj na mapie"><div class="options"></div><p class="status" role="status"></p><button type="button" class="stop" hidden>Zatrzymaj podążanie</button><div class="list"></div></section>`;
+            <section class="drawer" aria-label="Rozszerzenia mapy podręcznej" hidden><input type="search" placeholder="Nazwa lub x,y" aria-label="Szukaj na mapie"><div class="options"></div><p class="status" role="status"></p><button type="button" class="stop" hidden>Zatrzymaj podążanie</button><details><summary>Pomoc · 1.0.7</summary><button type="button" class="diagnose">Kopiuj diagnostykę</button><textarea aria-label="Diagnostyka mapy" readonly hidden style="width:100%;height:100px;color:#c7d0d9;background:#252b31"></textarea></details><div class="list"></div></section>`;
             const drawer = root.querySelector('.drawer'), toggle = root.querySelector('.toggle');
             drawer.hidden = !state.drawer; toggle.setAttribute('aria-expanded', String(state.drawer));
             const options = [['mmShowMobs', 'Moby'], ['mmShowNpcs', 'NPC'], ['mmShowOthers', 'Gracze'], ['mmShowSpawns', 'Respy'], ['fog', 'Zasięg widzenia'], ['mmGwAvail', 'Dostępne przejścia'], ['attack', 'Atakuj w pościgu']];
@@ -860,6 +888,11 @@ net.on('cl', (cl) => {
                 label.append(input, document.createTextNode(title)); root.querySelector('.options').append(label);
             }
             toggle.addEventListener('click', event => { event.stopPropagation(); state.drawer = !state.drawer; drawer.hidden = !state.drawer; toggle.setAttribute('aria-expanded', String(state.drawer)); save(); });
+            root.querySelector('.diagnose').addEventListener('click', () => {
+                const report = diagnosticReport(), output = root.querySelector('textarea');
+                output.value = report; output.hidden = false; output.focus(); output.select();
+                Promise.resolve().then(() => window.navigator.clipboard.writeText(report)).catch(() => {});
+            });
             // Clicking the title-bar control must not start dragging the native window.
             for (const type of ['pointerdown', 'mousedown', 'dblclick']) host.addEventListener(type, event => event.stopPropagation());
             const input = root.querySelector('input[type=search]');
@@ -871,7 +904,7 @@ net.on('cl', (cl) => {
                 else showStatus('');
             });
             for (const type of ['keydown', 'keyup', 'keypress']) host.addEventListener(type, event => {
-                if (event.composedPath().some(node => /^(INPUT|BUTTON)$/.test(node?.tagName))) event.stopPropagation();
+                if (event.composedPath().some(node => /^(INPUT|BUTTON|TEXTAREA|SUMMARY)$/.test(node?.tagName))) event.stopPropagation();
             });
             root.querySelector('.stop').addEventListener('click', () => stopCommand('Zatrzymano podążanie.'));
             const isolation = { value: native.style.getPropertyValue('isolation'), priority: native.style.getPropertyPriority('isolation') };
@@ -1038,7 +1071,7 @@ net.on('cl', (cl) => {
                 if (o.kind === 'view') {
                     width = o.size * scaleX; height = o.size * scaleY; left = o.x * scaleX; top = o.y * scaleY;
                 } else {
-                    const size = o.kind === 'hero' ? heroSize : (pulse || o.kind === 'elite2' ? Math.round(dotSize * 1.5) : dotSize);
+                    const size = o.kind === 'hero' || o.kind === 'mob' ? heroSize : (pulse ? Math.round(dotSize * 1.5) : dotSize);
                     width = o.spanX ? Math.max(dotSize, o.spanX * scaleX) : size;
                     height = o.spanY ? Math.max(dotSize, o.spanY * scaleY) : size;
                     left = (Number(o.x) + 0.5) * scaleX - width / 2;
@@ -1105,7 +1138,7 @@ net.on('cl', (cl) => {
                 return;
             }
             if (['Wczytywanie czystego tła mapy…', 'Nie udało się odczytać tła — pokazuję mapę gry bez dodatku.', 'Nie rozpoznano obszaru mapy. Natywna mapa działa bez zmian.'].includes(hint)) hint = '';
-            binding.rect = contentRect(surface);
+            binding.rect = surfaceRegions.get(surface) || contentRect(surface);
             if (search.coords && (!snapshot.town || search.coords[0] >= snapshot.town.w || search.coords[1] >= snapshot.town.h)) { search.coords = null; showStatus('Współrzędne poza tą mapą.'); }
             const allowedGates = new Set(snapshot.gateways.map(g => g.id));
             const objects = snapshot.objects.filter(o => !state.mmGwAvail || o.kind !== 'gw' || !String(o.id || '').startsWith('gw-') || allowedGates.has(o.id));

@@ -87,7 +87,8 @@ const assert = require('node:assert/strict');
         const mobStyle = await markerStyle('[data-kind=mob]');
         assert.equal(mobStyle.background, 'rgba(0, 0, 0, 0)', 'Ordinary mob markers have an empty center');
         const elite2Style = await markerStyle('[data-kind=elite2]');
-        assert.equal(elite2Style.width, 15);
+        assert.equal(mobStyle.width, heroStyle.width, 'Ordinary mobs are the same size as the hero');
+        assert.equal(elite2Style.width, 10, 'Elite II uses the previous ordinary mob size');
         assert(elite2Style.width > mobStyle.width, 'Elite II markers are larger than ordinary mobs');
         assert(!elite2Style.classes.includes('pa-mm-pulse'), 'Increasing Elite II size does not add pulsing');
         const gatewayStyle = await markerStyle('[data-kind=gw]');
@@ -113,6 +114,55 @@ const assert = require('node:assert/strict');
         assert.deepEqual(composite.native, [255, 0, 255, 255]);
         assert.deepEqual(composite.visible, [68, 68, 68, 255], 'Native markers are covered by clean terrain');
         assert.deepEqual(composite.margin, [68, 68, 68, 255], 'Map background offset crops the image margin');
+        // A tall map is drawn in the middle of a wider native canvas. Its
+        // enclosing canvas does not have the same aspect ratio as the map.
+        await page.evaluate(() => {
+            initialCanvas.style.width = '224px'; initialCanvas.style.height = '240px';
+            Object.assign(Engine.map.d, { id: 3, x: 128, y: 200 });
+        });
+        await page.waitForFunction(() => document.querySelector('[data-gogatki-map-layer]').getAttribute('viewBox') === '0 0 128 200');
+        const largeMapGeometry = await page.evaluate(() => {
+            const map = document.getElementById('map').getBoundingClientRect(), overlay = document.querySelector('[data-gogatki-map-layer]').getBoundingClientRect();
+            return { width: overlay.width, height: overlay.height, x: overlay.left - map.left, y: overlay.top - map.top, visible: getComputedStyle(document.querySelector('[data-gogatki-map-layer]')).display !== 'none' };
+        });
+        assert(largeMapGeometry.visible, 'Large maps activate the renderer');
+        assert(Math.abs(largeMapGeometry.width - 153.6) < 0.1);
+        assert.equal(largeMapGeometry.height, 240);
+        assert(Math.abs(largeMapGeometry.x - 35.2) < 0.1, 'Overlay is centered on terrain rather than stretched to the entire canvas');
+        assert.equal(largeMapGeometry.y, 0);
+        assert.equal((await markerStyle('[data-kind=mob]')).width, (await markerStyle('[data-kind=hero]')).width);
+        assert.equal((await markerStyle('[data-kind=elite2]')).width, 7);
+        // Map dimensions may appear after Engine.map.d while keeping the same ID.
+        await page.evaluate(() => { Object.assign(Engine.map.d, { id: 4, x: 0, y: 0 }); Engine.map.size = { x: 0, y: 0 }; });
+        await page.waitForFunction(() => document.querySelector('[data-gogatki-map-layer]').style.display === 'none');
+        await page.evaluate(() => { Engine.map.size = { x: 128, y: 200 }; });
+        await page.waitForFunction(() => document.querySelector('[data-gogatki-map-layer]').style.display !== 'none');
+        await page.evaluate(() => {
+            Object.assign(Engine.map.d, { id: 5, x: 8, y: 128 });
+            initialCanvas.style.width = '15px'; initialCanvas.style.height = '240px';
+        });
+        await page.waitForFunction(() => document.querySelector('[data-gogatki-map-layer]').getAttribute('viewBox') === '0 0 8 128');
+        assert.equal(await layer.evaluate(node => getComputedStyle(node).display !== 'none'), true, 'Narrow maps are not rejected by the old 64px minimum width');
+        // CSS terrain can live under a container with any NI layout class.
+        await page.evaluate(() => {
+            Object.assign(Engine.map.d, { id: 6, x: 128, y: 200 });
+            initialCanvas.style.display = 'none';
+            const tile = document.createElement('div'); tile.id = 'css-terrain';
+            tile.style.cssText = 'width:153.6px;height:240px;background-image:url("test.png")';
+            document.getElementById('native').append(tile);
+        });
+        await page.waitForFunction(() => {
+            const layer = document.querySelector('[data-gogatki-map-layer]').getBoundingClientRect(), terrain = document.getElementById('css-terrain').getBoundingClientRect();
+            return Math.abs(layer.left - terrain.left) < 0.1 && Math.abs(layer.top - terrain.top) < 0.1;
+        });
+        assert.equal(await layer.evaluate(node => getComputedStyle(node).display !== 'none'), true, 'CSS terrain outside known content classes is recognized');
+        await page.evaluate(() => {
+            document.getElementById('css-terrain').remove();
+            Object.assign(Engine.map.d, { id: 1, x: 32, y: 16 }); Engine.map.size = { x: 32, y: 16 };
+            initialCanvas.style.cssText = 'display:block;width:320px;height:160px';
+        });
+        await page.waitForFunction(() => document.querySelector('[data-gogatki-map-layer]').getAttribute('viewBox') === '0 0 32 16');
+        await page.waitForTimeout(500);
         await page.locator('#map').click({ position: { x: 15, y: 15 } });
         await page.locator('#native-action').click();
         assert.equal(await page.evaluate(() => nativeClicks), 1);
@@ -143,8 +193,8 @@ const assert = require('node:assert/strict');
                 const r = initialCanvas.getBoundingClientRect(), marker = document.querySelector('[data-gogatki-map-markers]').shadowRoot.querySelector('[data-kind=heros]').getBoundingClientRect();
                 return { actual: [marker.left + marker.width / 2, marker.top + marker.height / 2], expected: [r.left + 7.5 / 32 * r.width, r.top + 4.5 / 16 * r.height] };
             });
-            assert(Math.abs(positions.actual[0] - positions.expected[0]) < 1);
-            assert(Math.abs(positions.actual[1] - positions.expected[1]) < 1);
+            assert(Math.abs(positions.actual[0] - positions.expected[0]) < 1, JSON.stringify(positions));
+            assert(Math.abs(positions.actual[1] - positions.expected[1]) < 1, JSON.stringify(positions));
         }
         async function assertTitleControl() {
             const r = await page.evaluate(() => {
@@ -237,6 +287,16 @@ const assert = require('node:assert/strict');
         await page.evaluate(() => { initialCanvas.style.display = 'none'; });
         await page.waitForFunction(() => document.querySelector('[data-gogatki-map-layer]').style.display === 'none');
         assert.equal(await native.isVisible(), true, 'Unrecognized surface leaves the native window usable');
+        if (!(await ui.locator('.drawer').isVisible())) await ui.getByRole('button', { name: 'Ustawienia mapy+', exact: true }).click();
+        await ui.locator('summary').click();
+        await ui.getByRole('button', { name: 'Kopiuj diagnostykę', exact: true }).click();
+        const report = JSON.parse(await ui.getByLabel('Diagnostyka mapy', { exact: true }).inputValue());
+        assert.equal(report.version, '1.0.7');
+        assert.equal(report.active, false);
+        assert(report.status.includes('Nie rozpoznano obszaru mapy'));
+        assert(report.nodes.some(node => node.tag === 'CANVAS' && !node.visible));
+        assert(!JSON.stringify(report).includes('base64,'), 'Diagnostics omit image payloads');
+        await ui.getByRole('button', { name: 'Ustawienia mapy+', exact: true }).click();
         await page.evaluate(() => { initialCanvas.style.display = ''; });
         await page.waitForFunction(() => document.querySelector('[data-gogatki-map-layer]').style.display !== 'none');
         await page.evaluate(() => { const image = new Image(); image.src = 'data:image/png;base64,broken'; Engine.map.img = image; });
@@ -267,6 +327,6 @@ const assert = require('node:assert/strict');
         }
         assert.deepEqual(errors, []);
         assert.deepEqual(remote.filter(url => /^https?:/.test(url)), [], 'No HTTP calls in this fixture');
-        console.log(`PASS (${standalone ? 'standalone with NI readiness' : 'module'}): clean terrain replaces native markers; background offset and failed-image fallback; existing native window/canvas/clicks retained; marker alignment after move/resize; search/coords/filters/storage; parser return/this/arguments; spawns; explicit chase/attack/stop; map change; duplicate start; close/reopen; cleanup`);
+        console.log(`PASS (${standalone ? 'standalone with NI readiness' : 'module'}): large letterboxed maps; narrow maps; CSS terrain; late dimensions; smaller mob/E2 markers; diagnostic report; clean terrain replaces native markers; background offset and failed-image fallback; existing native window/canvas/clicks retained; marker alignment after move/resize; search/coords/filters/storage; parser return/this/arguments; spawns; explicit chase/attack/stop; map change; duplicate start; close/reopen; cleanup`);
     } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });

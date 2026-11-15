@@ -49,7 +49,15 @@ function engineMapFile() {
 
 function checkEngineMap() {
  const E=PAGE.Engine,d=E?.map?.d;
- if(d?.id!==undefined && (!town || String(town.id)!==String(d.id))) resetTown({...d,file:d.file||d.img||'',x:d.x||E.map.size?.x,y:d.y||E.map.size?.y});
+ if(d?.id===undefined) return;
+ if(!town || String(town.id)!==String(d.id)) resetTown({...d,file:d.file||d.img||'',x:d.x||E.map.size?.x,y:d.y||E.map.size?.y});
+ else {
+  // Engine can expose its map dimensions after the initial map object.
+  // Refresh missing fields without clearing already collected objects.
+  if(!town.w) town.w=Number(d.x||E.map.size?.x)||0;
+  if(!town.h) town.h=Number(d.y||E.map.size?.y)||0;
+  if(!town.file) town.file=d.file||d.img||'';
+ }
 }
 
 function resetTown(t) {
