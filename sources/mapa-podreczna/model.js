@@ -618,6 +618,6 @@ net.on('cl', (cl) => {
   const reach=state.mmGwAvail?reachableSet():null;
   return {town,hero:h,colors:COLORS,names:TYPE_NAMES,objects:collectObjects().filter(matchesSearch).map(o=>({...o,checked:checkedSpawns.has(o.x+','+o.y)})),players:getPlayers(),gateways:getGateways().filter(g=>gateReachable(g,reach)),collisionKnown:!!reach};
  }
- return {snapshot,feed(data){if(!data||typeof data!=='object')return;for(const fn of anyHandlers)fn(data);for(const [key,list]of handlers)if(data[key]!==undefined)for(const fn of list)fn(data[key],data);}};
+ return {snapshot,heroPosition:heroPos,feed(data){if(!data||typeof data!=='object')return;for(const fn of anyHandlers)fn(data);for(const [key,list]of handlers)if(data[key]!==undefined)for(const fn of list)fn(data[key],data);}};
 
 }

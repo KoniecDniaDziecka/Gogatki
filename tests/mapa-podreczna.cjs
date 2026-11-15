@@ -23,6 +23,16 @@ const assert = require('node:assert/strict');
             window.saved = {};
             window.GM_getValue = (key, fallback) => saved[key] ?? fallback;
             window.GM_setValue = (key, value) => { saved[key] = value; };
+            const setInterval = window.setInterval.bind(window);
+            window.pauseMapTicks = false;
+            window.setInterval = (callback, delay) => setInterval(() => { if (!(delay === 200 && pauseMapTicks)) callback(); }, delay);
+            const requestFrame = window.requestAnimationFrame.bind(window), cancelFrame = window.cancelAnimationFrame.bind(window);
+            window.pendingMapFrames = new Set();
+            window.requestAnimationFrame = callback => {
+                const id = requestFrame(time => { pendingMapFrames.delete(id); callback(time); });
+                pendingMapFrames.add(id); return id;
+            };
+            window.cancelAnimationFrame = id => { pendingMapFrames.delete(id); cancelFrame(id); };
             window.walks = []; window.requests = []; window.nativeClicks = 0; window.nativeActions = 0;
             window.initialCanvas = document.getElementById('map');
             const ctx = initialCanvas.getContext('2d'); ctx.fillStyle = '#444'; ctx.fillRect(0, 0, 320, 160);
@@ -101,6 +111,25 @@ const assert = require('node:assert/strict');
         assert.equal(await page.evaluate(() => nativeClicks), 1);
         assert.equal(await page.evaluate(() => nativeActions), 1);
         assert.equal(await page.evaluate(() => walks.length), 0, 'No automatic walk just by opening the map');
+        const livePositions = await page.evaluate(async () => {
+            pauseMapTicks = true;
+            const samples = [];
+            for (const [x, y] of [[1.125, 1.25], [1.375, 1.5]]) {
+                Engine.hero.rx = x; Engine.hero.ry = y;
+                await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+                const root = document.querySelector('[data-gogatki-map-markers]').shadowRoot;
+                const hero = new DOMMatrix(getComputedStyle(root.querySelector('[data-kind=hero]')).transform);
+                const view = new DOMMatrix(getComputedStyle(root.querySelector('[data-kind=view]')).transform);
+                samples.push({ hero: [hero.m41, hero.m42], view: [view.m41, view.m42], tile: [Engine.hero.d.x, Engine.hero.d.y] });
+            }
+            delete Engine.hero.rx; delete Engine.hero.ry;
+            pauseMapTicks = false;
+            return samples;
+        });
+        assert.deepEqual(livePositions, [
+            { hero: [11.25, 12.5], view: [-28.75, -27.5], tile: [1, 1] },
+            { hero: [13.75, 15], view: [-26.25, -25], tile: [1, 1] }
+        ], 'Hero and visibility frame follow fractional live coordinates while the data timer is paused');
 
         async function assertAlignment() {
             const positions = await page.evaluate(() => {
@@ -195,6 +224,7 @@ const assert = require('node:assert/strict');
         await page.screenshot({ path: '/tmp/mapa-podreczna-plus.png' });
         await native.locator('.close-button').click();
         await layer.waitFor({ state: 'detached' });
+        assert.equal(await page.evaluate(() => pendingMapFrames.size), 0, 'No animation loop when the map is closed');
         await page.evaluate(() => { document.getElementById('native').style.display = ''; });
         await native.locator('[data-gogatki-map-ui]').waitFor();
         await page.evaluate(() => { initialCanvas.style.display = 'none'; });
@@ -208,6 +238,8 @@ const assert = require('node:assert/strict');
         await page.evaluate(() => { Engine.map.img = terrainImage; });
         await page.waitForFunction(() => document.querySelector('[data-gogatki-map-layer]').style.display !== 'none');
         await page.evaluate(() => window.__gogatkiNativeMap.destroy());
+        await page.waitForTimeout(50);
+        assert.equal(await page.evaluate(() => pendingMapFrames.size), 0, 'Destroy cancels the animation frame');
         assert.equal(await page.locator('[data-gogatki-map-ui]').count(), 0);
         assert.equal(await page.evaluate(() => Engine.communication.parseJSON === originalParser), true);
         assert.equal(await page.evaluate(() => document.getElementById('map') === initialCanvas), true);

@@ -1,4 +1,4 @@
-// Mapa podręczna+ 1.0.3 — enhancement of the native NI window.
+// Mapa podręczna+ 1.0.4 — enhancement of the native NI window.
 GogatkiRuntime.register({
     id: 'mapa-podreczna',
     name: 'Mapa podręczna+',
@@ -27,9 +27,11 @@ GogatkiRuntime.register({
         for (const key of Object.keys(defaults)) if (typeof defaults[key] === 'boolean' && typeof saved?.[key] === 'boolean') state[key] = saved[key];
         const search = { text: '', coords: null };
         let binding = null, disposed = false, command = null, timer = null, hooked = null, snapshot = null;
+        let heroFrame = null;
         let hint = '', warned = false;
         const setText = (node, value) => { if (node && node.textContent !== value) node.textContent = value; };
         const model = createMapModel(window, state, search, () => {});
+        const heroTransforms = new WeakMap();
         function save() { try { GM_setValue(KEY, { ...state }); } catch { showStatus('Nie udało się zapisać ustawień.'); } }
         function showStatus(text) { hint = text; if (binding) setText(binding.status, text); }
         function isVisible(node) {
@@ -312,6 +314,7 @@ GogatkiRuntime.register({
             host.style.setProperty('--gmp-drawer-right', (cssLeft + size - (contentWidth - 8)) + 'px');
         }
         function unmount() {
+            stopHeroAnimation();
             if (!binding) return;
             binding.surface?.removeEventListener('pointermove', hover);
             binding.surface?.removeEventListener('pointerleave', leave);
@@ -333,6 +336,42 @@ GogatkiRuntime.register({
         }
         function leave() { showStatus(''); }
         function setAttribute(node, key, value) { value = String(value); if (node.getAttribute(key) !== value) node.setAttribute(key, value); }
+        function stopHeroAnimation() {
+            if (heroFrame !== null) window.cancelAnimationFrame(heroFrame);
+            heroFrame = null;
+        }
+        function renderHeroPosition() {
+            const geometry = binding?.heroGeometry;
+            if (!geometry || !binding.native.isConnected || !binding.surface?.isConnected || binding.native.style.display === 'none' || binding.markerHost.style.display === 'none') return false;
+            const marker = binding.marks.get('self'), view = binding.marks.get('view');
+            // Read live draw coordinates each frame; a snapshot taken by the
+            // 200 ms data/UI timer would still make the marker jump between tiles.
+            const hero = model.heroPosition(), x = Number(hero?.rx), y = Number(hero?.ry);
+            if (!hero || !Number.isFinite(x) || !Number.isFinite(y) || String(window.Engine?.map?.d?.id) !== geometry.map) {
+                if (marker) marker.style.display = 'none';
+                if (view) view.style.display = 'none';
+                return false;
+            }
+            const position = (node, left, top) => {
+                if (!node) return;
+                if (node.style.display) node.style.display = '';
+                const transform = `translate(${left.toFixed(2)}px,${top.toFixed(2)}px)`;
+                if (heroTransforms.get(node) !== transform) { node.style.transform = transform; heroTransforms.set(node, transform); }
+            };
+            position(marker, (x + 0.5) * geometry.scaleX - geometry.dotSize / 2, (y + 0.5) * geometry.scaleY - geometry.dotSize / 2);
+            if (state.fog) position(view, (x - geometry.visibility) * geometry.scaleX, (y - geometry.visibility) * geometry.scaleY);
+            else if (view) view.style.display = 'none';
+            return Boolean(marker);
+        }
+        function animateHero() {
+            heroFrame = null;
+            if (disposed) return;
+            try { if (renderHeroPosition()) heroFrame = window.requestAnimationFrame(animateHero); }
+            catch (error) { if (!warned) { warned = true; console.warn('[Mapa podręczna+] Pozycja postaci:', error); } }
+        }
+        function startHeroAnimation() {
+            if (heroFrame === null && renderHeroPosition()) heroFrame = window.requestAnimationFrame(animateHero);
+        }
         function renderLayer(objects) {
             const { overlay, markerHost, markerLayer, marks, rect, native } = binding, town = snapshot.town;
             const nr = native.getBoundingClientRect(), sx = nr.width / (native.offsetWidth || nr.width), sy = nr.height / (native.offsetHeight || nr.height);
@@ -351,6 +390,7 @@ GogatkiRuntime.register({
             markerHost.style.clipPath = overlay.style.clipPath;
             const scaleX = rect.width / sx / town.w, scaleY = rect.height / sy / town.h;
             const dotSize = Math.max(7, Math.round(scaleX));
+            binding.heroGeometry = { scaleX, scaleY, dotSize, visibility: town.visibility, map: String(town.id) };
             const geometryKey = `${town.id}:${geometry.width}:${geometry.height}`;
             const resized = geometryKey !== binding.markerGeometry;
             binding.markerGeometry = geometryKey;
@@ -386,6 +426,7 @@ GogatkiRuntime.register({
                 if (!special && (fresh || resized)) window.requestAnimationFrame(() => { if (mark.isConnected) mark.classList.add('pa-mm-anim'); });
             }
             for (const [key, mark] of marks) if (!desired.has(key)) { mark.remove(); marks.delete(key); }
+            startHeroAnimation();
         }
         function renderRows(objects) {
             const rank = o => ({ titan: 1, collosus: 2, herosEvent: 3, heros: 4, elite3: 5, elite2: 6, enemy: 7, gw: 8, marker: 0 }[o.kind] ?? 20);
@@ -432,8 +473,9 @@ GogatkiRuntime.register({
             const backgroundReady = surface && prepareBackground();
             binding.overlay.style.display = backgroundReady ? '' : 'none';
             binding.markerHost.style.display = backgroundReady ? '' : 'none';
-            if (!surface) { stopCommand(); showStatus('Nie rozpoznano obszaru mapy. Natywna mapa działa bez zmian.'); return; }
+            if (!surface) { stopHeroAnimation(); stopCommand(); showStatus('Nie rozpoznano obszaru mapy. Natywna mapa działa bez zmian.'); return; }
             if (!backgroundReady) {
+                stopHeroAnimation();
                 stopCommand();
                 showStatus(!binding.background || binding.background.failed ? 'Nie udało się odczytać tła — pokazuję mapę gry bez dodatku.' : 'Wczytywanie czystego tła mapy…');
                 return;
