@@ -1,4 +1,4 @@
-/* Marker styles from Dark-Sad Panel dodatków 6.1.5; isolated in Shadow DOM. */
+/* Marker styles adapted from Dark-Sad Panel dodatków 6.1.5; isolated in Shadow DOM. */
 :host { all: initial; pointer-events: none; }
 * { box-sizing: border-box; pointer-events: none; }
 .pa-mm-objects { position: absolute; inset: 0; pointer-events: none; }
@@ -13,7 +13,7 @@
 }
 .pa-mm-obj.pa-mm-anim { transition: transform .45s linear; }
 .pa-mm-obj.pa-mm-grave { box-shadow: 0 0 0 1.5px #000, 0 0 4px rgba(0,0,0,.8); }
-.pa-mm-obj.pa-mm-mob { box-shadow: 0 0 0 1px rgba(255,255,255,.85), 0 0 0 2px rgba(0,0,0,.5); }
+.pa-mm-obj.pa-mm-mob { background: transparent !important; box-shadow: 0 0 0 1px rgba(255,255,255,.85), 0 0 0 2px rgba(0,0,0,.5); }
 .pa-mm-obj.pa-mm-gw { border-radius: 3px; box-shadow: 0 0 0 1px rgba(255,255,255,.35); }
 .pa-mm-obj.pa-mm-player { box-shadow: 0 0 0 1px rgba(0,0,0,.8); }
 .pa-mm-obj.pa-mm-pulse {

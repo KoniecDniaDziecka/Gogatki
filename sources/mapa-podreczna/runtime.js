@@ -1,4 +1,4 @@
-// Mapa podręczna+ 1.0.4 — enhancement of the native NI window.
+// Mapa podręczna+ 1.0.5 — enhancement of the native NI window.
 GogatkiRuntime.register({
     id: 'mapa-podreczna',
     name: 'Mapa podręczna+',
@@ -414,7 +414,7 @@ GogatkiRuntime.register({
                 if (o.kind === 'view') {
                     width = o.size * scaleX; height = o.size * scaleY; left = o.x * scaleX; top = o.y * scaleY;
                 } else {
-                    const size = o.kind === 'hero' ? dotSize + 1 : (pulse ? Math.round(dotSize * 1.5) : dotSize);
+                    const size = o.kind === 'hero' ? dotSize + 1 : (pulse || o.kind === 'elite2' ? Math.round(dotSize * 1.5) : dotSize);
                     width = o.spanX ? Math.max(dotSize, o.spanX * scaleX) : size;
                     height = o.spanY ? Math.max(dotSize, o.spanY * scaleY) : size;
                     left = (Number(o.x) + 0.5) * scaleX - (o.kind === 'hero' ? dotSize : width) / 2;
