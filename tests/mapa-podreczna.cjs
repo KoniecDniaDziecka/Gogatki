@@ -15,8 +15,9 @@ const assert = require('node:assert/strict');
             body{background:#292c31;margin:0}.handheld-window{position:absolute;left:30px;top:60px;width:380px;height:310px;background:#141414;color:white;border:2px solid #746c56}
             .header-label{height:24px;background:#333;cursor:move}.content{padding:10px}.viewport{width:320px;height:160px;overflow:hidden}canvas{display:block;width:320px;height:160px}
         </style><div id="native" class="c-window handheld-window"><div class="header-label"><span class="text">Mapa podręczna</span><button class="close-button">Zamknij</button></div><div class="content"><div class="viewport"><canvas id="map" width="320" height="160"></canvas></div><button id="native-action">Natywna akcja</button></div></div><div id="corner-minimap">Minimapa w rogu</div>`);
-        const source = fs.readFileSync(path.join(__dirname, '../gogatki/modules/mapa-podreczna.js'), 'utf8');
-        await page.evaluate(source => {
+        const standalone = process.env.NATIVE_MAP_STANDALONE === '1';
+        const source = fs.readFileSync(path.join(__dirname, standalone ? '../gogatki/standalone/mapa-podreczna.user.js' : '../gogatki/modules/mapa-podreczna.js'), 'utf8');
+        await page.evaluate(({ source, standalone }) => {
             window.unsafeWindow = window;
             window.saved = {};
             window.GM_getValue = (key, fallback) => saved[key] ?? fallback;
@@ -42,9 +43,10 @@ const assert = require('node:assert/strict');
                 communication: { parseJSON: original }
             };
             window._g = query => requests.push(query);
-            new Function('GogatkiRuntime', 'unsafeWindow', 'GM_getValue', 'GM_setValue', source)({ register: value => { window.definition = value; } }, window, GM_getValue, GM_setValue);
+            if (standalone) window.definition = { start: () => window.eval(source) };
+            else new Function('GogatkiRuntime', 'unsafeWindow', 'GM_getValue', 'GM_setValue', source)({ register: value => { window.definition = value; } }, window, GM_getValue, GM_setValue);
             definition.start();
-        }, source);
+        }, { source, standalone });
         const native = page.locator('#native');
         const ui = native.locator('[data-gogatki-map-ui]');
         const layer = native.locator('[data-gogatki-map-layer]');
@@ -132,8 +134,21 @@ const assert = require('node:assert/strict');
         assert.equal(await page.evaluate(() => Engine.communication.parseJSON === originalParser), true);
         assert.equal(await page.evaluate(() => document.getElementById('map') === initialCanvas), true);
         assert.equal(await page.locator('#corner-minimap').textContent(), 'Minimapa w rogu');
+        if (standalone) {
+            await page.evaluate(() => {
+                window.engineToRestore = Engine;
+                delete window.Engine;
+                definition.start();
+            });
+            assert.equal(await page.evaluate(() => Boolean(window.__gogatkiNativeMap)), false, 'Standalone waits until NI is ready');
+            await page.evaluate(() => { window.Engine = engineToRestore; });
+            await native.locator('[data-gogatki-map-ui]').waitFor();
+            await page.evaluate(() => window.__gogatkiNativeMap.destroy());
+            assert.equal(await page.locator('[data-gogatki-map-ui]').count(), 0);
+            assert.equal(await page.evaluate(() => typeof window.GogatkiRuntime), 'undefined', 'Standalone does not require or expose a panel registry');
+        }
         assert.deepEqual(errors, []);
         assert.deepEqual(remote, [], 'No HTTP calls or external map image requests');
-        console.log('PASS: existing native window/canvas/clicks retained; marker alignment after move/resize; search/coords/filters/storage; parser return/this/arguments; spawns; explicit chase/attack/stop; map change; duplicate start; close/reopen; cleanup; zero HTTP requests');
+        console.log(`PASS (${standalone ? 'standalone with NI readiness' : 'module'}): existing native window/canvas/clicks retained; marker alignment after move/resize; search/coords/filters/storage; parser return/this/arguments; spawns; explicit chase/attack/stop; map change; duplicate start; close/reopen; cleanup; zero HTTP requests`);
     } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });
