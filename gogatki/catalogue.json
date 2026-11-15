@@ -90,6 +90,12 @@
       "name": "Kamyki",
       "description": "Dodanie grafik potworów do tp",
       "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/kamyki.js?v=0.25.1"
+    },
+    {
+      "id": "proximity-build",
+      "name": "Zestaw pod przeciwnika",
+      "description": "NI: dobór pełnego zestawu do profesji przeciwnika lub grupy w pobliżu.",
+      "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/proximity-build.js?v=1.0.0"
     }
   ]
 }
