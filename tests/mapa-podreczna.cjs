@@ -13,8 +13,9 @@ const assert = require('node:assert/strict');
         page.on('request', request => remote.push(request.url()));
         await page.setContent(`<style>
             body{background:#292c31;margin:0}.handheld-window{position:absolute;left:30px;top:60px;width:380px;height:310px;background:#141414;color:white;border:2px solid #746c56}
-            .header-label{height:24px;background:#333;cursor:move}.content{padding:10px}.viewport{width:320px;height:160px;overflow:hidden}canvas{display:block;width:320px;height:160px}
-        </style><div id="native" class="c-window handheld-window"><div class="header-label"><span class="text">Mapa podręczna</span><button class="close-button">Zamknij</button></div><div class="content"><div class="viewport"><canvas id="map" width="320" height="160"></canvas></div><button id="native-action">Natywna akcja</button></div></div><div id="corner-minimap">Minimapa w rogu</div>`);
+            .header-label{position:relative;height:24px;background:#333;cursor:move}.header-label .text{display:block;text-align:center;font:12px/24px Arial,sans-serif}.header-label button{position:absolute;top:2px;width:20px;height:20px;padding:0}.close-button{right:2px}.native-settings{left:4px}
+            .content{padding:10px}.viewport{width:320px;max-width:100%;height:160px;overflow:hidden}canvas{display:block;width:320px;height:160px}
+        </style><div id="native" class="c-window handheld-window"><div class="header-label"><span class="text">Mapa podręczna</span><button class="native-settings" aria-label="Natywne ustawienia">*</button><button class="close-button" aria-label="Zamknij">×</button></div><div class="content"><div class="viewport"><canvas id="map" width="320" height="160"></canvas></div><button id="native-action">Natywna akcja</button></div></div><div id="corner-minimap">Minimapa w rogu</div>`);
         const standalone = process.env.NATIVE_MAP_STANDALONE === '1';
         const source = fs.readFileSync(path.join(__dirname, standalone ? '../gogatki/standalone/mapa-podreczna.user.js' : '../gogatki/modules/mapa-podreczna.js'), 'utf8');
         await page.evaluate(({ source, standalone }) => {
@@ -92,16 +93,34 @@ const assert = require('node:assert/strict');
             assert(Math.abs(positions.actual[0] - positions.expected[0]) < 1);
             assert(Math.abs(positions.actual[1] - positions.expected[1]) < 1);
         }
+        async function assertTitleControl() {
+            const r = await page.evaluate(() => {
+                const rect = node => { const r = node.getBoundingClientRect(); return { left: r.left, right: r.right, top: r.top, bottom: r.bottom }; };
+                const range = document.createRange(); range.selectNodeContents(document.querySelector('.header-label .text'));
+                const title = range.getBoundingClientRect();
+                return { button: rect(document.querySelector('[data-gogatki-map-ui]').shadowRoot.querySelector('.toggle')), header: rect(document.querySelector('.header-label')), close: rect(document.querySelector('.close-button')), map: rect(initialCanvas), title: { left: title.left, right: title.right } };
+            });
+            assert(r.button.top >= r.header.top - 1 && r.button.bottom <= r.header.bottom + 1, 'Settings button stays in the title bar');
+            assert(r.button.bottom <= r.map.top, 'Settings button does not cover the map');
+            assert(r.button.right <= r.close.left, 'Native close button remains unobstructed');
+            assert(r.button.left >= r.title.right || r.button.right <= r.title.left, 'Native title remains readable');
+        }
         await assertAlignment();
+        await assertTitleControl();
 
         await page.evaluate(() => { document.getElementById('native').style.transform = 'scale(0.8)'; });
         await page.waitForTimeout(250);
         await assertAlignment();
-        await page.evaluate(() => { document.getElementById('native').style.left = '180px'; initialCanvas.style.width = '256px'; initialCanvas.style.height = '128px'; });
+        await assertTitleControl();
+        await page.evaluate(() => { document.getElementById('native').style.left = '180px'; document.getElementById('native').style.width = '240px'; initialCanvas.style.width = '256px'; initialCanvas.style.height = '128px'; });
         await page.waitForFunction(() => Math.abs(parseFloat(document.querySelector('[data-gogatki-map-layer]').style.width) - 256) < 1);
         await assertAlignment();
+        await assertTitleControl();
 
-        await ui.getByRole('button', { name: 'Mapa+', exact: true }).click();
+        await ui.getByRole('button', { name: 'Ustawienia mapy+', exact: true }).click();
+        const drawerBounds = await ui.locator('.drawer').boundingBox();
+        const windowBounds = await native.boundingBox();
+        assert(drawerBounds.x >= windowBounds.x && drawerBounds.x + drawerBounds.width <= windowBounds.x + windowBounds.width, 'Settings drawer fits the native window');
         const search = ui.getByRole('searchbox', { name: 'Szukaj na mapie' });
         await search.fill('heros');
         await page.waitForFunction(() => document.querySelector('[data-gogatki-map-ui]').shadowRoot.querySelectorAll('.entry').length === 1);

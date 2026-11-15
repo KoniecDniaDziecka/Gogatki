@@ -1,4 +1,4 @@
-// Mapa podręczna+ 1.0.1 — enhancement of the native NI window.
+// Mapa podręczna+ 1.0.2 — enhancement of the native NI window.
 GogatkiRuntime.register({
     id: 'mapa-podreczna',
     name: 'Mapa podręczna+',
@@ -206,19 +206,19 @@ GogatkiRuntime.register({
         function mount(native) {
             const host = document.createElement('div');
             host.dataset.gogatkiMapUi = '';
-            host.style.cssText = 'position:absolute;right:8px;top:28px;z-index:100001;max-width:calc(100% - 16px);';
+            host.style.cssText = 'position:absolute;right:26px;top:2px;width:20px;height:20px;z-index:100001;';
             const root = host.attachShadow({ mode: 'open' });
             root.innerHTML = `<style>
                 :host{all:initial;font:12px Arial,sans-serif;color:#c7d0d9}*{box-sizing:border-box;font:inherit;text-shadow:none}
                 [hidden]{display:none!important}button,input{color:#c7d0d9;background:#252b31;border:1px solid #668298;border-radius:3px}
                 button{cursor:pointer;padding:3px 5px}button:focus-visible,input:focus-visible{outline:2px solid #12c9bd;outline-offset:1px}
-                .toggle{display:flex;align-items:center;gap:5px;margin-left:auto;background:#38566c;color:#12c9bd;height:28px}
-                svg{width:15px;height:15px;pointer-events:none}.drawer{width:230px;max-width:100%;max-height:var(--gmp-height,300px);overflow:auto;background:#171b20;border:1px solid #668298;border-radius:4px;padding:7px;margin-top:3px}
+                .toggle{display:flex;align-items:center;justify-content:center;width:100%;height:100%;padding:2px;border:0;background:transparent;color:#12c9bd}.toggle:hover{background:#38566c}
+                svg{width:16px;height:16px;pointer-events:none}.drawer{position:absolute;right:var(--gmp-drawer-right,0px);top:calc(100% + 4px);width:var(--gmp-drawer-width,230px);max-width:calc(100vw - 16px);max-height:var(--gmp-height,300px);overflow:auto;background:#171b20;border:1px solid #668298;border-radius:4px;padding:7px}
                 input[type=search]{width:100%;padding:4px;margin-bottom:5px}.options{display:grid;grid-template-columns:1fr 1fr;gap:5px}
                 label{display:flex;gap:5px;align-items:center;font-size:11px}input[type=checkbox]{appearance:none;display:grid;place-content:center;width:14px;height:14px;min-width:14px;margin:0}
                 input[type=checkbox]::before,input[type=checkbox]::after{content:none}input:checked::after{content:'✓';color:#12c9bd;font:12px/12px Arial}
                 .status{font-size:11px;color:#b1c0cb;margin:6px 0;overflow-wrap:anywhere}.entry{border-top:1px solid #384651;padding:5px 0}.name{font-size:11px;overflow-wrap:anywhere}.actions{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}.actions button{font-size:11px;background:#38566c}.coords{color:#b1c0cb;font-size:11px;margin-top:2px}
-            </style><button type="button" class="toggle" aria-expanded="false" title="Rozszerzenia mapy podręcznej"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="10" cy="10" r="6"/><path d="m15 15 6 6"/></svg>Mapa+</button>
+            </style><button type="button" class="toggle" aria-label="Ustawienia mapy+" aria-expanded="false" title="Ustawienia mapy+"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.5"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3M5 5l2 2m10 10 2 2M5 19l2-2M17 7l2-2"/></svg></button>
             <section class="drawer" aria-label="Rozszerzenia mapy podręcznej" hidden><input type="search" placeholder="Nazwa lub x,y" aria-label="Szukaj na mapie"><div class="options"></div><p class="status" role="status"></p><button type="button" class="stop" hidden>Zatrzymaj podążanie</button><div class="list"></div></section>`;
             const drawer = root.querySelector('.drawer'), toggle = root.querySelector('.toggle');
             drawer.hidden = !state.drawer; toggle.setAttribute('aria-expanded', String(state.drawer));
@@ -230,6 +230,8 @@ GogatkiRuntime.register({
                 label.append(input, document.createTextNode(title)); root.querySelector('.options').append(label);
             }
             toggle.addEventListener('click', event => { event.stopPropagation(); state.drawer = !state.drawer; drawer.hidden = !state.drawer; toggle.setAttribute('aria-expanded', String(state.drawer)); save(); });
+            // Clicking the title-bar control must not start dragging the native window.
+            for (const type of ['pointerdown', 'mousedown', 'dblclick']) host.addEventListener(type, event => event.stopPropagation());
             const input = root.querySelector('input[type=search]');
             input.value = search.coords ? search.coords.join(',') : search.text;
             input.addEventListener('input', () => {
@@ -260,6 +262,41 @@ GogatkiRuntime.register({
             overlay.append(backdrop, terrain);
             native.append(overlay);
             return { native, host, root, drawer, input, status: root.querySelector('.status'), list: root.querySelector('.list'), overlay, terrain, background: null, isolation, surface: null, marks: new Map(), rows: new Map(), rect: null, map: String(snapshot?.town?.id) };
+        }
+        function placeControls() {
+            const { native, host } = binding, frame = native.getBoundingClientRect();
+            const sx = frame.width / (native.offsetWidth || frame.width), sy = frame.height / (native.offsetHeight || frame.height);
+            const css = window.getComputedStyle(native), borderX = parseFloat(css.borderLeftWidth) || 0, borderY = parseFloat(css.borderTopWidth) || 0;
+            const close = native.querySelector('.close-button-corner-decor .close-button, .close-button');
+            const closeRect = close && isVisible(close) ? close.getBoundingClientRect() : null;
+            const header = native.querySelector('.header-label-positioner, .header-label, header');
+            const hr = header?.getBoundingClientRect();
+            const size = Math.min(20, Math.max(14, closeRect ? closeRect.height / sy : (hr?.height / sy || 24) - 4));
+            const width = size * sx, height = size * sy;
+            const center = closeRect ? (closeRect.top + closeRect.bottom) / 2 : (hr?.height ? (hr.top + hr.bottom) / 2 : frame.top + 14 * sy);
+            const top = center - height / 2;
+            const occupied = [];
+            const title = native.querySelector('.header-label .text, .header-label-positioner .text');
+            if (title) {
+                const range = document.createRange(); range.selectNodeContents(title);
+                const textRect = range.getBoundingClientRect();
+                if (textRect.width) occupied.push(textRect);
+            }
+            for (const control of native.querySelectorAll('button, [role=button], a, [class*="button"], .icon')) {
+                if (control.closest('[data-gogatki-map-ui]') || !isVisible(control)) continue;
+                const rect = control.getBoundingClientRect();
+                if (rect.top < top + height && rect.bottom > top) occupied.push(rect);
+            }
+            const right = closeRect ? closeRect.left - 4 * sx : frame.right - 6 * sx;
+            let left = right - width;
+            for (let x = left; x >= frame.left + 4 * sx; x -= 2 * sx) {
+                if (occupied.every(rect => x + width + 2 * sx <= rect.left || x >= rect.right + 2 * sx)) { left = x; break; }
+            }
+            const cssLeft = (left - frame.left) / sx - borderX;
+            const contentWidth = native.clientWidth;
+            Object.assign(host.style, { left: cssLeft + 'px', right: 'auto', top: ((top - frame.top) / sy - borderY) + 'px', width: size + 'px', height: size + 'px' });
+            host.style.setProperty('--gmp-drawer-width', Math.max(120, Math.min(230, contentWidth - 16)) + 'px');
+            host.style.setProperty('--gmp-drawer-right', (cssLeft + size - (contentWidth - 8)) + 'px');
         }
         function unmount() {
             if (!binding) return;
@@ -352,6 +389,7 @@ GogatkiRuntime.register({
             const native = findWindow();
             if (native !== binding?.native) { unmount(); if (native) binding = mount(native); }
             if (!binding) return;
+            placeControls();
             if (binding.map !== String(snapshot.town?.id)) { binding.map = String(snapshot.town?.id); binding.input.value = search.text; }
             binding.host.style.setProperty('--gmp-height', Math.max(90, native.offsetHeight - 90) + 'px');
             const surface = findSurface(native, snapshot.town);
