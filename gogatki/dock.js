@@ -5,6 +5,7 @@
     const window = unsafeWindow;
     function createTileDock({onCleanup = () => {}} = {}) {
         const specs = [
+            {id:'gogatki-mapa-plus', name:'Mapa+', control:'.open-map', click:true, icon:'map'},
             {id:'kamyki-overlay', name:'Kamyki', control:'button', activeControl:true, toggleOnly:true, toggleOnClick:true, icon:'pyramid'},
             {id:'standalone-free-gift', name:'Gift', gift:true},
             {id:'standalone-fullmetal', name:'Ulepa', control:'[data-min]'},
@@ -191,6 +192,7 @@
             button.dataset.gogatkiDockItem = entry.spec.id;
             button.setAttribute('aria-controls', entry.spec.id);
             const icons = {
+                map:'<path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3V6Zm6-3v15m6-12v15"/>',
                 pyramid:'<path d="M12 3 2 20h20L12 3Zm0 0 4 17M2 20l10-5 10 5"/>',
                 bolt:'<path d="m13 2-8 11h6l-1 9 9-13h-6z"/>',
                 bag:'<path d="m8 3 2 4h4l2-4H8ZM8 8h8M9 8c-2 3-5 5-5 9a4 4 0 0 0 4 4h8a4 4 0 0 0 4-4c0-4-3-6-5-9"/><circle cx="12" cy="15.5" r="2.5"/>',

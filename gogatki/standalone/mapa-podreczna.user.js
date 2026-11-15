@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Mapa podręczna+ — samodzielna (NI)
 // @namespace    gogatki.local.mapa-podreczna.standalone
-// @version      1.0.7
+// @version      1.0.8
 // @description  Oznaczenia, filtry i wyszukiwarka w istniejącej mapie podręcznej NI, bez panelu Gogatków.
 // @author       Gogatki; model danych na podstawie Dark-Sad 6.1.5
 // @match        https://*.margonem.pl/*
@@ -36,10 +36,10 @@
     let definition;
     // A private registry keeps the identical module independent of Gogatki's loader.
     const GogatkiRuntime = Object.freeze({ register(value) { definition = value; } });
-// Mapa podręczna+ 1.0.7 — enhancement of the native NI window.
+// Mapa podręczna+ 1.0.8 — enhancement of the native NI window.
 GogatkiRuntime.register({
     id: 'mapa-podreczna',
-    name: 'Mapa podręczna+',
+    name: 'Mapa+',
     description: 'NI: oznaczenia, filtry i wyszukiwarka w istniejącej mapie podręcznej gry.',
     start() {
         'use strict';
@@ -702,6 +702,15 @@ net.on('cl', (cl) => {
         const model = createMapModel(window, state, search, () => {});
         const heroTransforms = new WeakMap();
         const surfaceRegions = new WeakMap();
+        // The dock controls this hidden bridge, never reparents the game's map.
+        const launcher = document.createElement('div');
+        launcher.id = 'gogatki-mapa-plus'; launcher.hidden = true;
+        launcher.dataset.compact = 'true';
+        const launcherButton = document.createElement('button');
+        launcherButton.type = 'button'; launcherButton.className = 'open-map';
+        launcherButton.textContent = 'Mapa+';
+        launcherButton.addEventListener('click', toggleNativeMap);
+        launcher.append(launcherButton); document.body.append(launcher);
         function save() { try { GM_setValue(KEY, { ...state }); } catch { showStatus('Nie udało się zapisać ustawień.'); } }
         function showStatus(text) { hint = text; if (binding) setText(binding.status, text); }
         function isVisible(node) {
@@ -719,6 +728,33 @@ net.on('cl', (cl) => {
                 if (/mapa podr[eę]czna|podr[eę]czna mapa/i.test(title)) windows.push(node);
             }
             return windows.find(isVisible) || null;
+        }
+        function syncLauncher() { launcher.dataset.compact = String(!findWindow()); }
+        function toggleNativeMap() {
+            const native = findWindow();
+            if (native) {
+                const close = native.querySelector('.close-button-corner-decor .close-button, .close-button');
+                if (close) { close.click(); syncLauncher(); return; }
+            }
+            const isMap = text => /handheld|(?:mapa\s+podr[eę]czna|podr[eę]czna\s+mapa)/i.test(String(text || '').replace(/<[^>]*>/g, ' '));
+            const manager = window.Engine?.widgetManager;
+            const set = typeof manager?.getDefaultWidgetSet === 'function' ? manager.getDefaultWidgetSet() : {};
+            for (const [key, definition] of Object.entries(set || {})) {
+                if (!isMap(key) && !isMap(definition?.txt)) continue;
+                const escaped = window.CSS.escape(key);
+                const node = document.querySelector(`.widget-button.widget-${escaped}, .icon.${escaped}`);
+                const button = node?.closest('.widget-button');
+                if (button) { button.click(); syncLauncher(); return; }
+                if (typeof definition?.clb === 'function') { definition.clb(); syncLauncher(); return; }
+            }
+            // Some NI layouts expose a map button without a widget definition.
+            for (const node of document.querySelectorAll('.widget-button, button, [role="button"]')) {
+                if (node.closest('#gogatki-tile-dock, #gogatki-mapa-plus, .handheld-window')) continue;
+                const icon = node.querySelector('.icon');
+                if (![node.title, node.getAttribute('aria-label'), node.getAttribute('tip'), node.getAttribute('data-tooltip'), icon?.className].some(isMap)) continue;
+                node.click(); syncLauncher(); return;
+            }
+            if (typeof window.message === 'function') window.message('Mapa+: otwórz mapę podręczną przyciskiem gry — nie znaleziono jej przycisku.');
         }
         function contentRect(surface) {
             const r = surface.getBoundingClientRect(), css = window.getComputedStyle(surface);
@@ -767,7 +803,7 @@ net.on('cl', (cl) => {
                 return { tag: node.tagName, class: String(node.className || '').slice(0, 120), visible: isVisible(node), width: Math.round(r.width * 100) / 100, height: Math.round(r.height * 100) / 100,
                     image: shortURL(node.currentSrc || node.src || css.backgroundImage), selected: node === binding.surface };
             }).filter(Boolean).slice(0, 40) : [];
-            return JSON.stringify({ version: '1.0.7', status: binding?.status.textContent, active: binding?.overlay.style.display !== 'none',
+            return JSON.stringify({ version: '1.0.8', status: binding?.status.textContent, active: binding?.overlay.style.display !== 'none',
                 dimensions: { model: { w: snapshot?.town?.w, h: snapshot?.town?.h }, engine: { x: d.x, y: d.y }, size: { x: map?.size?.x, y: map?.size?.y } },
                 file: shortURL(snapshot?.town?.file), image: shortURL(map?.img?.currentSrc || map?.img?.src), background: binding?.background ? { ready: !!binding.background.ready, failed: binding.background.failed, source: shortURL(binding.background.source) } : null, nodes }, null, 2);
         }
@@ -915,7 +951,7 @@ net.on('cl', (cl) => {
                 input[type=checkbox]::before,input[type=checkbox]::after{content:none}input:checked::after{content:'✓';color:#12c9bd;font:12px/12px Arial}
                 .status{font-size:11px;color:#b1c0cb;margin:6px 0;overflow-wrap:anywhere}.entry{border-top:1px solid #384651;padding:5px 0}.name{font-size:11px;overflow-wrap:anywhere}.actions{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}.actions button{font-size:11px;background:#38566c}.coords{color:#b1c0cb;font-size:11px;margin-top:2px}
             </style><button type="button" class="toggle" aria-label="Ustawienia mapy+" aria-expanded="false" title="Ustawienia mapy+"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.5"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3M5 5l2 2m10 10 2 2M5 19l2-2M17 7l2-2"/></svg></button>
-            <section class="drawer" aria-label="Rozszerzenia mapy podręcznej" hidden><input type="search" placeholder="Nazwa lub x,y" aria-label="Szukaj na mapie"><div class="options"></div><p class="status" role="status"></p><button type="button" class="stop" hidden>Zatrzymaj podążanie</button><details><summary>Pomoc · 1.0.7</summary><button type="button" class="diagnose">Kopiuj diagnostykę</button><textarea aria-label="Diagnostyka mapy" readonly hidden style="width:100%;height:100px;color:#c7d0d9;background:#252b31"></textarea></details><div class="list"></div></section>`;
+            <section class="drawer" aria-label="Rozszerzenia mapy podręcznej" hidden><input type="search" placeholder="Nazwa lub x,y" aria-label="Szukaj na mapie"><div class="options"></div><p class="status" role="status"></p><button type="button" class="stop" hidden>Zatrzymaj podążanie</button><details><summary>Pomoc · 1.0.8</summary><button type="button" class="diagnose">Kopiuj diagnostykę</button><textarea aria-label="Diagnostyka mapy" readonly hidden style="width:100%;height:100px;color:#c7d0d9;background:#252b31"></textarea></details><div class="list"></div></section>`;
             const drawer = root.querySelector('.drawer'), toggle = root.querySelector('.toggle');
             drawer.hidden = !state.drawer; toggle.setAttribute('aria-expanded', String(state.drawer));
             const options = [['mmShowMobs', 'Moby'], ['mmShowNpcs', 'NPC'], ['mmShowOthers', 'Gracze'], ['mmShowSpawns', 'Respy'], ['fog', 'Zasięg widzenia'], ['mmGwAvail', 'Dostępne przejścia'], ['attack', 'Atakuj w pościgu']];
@@ -1154,6 +1190,7 @@ net.on('cl', (cl) => {
             if (disposed) return;
             hook(); snapshot = model.snapshot();
             const native = findWindow();
+            launcher.dataset.compact = String(!native);
             if (native !== binding?.native) { unmount(); if (native) binding = mount(native); }
             if (!binding) return;
             placeControls();
@@ -1187,6 +1224,7 @@ net.on('cl', (cl) => {
             if (event?.persisted) return;
             if (disposed) return; disposed = true;
             window.clearInterval(timer); unmount(); unhook();
+            launcher.remove();
             window.removeEventListener('pagehide', destroy);
             if (window[INSTANCE]?.destroy === destroy) delete window[INSTANCE];
         }

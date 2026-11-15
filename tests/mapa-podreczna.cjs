@@ -18,7 +18,8 @@ const assert = require('node:assert/strict');
         </style><div id="native" class="c-window handheld-window"><div class="header-label"><span class="text">Mapa podręczna</span><button class="native-settings" aria-label="Natywne ustawienia">*</button><button class="close-button" aria-label="Zamknij">×</button></div><div class="content"><div class="viewport"><canvas id="map" width="320" height="160"></canvas></div><button id="native-action">Natywna akcja</button></div></div><div id="corner-minimap">Minimapa w rogu</div>`);
         const standalone = process.env.NATIVE_MAP_STANDALONE === '1';
         const source = fs.readFileSync(path.join(__dirname, standalone ? '../gogatki/standalone/mapa-podreczna.user.js' : '../gogatki/modules/mapa-podreczna.js'), 'utf8');
-        await page.evaluate(({ source, standalone }) => {
+        const dockSource = fs.readFileSync(path.join(__dirname, '../gogatki/dock.js'), 'utf8');
+        await page.evaluate(({ source, standalone, dockSource }) => {
             window.unsafeWindow = window;
             window.saved = {};
             window.GM_getValue = (key, fallback) => saved[key] ?? fallback;
@@ -54,21 +55,49 @@ const assert = require('node:assert/strict');
                 return 123;
             };
             window.originalParser = original;
+            window.mapWidgetCalls = 0;
+            window.nativeParent = document.getElementById('native').parentElement;
             window.Engine = {
+                widgetManager: { getDefaultWidgetSet: () => ({ handheldMap: { txt: 'Podręczna mapa', clb() { mapWidgetCalls++; document.getElementById('native').style.display = ''; } } }) },
                 hero: { d: { id: 1, x: 1, y: 1, lvl: 100 }, autoGoTo: point => walks.push(point) },
                 map: { d: { id: 1, name: 'Testowa mapa', file: 'test.png', x: 32, y: 16, visibility: 4, backgroundOffset: { x: 1, y: 1 } }, img: terrainImage, size: { x: 32, y: 16 }, col: { check: () => false }, gateways: { 1: { x: 15, y: 8, name: 'Przejście testowe' }, 2: { x: 16, y: 8, name: 'Przejście testowe' } } },
                 npcs: { check: () => npcs }, others: { check: () => players, getById: id => players[id] },
                 communication: { parseJSON: original }
             };
             window._g = query => requests.push(query);
+            new Function('GogatkiDockRuntime', 'unsafeWindow', 'GM_getValue', 'GM_setValue', dockSource)({ register: value => { window.__gogatkiTileDock = value.create(); } }, window, GM_getValue, GM_setValue);
             if (standalone) window.definition = { start: () => window.eval(source) };
             else new Function('GogatkiRuntime', 'unsafeWindow', 'GM_getValue', 'GM_setValue', source)({ register: value => { window.definition = value; } }, window, GM_getValue, GM_setValue);
             definition.start();
-        }, { source, standalone });
+        }, { source, standalone, dockSource });
         const native = page.locator('#native');
         const ui = native.locator('[data-gogatki-map-ui]');
         const layer = native.locator('[data-gogatki-map-layer]');
         const marks = native.locator('[data-gogatki-map-markers]');
+        await marks.locator('[data-kind=heros]').waitFor({ state: 'attached' });
+        const mapTile = page.locator('#gogatki-tile-dock > .gogatki-dock-toggle[aria-controls="gogatki-mapa-plus"]');
+        await mapTile.waitFor();
+        assert((await mapTile.getAttribute('aria-label')).startsWith('Mapa+'));
+        assert.equal(await mapTile.locator('svg').count(), 1, 'Map+ has an SVG map icon');
+        assert.deepEqual(await mapTile.evaluate(node => [node.offsetWidth, node.offsetHeight]), [28, 28]);
+        assert.equal(await mapTile.getAttribute('aria-expanded'), 'true');
+        await mapTile.click();
+        await native.waitFor({ state: 'hidden' });
+        await page.waitForFunction(() => document.querySelector('[aria-controls="gogatki-mapa-plus"]').getAttribute('aria-expanded') === 'false');
+        assert.equal(await page.evaluate(() => document.getElementById('native').parentElement === nativeParent), true, 'Dock never reparents the native map');
+        await mapTile.click();
+        await marks.locator('[data-kind=heros]').waitFor({ state: 'attached' });
+        assert.equal(await page.evaluate(() => mapWidgetCalls), 1, 'Dock opens the map using its native widget callback');
+        await page.evaluate(() => {
+            const button = document.createElement('button'); button.className = 'widget-button widget-handheldMap'; button.id = 'native-map-widget';
+            window.mapNativeWidgetClicks = 0;
+            button.onclick = () => { mapNativeWidgetClicks++; document.getElementById('native').style.display = ''; };
+            document.body.append(button);
+        });
+        await mapTile.click(); await native.waitFor({ state: 'hidden' });
+        await mapTile.click(); await native.waitFor({ state: 'visible' });
+        assert.equal(await page.evaluate(() => mapNativeWidgetClicks), 1, 'Dock uses the native widget button when available');
+        await page.evaluate(() => { document.getElementById('native-map-widget').remove(); });
         await marks.locator('[data-kind=heros]').waitFor({ state: 'attached' });
         const markerStyle = selector => marks.locator(selector).evaluate(node => {
             const css = getComputedStyle(node);
@@ -291,7 +320,7 @@ const assert = require('node:assert/strict');
         await ui.locator('summary').click();
         await ui.getByRole('button', { name: 'Kopiuj diagnostykę', exact: true }).click();
         const report = JSON.parse(await ui.getByLabel('Diagnostyka mapy', { exact: true }).inputValue());
-        assert.equal(report.version, '1.0.7');
+        assert.equal(report.version, '1.0.8');
         assert.equal(report.active, false);
         assert(report.status.includes('Nie rozpoznano obszaru mapy'));
         assert(report.nodes.some(node => node.tag === 'CANVAS' && !node.visible));
@@ -306,6 +335,8 @@ const assert = require('node:assert/strict');
         await page.waitForFunction(() => document.querySelector('[data-gogatki-map-layer]').style.display !== 'none');
         await page.evaluate(() => window.__gogatkiNativeMap.destroy());
         await page.waitForTimeout(50);
+        await mapTile.waitFor({ state: 'detached' });
+        assert.equal(await page.locator('#gogatki-mapa-plus').count(), 0, 'Destroy removes the dock bridge');
         assert.equal(await page.evaluate(() => pendingMapFrames.size), 0, 'Destroy cancels the animation frame');
         assert.equal(await page.locator('[data-gogatki-map-ui]').count(), 0);
         assert.equal(await page.evaluate(() => Engine.communication.parseJSON === originalParser), true);
@@ -327,6 +358,7 @@ const assert = require('node:assert/strict');
         }
         assert.deepEqual(errors, []);
         assert.deepEqual(remote.filter(url => /^https?:/.test(url)), [], 'No HTTP calls in this fixture');
+        await page.evaluate(() => window.__gogatkiTileDock.destroy());
         console.log(`PASS (${standalone ? 'standalone with NI readiness' : 'module'}): large letterboxed maps; narrow maps; CSS terrain; late dimensions; smaller mob/E2 markers; diagnostic report; clean terrain replaces native markers; background offset and failed-image fallback; existing native window/canvas/clicks retained; marker alignment after move/resize; search/coords/filters/storage; parser return/this/arguments; spawns; explicit chase/attack/stop; map change; duplicate start; close/reopen; cleanup`);
     } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });
