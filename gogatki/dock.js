@@ -5,7 +5,7 @@
     const window = unsafeWindow;
     function createTileDock({onCleanup = () => {}} = {}) {
         const specs = [
-            {id:'gogatki-proximity-build', name:'Zestaw pod przeciwnika', control:'.gear', shadow:true, clickToOpen:true},
+            {id:'gogatki-proximity-build', name:'Zestaw pod przeciwnika', control:'.gear', shadow:true, clickToOpen:true, activeControl:true, activeEvent:'gogatki:toggle-active'},
             {id:'gogatki-mapa-plus', name:'Mapa+', control:'.open-map', click:true, icon:'map'},
             {id:'kamyki-overlay', name:'Kamyki', control:'button', activeControl:true, toggleOnly:true, toggleOnClick:true, icon:'pyramid'},
             {id:'standalone-free-gift', name:'Gift', gift:true},
@@ -208,6 +208,10 @@
             function toggle(event) {
                 event.preventDefault(); event.stopPropagation();
                 if (!entry.node.isConnected) return;
+                if (entry.spec.activeEvent && event.type === 'contextmenu') {
+                    entry.node.dispatchEvent(new CustomEvent(entry.spec.activeEvent));
+                    sync(); return;
+                }
                 if (entry.spec.toggleOnly) {
                     if (entry.spec.toggleOnClick && event.type === 'click') control(entry)?.click();
                     else if (event.type === 'contextmenu') control(entry)?.dispatchEvent(new MouseEvent('contextmenu', {bubbles:true, cancelable:true}));
@@ -385,6 +389,7 @@
     }
     GogatkiDockRuntime.register({apiVersion:2, create:createTileDock});
 })();
+
 
 
 
