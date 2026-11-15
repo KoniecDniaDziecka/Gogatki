@@ -1,4 +1,4 @@
-/* Cyberpunk NI 0.2.65 — motyw dla nowego interfejsu Margonem.
+/* Cyberpunk NI 0.2.66 — motyw dla nowego interfejsu Margonem.
  * Skrypt .user.js włącza go atrybutem data-cyberpunk-ni="on" na <html>.
  * Zmienne poniżej sterują paletą. Nie wymaga zewnętrznych grafik ani fontów.
  * Najlepiej używać z wyłączonym DarknessNI i innymi motywami całego NI.
@@ -2456,18 +2456,53 @@ html[data-cyberpunk-ni="on"] .matchmaking-panel .warning-points {
 
 }
 
-/* Lekka przezroczystość wyłącznie tła: tekst i ikony nie dziedziczą opacity.
- * Jedno wypełnienie na okno zapobiega kumulowaniu alfa w content/scroll-pane. */
+/* Oprawa jest dzieckiem natywnej .border-image: jej opacity nadal kontroluje
+ * gra przez data-opacity-lvl. Tekst, ikony i przyciski są poza tą warstwą. */
 @layer cyberpunk-ni-glass {
+html[data-cyberpunk-ni="on"] :is(.border-window.transparent, .dialogue-window[data-opacity-lvl]) {
+  --cp-opacity-frame-inset: 0px;
+  --cp-window-backdrop: rgba(23, 27, 32, .86);
+  background: none !important;
+  box-shadow: none !important;
+}
 html[data-cyberpunk-ni="on"] .border-window.transparent {
-  background-color: rgba(23, 27, 32, .86) !important;
+  --cp-opacity-frame-inset: -2px;
+}
+html[data-cyberpunk-ni="on"] :is(.border-window.transparent, .dialogue-window)[data-opacity-lvl="5"] {
+  --cp-window-backdrop: var(--cp-bg);
 }
 
-html[data-cyberpunk-ni="on"] .border-window.transparent :is(
-  .content, .inner-content, .border-image, .window-list, .who-is-here,
-  .scroll-wrapper, .scroll-pane
+html[data-cyberpunk-ni="on"] :is(.border-window.transparent, .dialogue-window[data-opacity-lvl]) :is(
+  .header-label-positioner, .content, .inner-content, .border-image, .window-list,
+  .who-is-here, .scroll-wrapper, .scroll-pane
 ) {
   background: none !important;
+}
+html[data-cyberpunk-ni="on"] :is(.border-window.transparent, .dialogue-window[data-opacity-lvl]) .header-label-positioner {
+  box-shadow: none !important;
+}
+html[data-cyberpunk-ni="on"] :is(.border-window.transparent, .dialogue-window[data-opacity-lvl]) > .border-image::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: var(--cp-opacity-frame-inset) !important;
+  border: 0 !important;
+  border-radius: 4px !important;
+  pointer-events: none !important;
+  background:
+    var(--cp-art-corner-nw) left top / 12px 12px no-repeat,
+    var(--cp-art-corner-ne) right top / 12px 12px no-repeat,
+    var(--cp-art-corner-sw) left bottom / 12px 12px no-repeat,
+    var(--cp-art-corner-se) right bottom / 12px 12px no-repeat,
+    linear-gradient(#425b6b, #425b6b) center top / calc(100% - 24px) 1px no-repeat,
+    linear-gradient(#425b6b, #425b6b) center bottom / calc(100% - 24px) 1px no-repeat,
+    linear-gradient(#425b6b, #425b6b) left center / 1px calc(100% - 24px) no-repeat,
+    linear-gradient(#425b6b, #425b6b) right center / 1px calc(100% - 24px) no-repeat,
+    var(--cp-art-header) center top / 100% 28px no-repeat,
+    var(--cp-window-surface) right bottom / 256px 192px no-repeat,
+    var(--cp-window-backdrop) !important;
+  background-origin: border-box !important;
+  background-clip: border-box !important;
+  box-shadow: 0 0 0 1px var(--cp-line) !important;
 }
 
 html[data-cyberpunk-ni="on"] .layer.interface-layer .main-column .extended-stats {
