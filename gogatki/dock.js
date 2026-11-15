@@ -17,7 +17,7 @@
             {id:'wild-hunt-standalone', name:'Better X', control:'#gear', shadow:true, clickToOpen:true},
             {id:'anty-x', name:'Anty X', control:'.gear', shadow:true, clickToOpen:true},
             {id:'emergency-item-standalone', name:'Auto TP', control:'.gear', shadow:true},
-            {id:'smart-autofight-standalone', name:'QF', control:'.q-control', shadow:true, click:true, activeControl:true, text:'Q'}
+            {id:'smart-autofight-standalone', name:'QF', control:'.q-control', shadow:true, click:true, activeControl:true, icon:'q'}
         ];
         const selector = specs.map(s => '#' + s.id).join(',');
         const entries = new Map();
@@ -193,6 +193,7 @@
             button.dataset.gogatkiDockItem = entry.spec.id;
             button.setAttribute('aria-controls', entry.spec.id);
             const icons = {
+                q:'<g stroke-width="2.1"><ellipse cx="11" cy="11" rx="7" ry="7.5"/><path d="m12 13 7.5 7"/></g>',
                 map:'<path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3V6Zm6-3v15m6-12v15"/>',
                 pyramid:'<path d="M12 3 2 20h20L12 3Zm0 0 4 17M2 20l10-5 10 5"/>',
                 bolt:'<path d="m13 2-8 11h6l-1 9 9-13h-6z"/>',
