@@ -1,4 +1,4 @@
-/* Cyberpunk NI 0.2.78 — motyw dla nowego interfejsu Margonem.
+/* Cyberpunk NI 0.2.79 — motyw dla nowego interfejsu Margonem.
  * Skrypt .user.js włącza go atrybutem data-cyberpunk-ni="on" na <html>.
  * Zmienne poniżej sterują paletą. Nie wymaga zewnętrznych grafik ani fontów.
  * Najlepiej używać z wyłączonym DarknessNI i innymi motywami całego NI.
@@ -3234,3 +3234,12 @@ html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .t
 }
 }
 /* CP-WINDOW-SEARCH-END */
+
+/* CP-SOCIAL-SCROLLBAR-BEGIN: cały tor poza przyciskami wiersza;
+ * niezależne translate zachowuje natywne transform i ruch uchwytu w pionie. */
+@layer cyberpunk-ni-window-finishes {
+html[data-cyberpunk-ni="on"] .friend-enemy-list .column .scroll-wrapper > .scrollbar-wrapper {
+  translate: 8px 0 !important;
+}
+}
+/* CP-SOCIAL-SCROLLBAR-END */
