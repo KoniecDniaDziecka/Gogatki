@@ -2,6 +2,12 @@
   "schemaVersion": 1,
   "modules": [
     {
+      "id": "mapa-podreczna",
+      "name": "Mapa podręczna+",
+      "description": "Oznaczenia i wyszukiwarka w mapie podręcznej NI",
+      "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/mapa-podreczna.js?v=1.0.0"
+    },
+    {
       "id": "cyberpunk-ni",
       "name": "Cyberpunk NI",
       "description": "Motyw NI",
