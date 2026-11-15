@@ -131,6 +131,32 @@ function installCyberpunkNiDiagnostics(window, theme, readValue, runtime) {
       .filter(visible).slice(0, 16).map(describe);
   }
 
+  function toolbarSnapshot() {
+    const scope = '.layer.interface-layer';
+    const groups = ':is(.bottom-left,.bottom-right,.bottom-left-additional,.bottom-right-additional).main-buttons-container';
+    const selectors = [scope, `${scope} .positioner.bottom`, `${scope} .positioner.bottom .bg`,
+      `${scope} .positioner.bottom .bg-additional-widget-left`, `${scope} .positioner.bottom .bg-additional-widget-right`,
+      `${scope} ${groups}`, `${scope} ${groups} .widget-button`,
+      `${scope} .main-column.left-column`, `${scope} .main-column.left-column > .border`,
+      `${scope} .main-column.left-column .inner-wrapper`, `${scope} .main-column.left-column .chat-input-wrapper`];
+    const elements = [...document.querySelectorAll(selectors.join(','))].slice(0, 80);
+    const layoutProperties = ['width', 'height', 'top', 'right', 'bottom', 'left', 'z-index',
+      'box-sizing', 'overflow', 'margin', 'padding', 'border-width', 'border-style', 'border-color',
+      'border-image-slice', 'border-image-width', 'background-repeat', 'background-origin',
+      'background-clip', 'transform-origin', 'content'];
+    const layout = style => Object.fromEntries(layoutProperties.map(name => [name, clean(style.getPropertyValue(name))]));
+    // Odczyt tylko przy ręcznym raporcie. Zachowujemy też ukryte elementy,
+    // szerokość całego kontenera oraz kolejność warstw, bez zmiany DOM gry.
+    return { schema: 1, nodes: elements.map((element, index) => ({ ...describe(element), index,
+      parentIndex: elements.indexOf(element.parentElement),
+      parentClasses: element.parentElement?.getAttribute('class') || '',
+      siblingIndex: [...(element.parentElement?.children || [])].indexOf(element),
+      layout: layout(window.getComputedStyle(element)),
+      before: { ...styleData(window.getComputedStyle(element, '::before')), ...layout(window.getComputedStyle(element, '::before')) },
+      after: { ...styleData(window.getComputedStyle(element, '::after')), ...layout(window.getComputedStyle(element, '::after')) }
+    })) };
+  }
+
   function capture({ duration = 10000, message = null } = {}) {
     return new Promise(resolve => {
       const started = window.performance.now();
@@ -140,6 +166,7 @@ function installCyberpunkNiDiagnostics(window, theme, readValue, runtime) {
         themeWrites: { rootAttributes: 0, stylesheetChanges: 0, stylesheetReplacements: 0 }, menus: [] };
       report.diagnosticWork = { setupDuration: 0, menuSnapshots: [] };
       report.battleAtStart = battleSnapshot();
+      report.toolbarAtStart = toolbarSnapshot();
       const surfaces = visibleSurfaces();
       report.mapSurfacesAtStart = surfaces.map(describe);
       report.surfaceSelection = 'up to 12 visible surfaces, largest first';
@@ -263,6 +290,7 @@ function installCyberpunkNiDiagnostics(window, theme, readValue, runtime) {
         report.images = window.performance.getEntriesByType('resource').filter(entry => entry.startTime >= started && !entry.name.startsWith('data:') && /\.(?:png|gif|jpe?g|webp|avif)(?:[?#]|$)/i.test(entry.name)).slice(0, 150).map(entry => ({ url: url(entry.name), start: entry.startTime - started, duration: entry.duration, transferSize: entry.transferSize, decodedSize: entry.decodedBodySize, initiator: entry.initiatorType }));
         report.mapSurfaces = visibleSurfaces().map(describe);
         report.battleAtEnd = battleSnapshot();
+        report.toolbarAtEnd = toolbarSnapshot();
         resolve(report);
       }
       const timer = window.setTimeout(() => finish(false), duration);
