@@ -1,3 +1,4 @@
+// Auto TP 1.0.5 — użycie po zakończeniu i odblokowaniu walki.
 GogatkiRuntime.register({
   id: 'auto-tp',
   name: 'Auto TP',
@@ -71,7 +72,7 @@ GogatkiRuntime.register({
       } catch (e) { report('Ucieczka: ' + e.message); }
       finally { busy = false; }
     }
-    return { nearby, battleStart, reset, afterBattle: () => use('afterBattle'), enemy,
+    return { nearby, battleStart, reset, isBusy: () => busy, afterBattle: () => use('afterBattle'), enemy,
       assign(kind, id) { if (!Object.hasOwn(labels, kind)) return; state.items[kind] = id; reset(); persist(); } };
   }
   if (typeof module !== 'undefined' && module.exports) { module.exports = { createController, defaults }; return; }
@@ -80,14 +81,16 @@ GogatkiRuntime.register({
   const storageKey = 'gogatki:auto-tp:global:v1';
   let controller, state, root, host, status, inBattle = false, lastMap, currentCharacter;
   const restorers = [];
+  let battleSerial = 0, closedBattle = 0, pendingAfterBattle = 0, stopped = false;
   let panelObserver;
   const ni = () => !!window.Engine?.hero?.d;
   const hero = () => ni() ? window.Engine.hero.d : window.hero;
   const items = () => Object.values(ni() ? (window.Engine.items.test()?.items || {}) : (window.g?.item || {})).filter(i => i.loc === 'g');
   const others = () => ni() ? Object.entries(window.Engine.others.check()).map(([id, p]) => ({ ...p.d, id: p.d.id ?? id })) : Object.entries(window.g?.other || {}).map(([id, p]) => ({ ...p, id: p.id ?? id }));
   const map = () => ni() ? window.Engine.map.d : window.map;
+  const battleLocked = () => !!(ni() ? window.Engine.lock?.check('battle') : window.g?.lock?.check('battle'));
   const api = { hero, items, others, item: id => items().find(i => String(i.id) === String(id)),
-    inBattle: () => inBattle || !!(ni() ? window.Engine.lock?.check('battle') : window.g?.lock?.check('battle')), pvp: () => +map()?.pvp === 2,
+    inBattle: () => inBattle || battleLocked(), pvp: () => +map()?.pvp === 2,
     build: () => Number(document.querySelector('.builds-interface .build-index')?.textContent ?? -1),
     now: () => typeof window.unix_time === 'function' ? window.unix_time() : Date.now() / 1000,
     use: id => request('moveitem&st=1&id=' + encodeURIComponent(id)),
@@ -117,13 +120,49 @@ GogatkiRuntime.register({
     restorers.push(() => { if (object[key] === wrapped) object[key] = original; });
     return true;
   }
-  function processPacket(packet) {
-    if (!packet || typeof packet !== 'object') return;
-    if (packet.town) controller.reset();
-    if (packet.f?.init != null) { inBattle = true; void controller.battleStart(packet.f); }
-    if (packet.other || packet.h) void controller.nearby();
+  function watchPackets(owner, key) {
+    if (typeof owner?.[key] !== 'function') return false;
+    const original = owner[key];
+    function wrapped(...args) {
+      // Both interfaces may consume f while parsing; retain the battle data first.
+      const data = args[0];
+      let packet;
+      try { packet = data && typeof data === 'object' ? {
+        f: data.f ? structuredClone(data.f) : null,
+        town: !!data.town, other: !!data.other, h: !!data.h
+      } : null; } catch (e) { console.error('Auto TP', e); }
+      const result = original.apply(this, args);
+      try { processPacket(packet); } catch (e) { console.error('Auto TP', e); }
+      return result;
+    }
+    owner[key] = wrapped;
+    restorers.push(() => { if (owner[key] === wrapped) owner[key] = original; });
+    return true;
   }
-  function closeBattle() { void controller.afterBattle(); inBattle = false; }
+  function cancelBattle() {
+    inBattle = false; pendingAfterBattle = 0; closedBattle = battleSerial;
+  }
+  function processPacket(packet) {
+    if (!packet || typeof packet !== 'object' || stopped) return;
+    if (packet.town) { cancelBattle(); controller.reset(); }
+    if (packet.f?.init != null) {
+      pendingAfterBattle = 0; battleSerial++; inBattle = true;
+      void controller.battleStart(packet.f);
+    }
+    if (packet.f?.endBattle) closeBattle();
+    if ((packet.other || packet.h) && !pendingAfterBattle) void controller.nearby();
+  }
+  function flushAfterBattle() {
+    if (stopped || !pendingAfterBattle || inBattle || battleLocked() || controller.isBusy()) return;
+    pendingAfterBattle = 0;
+    void controller.afterBattle();
+  }
+  function closeBattle() {
+    if (stopped || !battleSerial || closedBattle === battleSerial) return;
+    inBattle = false; closedBattle = battleSerial; pendingAfterBattle = battleSerial;
+    // Run after the native close/parser finishes and wait for the game battle lock.
+    queueMicrotask(flushAfterBattle);
+  }
   function popup(entries, event) {
     if (!Array.isArray(entries)) return;
     const target = event?.target || event?.originalEvent?.target;
@@ -270,14 +309,16 @@ GogatkiRuntime.register({
     if (!Array.isArray(state.enemyClans)) state.enemyClans = [];
     controller = createController(api, state, () => { persist(); if (root) refreshItems(); }, report);
     lastMap = map()?.id;
+    inBattle = battleLocked(); if (inBattle) battleSerial++;
     buildPanel();
     if (ni()) {
-      wrap(window.Engine.communication, 'parseJSON', null, processPacket);
-      wrap(window.Engine.battle, 'close', closeBattle);
+      watchPackets(window.Engine.communication, 'parseJSON');
+      wrap(window.Engine.battle, 'close', null, closeBattle);
       wrap(window.Engine.interface, 'showPopupMenu', popup);
     } else {
-      wrap(window, 'parseInput', null, processPacket);
-      wrap(window, 'closeBattle', closeBattle);
+      watchPackets(window, 'parseInput');
+      wrap(window, 'battle_close', null, closeBattle);
+      wrap(window, 'closeBattle', null, closeBattle);
       wrap(window, 'showMenu', (event, entries) => popup(entries, event));
     }
     window.addEventListener('resize', onResize);
@@ -290,16 +331,18 @@ GogatkiRuntime.register({
     try {
       if (!controller) { init(); return; }
       if (String(hero()?.id) !== currentCharacter) { cleanup(); window.__emergencyItemStandalone = false; return; }
-      if (map()?.id !== lastMap) { lastMap = map()?.id; controller.reset(); }
-      void controller.nearby();
+      if (map()?.id !== lastMap) { lastMap = map()?.id; cancelBattle(); controller.reset(); }
+      flushAfterBattle();
+      if (!pendingAfterBattle) void controller.nearby();
       if (++refreshTick % 8 === 0 && !['SELECT', 'TEXTAREA', 'INPUT'].includes(root.activeElement?.tagName)) refreshItems();
     } catch (e) { report('Oczekiwanie na grę'); console.debug('Auto TP', e); }
   }, 250);
-  function cleanup() { panelObserver?.disconnect(); clearInterval(timer); restorers.reverse().forEach(fn => fn()); host?.remove(); window.removeEventListener('resize', onResize); }
+  function cleanup() { stopped = true; cancelBattle(); panelObserver?.disconnect(); clearInterval(timer); restorers.reverse().forEach(fn => fn()); host?.remove(); window.removeEventListener('resize', onResize); }
   window.EmergencyItemStandalone = { destroy() { cleanup(); delete window.__emergencyItemStandalone; delete window.EmergencyItemStandalone; } };
 })();
 
   }
 });
+
 
 
