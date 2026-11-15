@@ -25,6 +25,13 @@ const assert = require('node:assert/strict');
             window.walks = []; window.requests = []; window.nativeClicks = 0; window.nativeActions = 0;
             window.initialCanvas = document.getElementById('map');
             const ctx = initialCanvas.getContext('2d'); ctx.fillStyle = '#444'; ctx.fillRect(0, 0, 320, 160);
+            // The real native canvas also contains markers: these must not bleed
+            // through our renderer, including after using filters/search.
+            ctx.fillStyle = '#ff00ff'; ctx.fillRect(120, 70, 5, 5);
+            const terrainCanvas = document.createElement('canvas'); terrainCanvas.width = 1088; terrainCanvas.height = 576;
+            const terrainCtx = terrainCanvas.getContext('2d'); terrainCtx.fillStyle = '#00ffff'; terrainCtx.fillRect(0, 0, 1088, 576);
+            terrainCtx.fillStyle = '#444'; terrainCtx.fillRect(32, 32, 1024, 512);
+            window.terrainImage = new Image(); terrainImage.src = terrainCanvas.toDataURL();
             initialCanvas.addEventListener('click', () => { nativeClicks++; });
             document.getElementById('native-action').addEventListener('click', () => { nativeActions++; });
             document.querySelector('.close-button').addEventListener('click', () => { document.getElementById('native').style.display = 'none'; });
@@ -38,7 +45,7 @@ const assert = require('node:assert/strict');
             window.originalParser = original;
             window.Engine = {
                 hero: { d: { id: 1, x: 1, y: 1, lvl: 100 }, autoGoTo: point => walks.push(point) },
-                map: { d: { id: 1, name: 'Testowa mapa', file: 'test.png', x: 32, y: 16, visibility: 4 }, size: { x: 32, y: 16 }, col: { check: () => false } },
+                map: { d: { id: 1, name: 'Testowa mapa', file: 'test.png', x: 32, y: 16, visibility: 4, backgroundOffset: { x: 1, y: 1 } }, img: terrainImage, size: { x: 32, y: 16 }, col: { check: () => false } },
                 npcs: { check: () => npcs }, others: { check: () => players, getById: id => players[id] },
                 communication: { parseJSON: original }
             };
@@ -57,6 +64,20 @@ const assert = require('node:assert/strict');
         assert.equal(await native.evaluate(node => getComputedStyle(node).visibility), 'visible');
         assert.equal(await layer.evaluate(node => getComputedStyle(node).pointerEvents), 'none');
         assert.deepEqual(await page.evaluate(() => Array.from(initialCanvas.getContext('2d').getImageData(1, 1, 1, 1).data)), [68, 68, 68, 255]);
+        assert.equal(await layer.locator('[data-gogatki-map-terrain]').getAttribute('x'), '-1');
+        assert.equal(await layer.locator('[data-gogatki-map-terrain]').getAttribute('width'), '34');
+        const composite = await page.evaluate(async () => {
+            const svg = document.querySelector('[data-gogatki-map-layer]').cloneNode(true);
+            svg.style.cssText = 'width:320px;height:160px'; svg.setAttribute('width', '320'); svg.setAttribute('height', '160');
+            const image = new Image();
+            await new Promise((resolve, reject) => { image.onload = resolve; image.onerror = reject; image.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(new XMLSerializer().serializeToString(svg)); });
+            const canvas = document.createElement('canvas'); canvas.width = 320; canvas.height = 160;
+            const context = canvas.getContext('2d'); context.drawImage(initialCanvas, 0, 0); context.drawImage(image, 0, 0);
+            return { visible: Array.from(context.getImageData(120, 70, 1, 1).data), native: Array.from(initialCanvas.getContext('2d').getImageData(120, 70, 1, 1).data), margin: Array.from(context.getImageData(1, 1, 1, 1).data) };
+        });
+        assert.deepEqual(composite.native, [255, 0, 255, 255]);
+        assert.deepEqual(composite.visible, [68, 68, 68, 255], 'Native markers are covered by clean terrain');
+        assert.deepEqual(composite.margin, [68, 68, 68, 255], 'Map background offset crops the image margin');
         await page.locator('#map').click({ position: { x: 15, y: 15 } });
         await page.locator('#native-action').click();
         assert.equal(await page.evaluate(() => nativeClicks), 1);
@@ -129,10 +150,16 @@ const assert = require('node:assert/strict');
         assert.equal(await native.isVisible(), true, 'Unrecognized surface leaves the native window usable');
         await page.evaluate(() => { initialCanvas.style.display = ''; });
         await page.waitForFunction(() => document.querySelector('[data-gogatki-map-layer]').style.display !== 'none');
+        await page.evaluate(() => { const image = new Image(); image.src = 'data:image/png;base64,broken'; Engine.map.img = image; });
+        await page.waitForFunction(() => document.querySelector('[data-gogatki-map-ui]').shadowRoot.querySelector('.status').textContent.includes('Nie udało się odczytać tła'));
+        assert.equal(await layer.evaluate(element => element.style.display), 'none', 'Failed terrain load keeps the original map instead of doubling its markers');
+        await page.evaluate(() => { Engine.map.img = terrainImage; });
+        await page.waitForFunction(() => document.querySelector('[data-gogatki-map-layer]').style.display !== 'none');
         await page.evaluate(() => window.__gogatkiNativeMap.destroy());
         assert.equal(await page.locator('[data-gogatki-map-ui]').count(), 0);
         assert.equal(await page.evaluate(() => Engine.communication.parseJSON === originalParser), true);
         assert.equal(await page.evaluate(() => document.getElementById('map') === initialCanvas), true);
+        assert.equal(await native.evaluate(element => element.style.isolation), '', 'Native stacking is restored on cleanup');
         assert.equal(await page.locator('#corner-minimap').textContent(), 'Minimapa w rogu');
         if (standalone) {
             await page.evaluate(() => {
@@ -148,7 +175,7 @@ const assert = require('node:assert/strict');
             assert.equal(await page.evaluate(() => typeof window.GogatkiRuntime), 'undefined', 'Standalone does not require or expose a panel registry');
         }
         assert.deepEqual(errors, []);
-        assert.deepEqual(remote, [], 'No HTTP calls or external map image requests');
-        console.log(`PASS (${standalone ? 'standalone with NI readiness' : 'module'}): existing native window/canvas/clicks retained; marker alignment after move/resize; search/coords/filters/storage; parser return/this/arguments; spawns; explicit chase/attack/stop; map change; duplicate start; close/reopen; cleanup; zero HTTP requests`);
+        assert.deepEqual(remote.filter(url => /^https?:/.test(url)), [], 'No HTTP calls in this fixture');
+        console.log(`PASS (${standalone ? 'standalone with NI readiness' : 'module'}): clean terrain replaces native markers; background offset and failed-image fallback; existing native window/canvas/clicks retained; marker alignment after move/resize; search/coords/filters/storage; parser return/this/arguments; spawns; explicit chase/attack/stop; map change; duplicate start; close/reopen; cleanup`);
     } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });

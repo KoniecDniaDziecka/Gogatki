@@ -1,4 +1,4 @@
-// Mapa podręczna+ 1.0.0 — enhancement of the native NI window.
+// Mapa podręczna+ 1.0.1 — enhancement of the native NI window.
 GogatkiRuntime.register({
     id: 'mapa-podreczna',
     name: 'Mapa podręczna+',
@@ -74,6 +74,53 @@ GogatkiRuntime.register({
                 };
                 return score(b) - score(a);
             })[0] || null;
+        }
+        function backgroundSource(town) {
+            const image = window.Engine?.map?.img;
+            const source = image?.currentSrc || image?.src;
+            if (source && (!town.file || source.startsWith('data:image/') || source.includes(town.file))) return { source, image };
+            if (!town.file) return null;
+            try {
+                const cfg = window.CFG || {};
+                const base = new URL(cfg.a_mpath || cfg.mpath || '/obrazki/miasta/', document.baseURI);
+                return { source: new URL(town.file, base).href, image: null };
+            } catch { return null; }
+        }
+        function releaseBackground() {
+            const background = binding?.background;
+            if (background?.owned) { background.image.onload = null; background.image.onerror = null; }
+            if (binding) binding.background = null;
+        }
+        function prepareBackground() {
+            const source = backgroundSource(snapshot.town);
+            if (!source) { releaseBackground(); return false; }
+            const key = `${snapshot.town.id}|${source.source}`;
+            const ready = source.image?.complete && source.image.naturalWidth > 0;
+            if (binding.background?.key !== key || (ready && !binding.background.ready)) {
+                releaseBackground();
+                const image = ready ? source.image : new window.Image();
+                const background = { key, source: source.source, image, owned: !ready, ready, failed: false };
+                binding.background = background;
+                if (!ready) {
+                    image.onload = () => { background.ready = image.naturalWidth > 0; };
+                    image.onerror = () => { background.failed = true; };
+                    image.src = source.source;
+                }
+            }
+            const background = binding.background;
+            if (!background.ready) return false;
+            const town = snapshot.town, image = background.image;
+            const tilesW = image.naturalWidth / 32, tilesH = image.naturalHeight / 32;
+            let offset = town.offset || window.Engine?.map?.d?.backgroundOffset || window.Engine?.map?.backgroundOffset;
+            if (!offset && (tilesW > town.w + 0.5 || tilesH > town.h + 0.5)) {
+                offset = { x: Math.max(0, (tilesW - town.w) / 2), y: Math.max(0, (tilesH - town.h) / 2) };
+            }
+            setAttribute(binding.terrain, 'href', background.source);
+            setAttribute(binding.terrain, 'x', offset ? -Number(offset.x || 0) : 0);
+            setAttribute(binding.terrain, 'y', offset ? -Number(offset.y || 0) : 0);
+            setAttribute(binding.terrain, 'width', offset ? tilesW : town.w);
+            setAttribute(binding.terrain, 'height', offset ? tilesH : town.h);
+            return true;
         }
         function hook() {
             const comm = window.Engine?.communication;
@@ -159,7 +206,7 @@ GogatkiRuntime.register({
         function mount(native) {
             const host = document.createElement('div');
             host.dataset.gogatkiMapUi = '';
-            host.style.cssText = 'position:absolute;right:8px;top:28px;z-index:4;max-width:calc(100% - 16px);';
+            host.style.cssText = 'position:absolute;right:8px;top:28px;z-index:100001;max-width:calc(100% - 16px);';
             const root = host.attachShadow({ mode: 'open' });
             root.innerHTML = `<style>
                 :host{all:initial;font:12px Arial,sans-serif;color:#c7d0d9}*{box-sizing:border-box;font:inherit;text-shadow:none}
@@ -195,18 +242,34 @@ GogatkiRuntime.register({
                 if (event.composedPath().some(node => /^(INPUT|BUTTON)$/.test(node?.tagName))) event.stopPropagation();
             });
             root.querySelector('.stop').addEventListener('click', () => stopCommand('Zatrzymano podążanie.'));
+            const isolation = { value: native.style.getPropertyValue('isolation'), priority: native.style.getPropertyPriority('isolation') };
+            native.style.setProperty('isolation', 'isolate');
             native.append(host);
             const overlay = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
             overlay.dataset.gogatkiMapLayer = ''; overlay.setAttribute('aria-hidden', 'true');
             overlay.setAttribute('preserveAspectRatio', 'none');
-            overlay.style.cssText = 'position:absolute;pointer-events:none;overflow:hidden;z-index:2;';
+            overlay.style.cssText = 'position:absolute;pointer-events:none;overflow:hidden;z-index:100000;display:none;';
+            // Native markers can be painted into the same canvas as the terrain.
+            // Cover that composite with clean terrain before drawing our markers;
+            // the native canvas and its event handlers remain underneath.
+            const backdrop = document.createElementNS(overlay.namespaceURI, 'rect');
+            backdrop.setAttribute('width', '100%'); backdrop.setAttribute('height', '100%'); backdrop.setAttribute('fill', '#000');
+            backdrop.dataset.gogatkiMapBackdrop = '';
+            const terrain = document.createElementNS(overlay.namespaceURI, 'image');
+            terrain.dataset.gogatkiMapTerrain = ''; terrain.setAttribute('preserveAspectRatio', 'none');
+            overlay.append(backdrop, terrain);
             native.append(overlay);
-            return { native, host, root, drawer, input, status: root.querySelector('.status'), list: root.querySelector('.list'), overlay, surface: null, marks: new Map(), rows: new Map(), rect: null, map: String(snapshot?.town?.id) };
+            return { native, host, root, drawer, input, status: root.querySelector('.status'), list: root.querySelector('.list'), overlay, terrain, background: null, isolation, surface: null, marks: new Map(), rows: new Map(), rect: null, map: String(snapshot?.town?.id) };
         }
         function unmount() {
             if (!binding) return;
             binding.surface?.removeEventListener('pointermove', hover);
             binding.surface?.removeEventListener('pointerleave', leave);
+            releaseBackground();
+            if (binding.native.style.getPropertyValue('isolation') === 'isolate') {
+                if (binding.isolation.value) binding.native.style.setProperty('isolation', binding.isolation.value, binding.isolation.priority);
+                else binding.native.style.removeProperty('isolation');
+            }
             binding.host.remove(); binding.overlay.remove(); binding = null;
             stopCommand();
         }
@@ -297,8 +360,15 @@ GogatkiRuntime.register({
                 binding.surface = surface;
                 surface?.addEventListener('pointermove', hover, { passive: true }); surface?.addEventListener('pointerleave', leave, { passive: true });
             }
-            binding.overlay.style.display = surface ? '' : 'none';
+            const backgroundReady = surface && prepareBackground();
+            binding.overlay.style.display = backgroundReady ? '' : 'none';
             if (!surface) { stopCommand(); showStatus('Nie rozpoznano obszaru mapy. Natywna mapa działa bez zmian.'); return; }
+            if (!backgroundReady) {
+                stopCommand();
+                showStatus(!binding.background || binding.background.failed ? 'Nie udało się odczytać tła — pokazuję mapę gry bez dodatku.' : 'Wczytywanie czystego tła mapy…');
+                return;
+            }
+            if (['Wczytywanie czystego tła mapy…', 'Nie udało się odczytać tła — pokazuję mapę gry bez dodatku.', 'Nie rozpoznano obszaru mapy. Natywna mapa działa bez zmian.'].includes(hint)) hint = '';
             binding.rect = contentRect(surface);
             if (search.coords && (!snapshot.town || search.coords[0] >= snapshot.town.w || search.coords[1] >= snapshot.town.h)) { search.coords = null; showStatus('Współrzędne poza tą mapą.'); }
             const allowedGates = new Set(snapshot.gateways.map(g => g.id));
