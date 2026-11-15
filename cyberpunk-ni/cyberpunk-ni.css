@@ -1,4 +1,4 @@
-/* Cyberpunk NI 0.2.77 — motyw dla nowego interfejsu Margonem.
+/* Cyberpunk NI 0.2.78 — motyw dla nowego interfejsu Margonem.
  * Skrypt .user.js włącza go atrybutem data-cyberpunk-ni="on" na <html>.
  * Zmienne poniżej sterują paletą. Nie wymaga zewnętrznych grafik ani fontów.
  * Najlepiej używać z wyłączonym DarknessNI i innymi motywami całego NI.
@@ -1287,24 +1287,24 @@ html[data-cyberpunk-ni="on"] .layer.interface-layer :is(.positioner.top .hud-con
   background: linear-gradient(135deg, var(--cp-map-status-hi), var(--cp-map-status-mid) 45%, var(--cp-map-status-low)) center / 100% 100% no-repeat !important;
 }
 html[data-cyberpunk-ni="on"] .layer.interface-layer :is(.positioner.top .hud-container .map_ball, .location-wrapper-light-mode .location-wrapper-border .map-ball).green {
-  --cp-map-status-hi: #70c6b8;
-  --cp-map-status-mid: #299b89;
-  --cp-map-status-low: #174942;
+  --cp-map-status-hi: #78d9c2;
+  --cp-map-status-mid: #24b397;
+  --cp-map-status-low: #155849;
 }
 html[data-cyberpunk-ni="on"] .layer.interface-layer :is(.positioner.top .hud-container .map_ball, .location-wrapper-light-mode .location-wrapper-border .map-ball).yellow {
-  --cp-map-status-hi: #dbc98a;
-  --cp-map-status-mid: #b49e50;
-  --cp-map-status-low: #54482b;
+  --cp-map-status-hi: #ead17f;
+  --cp-map-status-mid: #cbb043;
+  --cp-map-status-low: #665323;
 }
 html[data-cyberpunk-ni="on"] .layer.interface-layer :is(.positioner.top .hud-container .map_ball, .location-wrapper-light-mode .location-wrapper-border .map-ball).orange {
-  --cp-map-status-hi: #d4a074;
-  --cp-map-status-mid: #b37547;
-  --cp-map-status-low: #573a2c;
+  --cp-map-status-hi: #e9a86b;
+  --cp-map-status-mid: #d18842;
+  --cp-map-status-low: #69422a;
 }
 html[data-cyberpunk-ni="on"] .layer.interface-layer :is(.positioner.top .hud-container .map_ball, .location-wrapper-light-mode .location-wrapper-border .map-ball).red {
-  --cp-map-status-hi: #d78892;
-  --cp-map-status-mid: #b64e60;
-  --cp-map-status-low: #552736;
+  --cp-map-status-hi: #e98590;
+  --cp-map-status-mid: #d14b5e;
+  --cp-map-status-low: #68283a;
 }
 html[data-cyberpunk-ni="on"] .layer.interface-layer .positioner.top .hud-container .map_ball {
   clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%) !important;
