@@ -5,7 +5,7 @@
     const window = unsafeWindow;
     function createTileDock({onCleanup = () => {}} = {}) {
         const specs = [
-            {id:'gogatki-proximity-build', name:'Zestaw pod przeciwnika', control:'.gear', shadow:true, clickToOpen:true, activeControl:true, activeEvent:'gogatki:toggle-active'},
+            {id:'gogatki-proximity-build', name:'Zestaw pod przeciwnika', control:'.gear', shadow:true, click:true, activeControl:true, activeEvent:'gogatki:toggle-active'},
             {id:'gogatki-mapa-plus', name:'Mapa+', control:'.open-map', click:true, icon:'map'},
             {id:'kamyki-overlay', name:'Kamyki', control:'button', activeControl:true, toggleOnly:true, toggleOnClick:true, icon:'pyramid'},
             {id:'standalone-free-gift', name:'Gift', gift:true},
