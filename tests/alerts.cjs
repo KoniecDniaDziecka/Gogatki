@@ -1,0 +1,252 @@
+const { chromium } = require('playwright');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const source = fs.readFileSync(path.join(__dirname, '../gogatki/modules/alerts.js'), 'utf8');
+async function install(page) {
+ await page.evaluate(source => {
+  window.unsafeWindow = window;
+  window.store = JSON.parse(localStorage.getItem('fixture:gm') || '{}');
+  window.GM_getValue = (key, fallback) => store[key] ?? fallback;
+  window.GM_setValue = (key, value) => {
+   store[key] = value;
+   localStorage.setItem('fixture:gm', JSON.stringify(store));
+  };
+  let definition;
+  new Function('GogatkiRuntime', 'unsafeWindow', 'GM_getValue', 'GM_setValue', source)(
+   {register(value) {if (definition) throw Error('Duplicate registration');definition=value;}},
+   window, GM_getValue, GM_setValue);
+  if (definition?.id !== 'alerts') throw Error('Wrong module ID');
+  if (document.querySelector('#gogatki-alerts')) return definition.start();
+  if (window[Symbol.for('gogatki.alerts.instance')]) return definition.start();
+  definition.start();
+ }, source);
+}
+let checks = 0;
+function equal(actual, expected, label) { assert.deepEqual(actual, expected, label); checks++; }
+async function testLoader(browser) {
+ const sources = Object.fromEntries(['catalogue.json', 'dock.js', 'modules/alerts.js'].map(file =>
+  [file, fs.readFileSync(path.join(__dirname, '../gogatki', file), 'utf8')]));
+ for (const mode of ['NI', 'SI']) {
+  const page = await browser.newPage();
+  page.setDefaultTimeout(15000);
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  await page.route('https://fixture.margonem.pl/**', route => route.fulfill({body:'<!doctype html><body></body>', contentType:'text/html'}));
+  await page.goto('https://fixture.margonem.pl/');
+  const setup = async () => page.evaluate(({sources, mode}) => {
+   window.unsafeWindow = window;
+   window.store = JSON.parse(localStorage.getItem('fixture:gm') || '{}');
+   window.GM_getValue = (key, fallback) => store[key] ?? fallback;
+   window.GM_setValue = (key, value) => {store[key] = value;localStorage.setItem('fixture:gm', JSON.stringify(store));};
+   window.GM_xmlhttpRequest = options => {
+    const file = new URL(options.url).pathname.split('/gogatki/')[1];
+    setTimeout(() => options.onload({status:sources[file] ? 200 : 404,responseText:sources[file] || ''}), 0);
+   };
+   window.messages = [];
+   window.message = text => messages.push(text);
+   HTMLMediaElement.prototype.play = () => Promise.resolve();
+   HTMLMediaElement.prototype.pause = () => {};
+   window.mAlert = () => 77;
+   window._g = () => {};
+   const h = {id:123,nick:'Hero',lvl:10,exp:0,ttl:1};
+   if (mode === 'NI') window.Engine = {hero:{d:h},map:{d:{id:1}},communication:{parseJSON:() => 42}};
+   else {window.hero=h;window.g={};window.parseInput=() => 42;}
+  }, {sources, mode});
+  await setup();
+  const loader = path.join(__dirname, '../gogatki/gogatki.user.js');
+  await page.addScriptTag({path:loader});
+  const main = page.locator('#gogatek-panel');
+  await page.waitForFunction(() => document.getElementById('gogatek-panel')?.dataset.launcherState === 'floating');
+  await main.locator('.launcher').evaluate(el => el.click());
+  const toggle = main.getByRole('checkbox', {name:'Alerts',exact:true});
+  await toggle.waitFor();
+  equal(await toggle.isChecked(), false, mode+' catalogue initially disabled');
+  equal(await page.locator('#gogatki-alerts').count(), 0, mode+' disabled module not started');
+  await toggle.check();
+  const panel = page.locator('#gogatki-alerts');
+  await panel.waitFor();
+  equal(await panel.locator('.name').textContent(), 'Alerts', mode+' loader starts named module');
+  await main.locator('.launcher').evaluate(el => el.click());
+  const tile = page.locator('[data-gogatki-dock-item="gogatki-alerts"]');
+  await tile.waitFor();
+  equal(await tile.getAttribute('aria-label'), 'Alerts — zwiń', mode+' dock title');
+  equal(await tile.locator('svg path').count(), 1, mode+' dock bell icon');
+  await panel.locator('.gear').click({button:'right'});
+  await page.waitForFunction(() => document.getElementById('gogatki-alerts').hasAttribute('data-gogatki-docked'));
+  await page.evaluate(mode => {
+   const packet = {f:{m:['9=1;123=+legbon_curse']}};
+   if (mode === 'NI') Engine.communication.parseJSON(packet);else parseInput(packet);
+  }, mode);
+  equal(await page.evaluate(() => messages), ['[color=red]Status: Klątwa[/color]'], mode+' alerts work in dock');
+  await tile.click();
+  await page.waitForFunction(() => !document.getElementById('gogatki-alerts').hasAttribute('data-gogatki-docked'));
+  equal(await panel.locator('main').isVisible(), true, mode+' dock restores panel');
+  await tile.click();
+  await page.waitForFunction(() => document.getElementById('gogatki-alerts').hasAttribute('data-gogatki-docked'));
+  const position = await page.evaluate(() => [store['alerts:global:v1'].right,store['alerts:global:v1'].top]);
+  await page.setViewportSize({width:750,height:600});
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  equal(await page.evaluate(() => [store['alerts:global:v1'].right,store['alerts:global:v1'].top]), position, mode+' dock preserves floating coordinates');
+  await main.locator('.launcher').evaluate(el => el.click());
+  await toggle.uncheck();
+  await page.reload();
+  await setup();
+  await page.addScriptTag({path:loader});
+  await main.locator('.launcher').evaluate(el => el.click());
+  await toggle.waitFor();
+  equal(await toggle.isChecked(), false, mode+' disabled state persists');
+  equal(await panel.count(), 0, mode+' disabled after reload');
+  equal(await page.evaluate(() => mAlert('Original')), 77, mode+' disabled module leaves game functions intact');
+  equal(errors, [], mode+' full loader has no browser errors');
+  console.log(mode+' loader and dock passed');
+  await page.close();
+ }
+}
+(async () => {
+ const browser = await chromium.launch({executablePath:process.env.CHROMIUM_PATH || '/usr/bin/chromium',headless:true,args:['--no-sandbox']});
+ try {
+ for (const mode of ['NI','SI']) {
+  const page = await browser.newPage({viewport:{width:1100,height:800}});
+  const errors=[];
+  page.on('pageerror',e=>errors.push(e.message));
+  await page.route('**/*',route=>route.fulfill({contentType:'text/html',body:'<!doctype html><html><head><style>label,input,button{font-size:40px!important;color:pink!important} div{opacity:.8} label:after{content:"BAD"}</style></head><body></body></html>'}));
+  await page.goto('https://test-world.margonem.pl/');
+  const setup=mode=>{
+   window.test={messages:[],alerts:[],plays:0,parses:0};
+   window.message=text=>test.messages.push(text);
+   window.mAlert=function(...args){test.alerts.push({args,context:this===window});return 71;};
+   const data={id:123,nick:'Test.[x]',lvl:10,exp:0,ttl:1};
+   const parse=function(packet){test.parses++;if(packet.h)Object.assign(data,packet.h);test.context=this;return 42;};
+   if(mode==='NI')window.Engine={hero:{d:data},communication:{parseJSON:parse},soundManager:{getDataSettingMainVolume:()=>60}};
+   else{window.hero=data;window.parseInput=parse;}
+   test.packet=p=>mode==='NI'?Engine.communication.parseJSON(p):window.parseInput(p);
+   HTMLMediaElement.prototype.play=function(){test.plays++;test.sound=this.src;test.volume=this.volume;return Promise.resolve();};
+   HTMLMediaElement.prototype.pause=function(){};
+  };
+  await page.evaluate(setup,mode);
+  await install(page);
+  const state=()=>page.evaluate(()=>({messages:test.messages.slice(),alerts:test.alerts.slice(),plays:test.plays}));
+  const clear=()=>page.evaluate(()=>{test.messages=[];test.alerts=[];test.plays=0;});
+  const send=packet=>page.evaluate(p=>test.packet(p),packet);
+  const tick=async key=>{await page.locator(`#gogatki-alerts input[data-key="${key}"]`).evaluate(input=>input.click());};
+  equal(await page.locator('#gogatki-alerts').count(),1,mode+' panel created');
+  equal(await page.evaluate(()=>getComputedStyle(document.querySelector('#gogatki-alerts').shadowRoot.querySelector('label')).fontSize),'12px',mode+' styles isolated');
+  equal(await send({h:{exp:9900}}),42,mode+' parser return preserved');
+  equal((await state()).messages, ['[color=red]Pozostało 3.2% do następnego levela[/color]'],mode+' 5% level warning');
+  await send({h:{x:5}});
+  equal((await state()).messages.length,1,mode+' duplicate level warning skipped');
+  await send({h:{exp:9950}});
+  equal((await state()).messages.length,2,mode+' changed experience warning');
+  await clear();await send({h:{exp:9000}});
+  equal((await state()).messages.length,0,mode+' outside threshold');
+  await send({h:{ttl:0,exp:9980}});
+  equal((await state()).messages.length,0,mode+' ttl guard');
+  await send({h:{ttl:1}});
+  equal((await state()).messages.length,1,mode+' ttl restored');
+  await clear();await tick('level');await send({h:{exp:9990}});
+  equal((await state()).messages.length,0,mode+' disabled level');
+  await tick('level');
+  await clear();
+  const logs=['legbon_lastheal=500,Test.[x]','9=1;123=+legbon_curse','123=1;-legbon_glare','9=1;123=+distract'];
+  await send({f:{m:logs}});
+  equal((await state()).messages.length,4,mode+' all four statuses');
+  equal((await state()).plays,4,mode+' sounds');
+  equal(await page.evaluate(()=>test.volume),mode==='NI'?.6:.5,mode+' game volume');
+  await clear();
+  await send({f:{m:['legbon_lastheal=500,TestXx','legbon_lastheal=500,Test.[x]Other','9=1;1234=+legbon_curse','124=1;-legbon_glare','9=1;123=+distract;-evade']}});
+  equal((await state()).messages.length,0,mode+' other heroes, escaped nick and evade');
+  await send({f:{init:1,m:logs}});await send({f:{endBattle:1,m:logs}});
+  equal((await state()).messages.length,0,mode+' init and end packets ignored');
+  await tick('mute');await send({f:{m:[logs[1]]}});
+  equal((await state()).messages.length,1,mode+' muted keeps message');
+  equal((await state()).plays,0,mode+' mute sound');
+  await clear();await tick('status');await send({f:{m:logs}});
+  equal((await state()).messages.length,0,mode+' disabled status');
+  await tick('status');
+  await page.evaluate(()=>{mAlert('<strong>Hello</strong><br>world');mAlert('Simple',false,undefined);});
+  equal((await state()).messages,['[b]Hello[/b]\nworld','Simple'],mode+' informational converted');
+  equal((await state()).alerts.length,0,mode+' informational not modal');
+  await page.evaluate(()=>{mAlert('Confirm',()=>{},()=>{});mAlert('Question',true);mAlert('null option',null);});
+  equal((await state()).alerts.length,3,mode+' confirmations forwarded');
+  await page.evaluate(()=>{const original=window.message;delete window.message;test.result=mAlert('Fallback');window.message=original;});
+  equal((await state()).alerts.length,4,mode+' missing message fallback');
+  equal(await page.evaluate(()=>test.result),71,mode+' original alert return');
+  await tick('noMore');await page.evaluate(()=>mAlert('Off'));
+  equal((await state()).alerts.length,5,mode+' noMore switch reversible');
+  await tick('noMore');
+  // LPM on the gear must work despite pointer capture used for dragging.
+  await page.locator('#gogatki-alerts .gear').click();
+  equal(await page.locator('#gogatki-alerts .options').isVisible(),true,mode+' gear opens settings');
+  const before=await page.locator('#gogatki-alerts').boundingBox();
+  await page.locator('#gogatki-alerts .gear').click();
+  const after=await page.locator('#gogatki-alerts').boundingBox();
+  equal([after.x+after.width,after.y],[before.x+before.width,before.y],mode+' stationary top right');
+  await page.locator('#gogatki-alerts .gear').click();
+  await page.locator('#gogatki-alerts input[data-status="curse"]').click();
+  await clear();await send({f:{m:[logs[1]]}});
+  equal((await state()).messages.length,0,mode+' individual status switch');
+  await tick('mute');
+  await page.locator('#gogatki-alerts input[type=url]').fill('https://example.com/alert.mp3');
+  await page.locator('#gogatki-alerts .test-audio').click();
+  equal(await page.evaluate(()=>test.sound),'https://example.com/alert.mp3',mode+' custom sound');
+  await page.locator('#gogatki-alerts .gear').click({button:'right'});
+  let rect=await page.locator('#gogatki-alerts').boundingBox();
+  equal([rect.width,rect.height],[28,28],mode+' collapse dimensions');
+  await clear();await send({f:{m:[logs[2]]}});
+  equal((await state()).messages.length,1,mode+' collapsed still working');
+  await page.locator('#gogatki-alerts .gear').click();
+  equal(await page.locator('#gogatki-alerts main').isVisible(),true,mode+' expand icon');
+  await page.evaluate(()=>{const host=document.createElement('div');host.id='gogatki-fixture';host.attachShadow({mode:'open'}).innerHTML='<div class="launcher" style="height:31px"></div>';document.body.append(host);});
+  await page.locator('#gogatki-alerts .gear').click({button:'right'});
+  rect=await page.locator('#gogatki-alerts').boundingBox();
+  equal([rect.width,rect.height],[31,31],mode+' real Gogatki launcher height');
+  await page.locator('#gogatki-alerts .gear').click();
+  rect=await page.locator('#gogatki-alerts').boundingBox();
+  await page.mouse.move(rect.x+40,rect.y+14);await page.mouse.down();await page.mouse.move(70,60,{steps:6});await page.mouse.up();
+  const moved=await page.locator('#gogatki-alerts').boundingBox();
+  assert(moved.x<rect.x && moved.y<rect.y,mode+' drag works');checks++;
+  await page.setViewportSize({width:320,height:400});
+  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  const small=await page.locator('#gogatki-alerts').boundingBox();
+  assert(small.x>=0&&small.y>=0&&small.x+small.width<=320&&small.y+small.height<=400,mode+' resize clamped');checks++;
+  await install(page);
+  equal(await page.locator('#gogatki-alerts').count(),1,mode+' singleton');
+  equal(await page.evaluate(()=>test.context===((window.Engine?.communication)||window)),true,mode+' parser context');
+  await page.locator('#gogatki-alerts .gear').click({button:'right'});
+  const saved=await page.evaluate(()=>store['alerts:global:v1']);
+  await page.reload();await page.evaluate(setup,mode);await install(page);
+  equal(await page.locator('#gogatki-alerts main').isVisible(),false,mode+' collapsed restored');
+  equal(await page.locator('#gogatki-alerts input[data-status="curse"]').isChecked(),false,mode+' status setting restored');
+  equal(await page.locator('#gogatki-alerts input[type=url]').inputValue(),'https://example.com/alert.mp3',mode+' custom audio restored');
+  const restored=await page.evaluate(()=>store['alerts:global:v1']);
+  equal([restored.right,restored.top],[saved.right,saved.top],mode+' position restored');
+  await send({f:{m:['9=1;123=+legbon_curse']}});
+  equal((await state()).messages.length,0,mode+' restored status setting applied');
+  await page.locator('#gogatki-alerts .gear').click();
+  await page.setViewportSize({width:1100,height:800});
+  equal(errors,[],mode+' no browser errors');
+  await page.evaluate(()=>window.dispatchEvent(new Event('pagehide')));
+  equal(await page.locator('#gogatki-alerts').count(),0,mode+' pagehide cleanup');
+  await page.evaluate(()=>{test.messages=[];mAlert('After cleanup');});
+  equal((await state()).messages.length,0,mode+' hook restored');
+  equal((await state()).alerts.at(-1).args,['After cleanup'],mode+' original alert restored');
+  console.log(mode+' passed');
+  await page.close();
+ }
+ const page=await browser.newPage();
+ await page.route('**/*',route=>route.fulfill({contentType:'text/html',body:'<!doctype html><body></body>'}));
+ await page.goto('https://test-world.margonem.pl/');
+ await page.evaluate(()=>{localStorage.setItem('gogatki.alerts.v1','{bad json');});
+ await install(page);
+ equal(await page.locator('#gogatki-alerts').count(),0,'waits for game');
+ await page.evaluate(()=>{window.hero={id:1,nick:'Hero',lvl:10,exp:0,ttl:1};window.message=()=>{};window.parseInput=()=>13;window.mAlert=()=>14;});
+ await page.locator('#gogatki-alerts').waitFor();
+ equal(await page.locator('#gogatki-alerts').count(),1,'late game initialization and corrupt settings');
+ equal(await page.evaluate(()=>parseInput({h:{}})),13,'late parser connected');
+ await page.evaluate(()=>mAlert('safe'));
+ await page.close();
+ await testLoader(browser);
+ console.log(checks+' assertions passed');
+ } finally {await browser.close();}
+})().catch(error=>{console.error(error);process.exitCode=1;});

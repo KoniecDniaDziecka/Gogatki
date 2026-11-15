@@ -2,6 +2,12 @@
   "schemaVersion": 1,
   "modules": [
     {
+      "id": "alerts",
+      "name": "Alerts",
+      "description": "Ostrzeżenie przed poziomem, statusy w walce i zwykłe alerty bez potwierdzania.",
+      "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/alerts.js?v=1.0.0"
+    },
+    {
       "id": "mapa-podreczna",
       "name": "Mapa+",
       "description": "Poprawiona miniamapa",
