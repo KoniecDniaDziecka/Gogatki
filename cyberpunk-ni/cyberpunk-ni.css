@@ -1,4 +1,4 @@
-/* Cyberpunk NI 0.2.69 — motyw dla nowego interfejsu Margonem.
+/* Cyberpunk NI 0.2.70 — motyw dla nowego interfejsu Margonem.
  * Skrypt .user.js włącza go atrybutem data-cyberpunk-ni="on" na <html>.
  * Zmienne poniżej sterują paletą. Nie wymaga zewnętrznych grafik ani fontów.
  * Najlepiej używać z wyłączonym DarknessNI i innymi motywami całego NI.
@@ -3206,3 +3206,17 @@ html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .t
 }
 }
 /* CP-WINDOW-UTILITY-ICONS-END */
+
+/* CP-WINDOW-SEARCH-BEGIN: lupa w natywnym odstępie przed polem, bez nakładki na input. */
+@layer cyberpunk-ni-window-finishes {
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .dialogue-window, .trade-window, .quest-log, .quest-window, .quest-observe-window, .barter-window, .quest-box, .skills-window, .friend-enemy-list, .settings-window, .world-window, .news-panel, .news-window, .loot-window, .pre-premium-panel, .premium-panel, .left-grouped-list-and-right-description-window, .crafting, .crafting-window) .search-component {
+  --cp-window-search: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='16'%20height='16'%20viewBox='0%200%2016%2016'%3E%0A%20%20%3Cg%20fill='none'%20stroke='%238ca9b6'%20stroke-width='1.5'%20stroke-linecap='round'%3E%0A%20%20%20%20%3Ccircle%20cx='6.5'%20cy='6.5'%20r='4.25'/%3E%0A%20%20%20%20%3Cpath%20d='m9.6%209.6%203.9%203.9'/%3E%0A%20%20%3C/g%3E%0A%3C/svg%3E%0A");
+  background-image: var(--cp-window-search) !important;
+  background-position: 5px center !important;
+  background-size: 16px 16px !important;
+  background-repeat: no-repeat !important;
+  background-origin: border-box !important;
+  background-clip: border-box !important;
+}
+}
+/* CP-WINDOW-SEARCH-END */
