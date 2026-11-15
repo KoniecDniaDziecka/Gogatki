@@ -1,4 +1,4 @@
-// Mapa podręczna+ 1.0.2 — enhancement of the native NI window.
+// Mapa podręczna+ 1.0.3 — enhancement of the native NI window.
 GogatkiRuntime.register({
     id: 'mapa-podreczna',
     name: 'Mapa podręczna+',
@@ -13,6 +13,11 @@ GogatkiRuntime.register({
             return;
         }
         // __MODEL__
+        // __MARKER_STYLE__
+        const MARKER_LAYERS = { gw: 70, item: 80, grave: 85, resp: 90, respEvent: 90, npc: 110, mob: 110,
+            elite: 120, elite2: 130, elite3: 130, other: 140, friend: 140, clan: 140, ally: 140,
+            party: 142, enemy: 145, titan: 150, collosus: 150, heros: 160, herosEvent: 160, marker: 200 };
+        const PULSE = new Set(['titan', 'collosus', 'heros', 'herosEvent', 'elite3']);
 
         const defaults = { mmShowMobs: true, mmShowNpcs: true, mmShowOthers: true, mmShowSpawns: true,
             mmSpawnRange: 10, mmGwAvail: false, fog: true, attack: false, drawer: false };
@@ -206,7 +211,7 @@ GogatkiRuntime.register({
         function mount(native) {
             const host = document.createElement('div');
             host.dataset.gogatkiMapUi = '';
-            host.style.cssText = 'position:absolute;right:26px;top:2px;width:20px;height:20px;z-index:100001;';
+            host.style.cssText = 'position:absolute;right:26px;top:2px;width:20px;height:20px;z-index:100002;';
             const root = host.attachShadow({ mode: 'open' });
             root.innerHTML = `<style>
                 :host{all:initial;font:12px Arial,sans-serif;color:#c7d0d9}*{box-sizing:border-box;font:inherit;text-shadow:none}
@@ -261,7 +266,15 @@ GogatkiRuntime.register({
             terrain.dataset.gogatkiMapTerrain = ''; terrain.setAttribute('preserveAspectRatio', 'none');
             overlay.append(backdrop, terrain);
             native.append(overlay);
-            return { native, host, root, drawer, input, status: root.querySelector('.status'), list: root.querySelector('.list'), overlay, terrain, background: null, isolation, surface: null, marks: new Map(), rows: new Map(), rect: null, map: String(snapshot?.town?.id) };
+            const markerHost = document.createElement('div');
+            markerHost.dataset.gogatkiMapMarkers = '';
+            markerHost.setAttribute('aria-hidden', 'true');
+            markerHost.style.cssText = 'position:absolute;pointer-events:none;overflow:hidden;z-index:100001;display:none;';
+            const markerRoot = markerHost.attachShadow({ mode: 'open' });
+            const markerStyle = document.createElement('style'); markerStyle.textContent = MAP_MARKER_CSS;
+            const markerLayer = document.createElement('div'); markerLayer.className = 'pa-mm-objects';
+            markerRoot.append(markerStyle, markerLayer); native.append(markerHost);
+            return { native, host, root, drawer, input, status: root.querySelector('.status'), list: root.querySelector('.list'), overlay, terrain, markerHost, markerLayer, markerGeometry: '', background: null, isolation, surface: null, marks: new Map(), rows: new Map(), rect: null, map: String(snapshot?.town?.id) };
         }
         function placeControls() {
             const { native, host } = binding, frame = native.getBoundingClientRect();
@@ -307,7 +320,7 @@ GogatkiRuntime.register({
                 if (binding.isolation.value) binding.native.style.setProperty('isolation', binding.isolation.value, binding.isolation.priority);
                 else binding.native.style.removeProperty('isolation');
             }
-            binding.host.remove(); binding.overlay.remove(); binding = null;
+            binding.host.remove(); binding.overlay.remove(); binding.markerHost.remove(); binding = null;
             stopCommand();
         }
         function hover(event) {
@@ -321,10 +334,11 @@ GogatkiRuntime.register({
         function leave() { showStatus(''); }
         function setAttribute(node, key, value) { value = String(value); if (node.getAttribute(key) !== value) node.setAttribute(key, value); }
         function renderLayer(objects) {
-            const { overlay, marks, rect, native } = binding, town = snapshot.town;
+            const { overlay, markerHost, markerLayer, marks, rect, native } = binding, town = snapshot.town;
             const nr = native.getBoundingClientRect(), sx = nr.width / (native.offsetWidth || nr.width), sy = nr.height / (native.offsetHeight || nr.height);
             const ncss = window.getComputedStyle(native);
-            Object.assign(overlay.style, { left: ((rect.left - nr.left) / sx - (parseFloat(ncss.borderLeftWidth) || 0)) + 'px', top: ((rect.top - nr.top) / sy - (parseFloat(ncss.borderTopWidth) || 0)) + 'px', width: rect.width / sx + 'px', height: rect.height / sy + 'px' });
+            const geometry = { left: ((rect.left - nr.left) / sx - (parseFloat(ncss.borderLeftWidth) || 0)) + 'px', top: ((rect.top - nr.top) / sy - (parseFloat(ncss.borderTopWidth) || 0)) + 'px', width: rect.width / sx + 'px', height: rect.height / sy + 'px' };
+            Object.assign(overlay.style, geometry); Object.assign(markerHost.style, geometry);
             setAttribute(overlay, 'viewBox', `0 0 ${town.w} ${town.h}`);
             let clip = { left: rect.left, top: rect.top, right: rect.left + rect.width, bottom: rect.top + rect.height };
             for (let parent = binding.surface.parentElement; parent; parent = parent.parentElement) {
@@ -334,25 +348,42 @@ GogatkiRuntime.register({
                 if (parent === native) break;
             }
             overlay.style.clipPath = `inset(${Math.max(0, clip.top - rect.top) / sy}px ${Math.max(0, rect.left + rect.width - clip.right) / sx}px ${Math.max(0, rect.top + rect.height - clip.bottom) / sy}px ${Math.max(0, clip.left - rect.left) / sx}px)`;
+            markerHost.style.clipPath = overlay.style.clipPath;
+            const scaleX = rect.width / sx / town.w, scaleY = rect.height / sy / town.h;
+            const dotSize = Math.max(7, Math.round(scaleX));
+            const geometryKey = `${town.id}:${geometry.width}:${geometry.height}`;
+            const resized = geometryKey !== binding.markerGeometry;
+            binding.markerGeometry = geometryKey;
             const desired = new Set();
             const hero = snapshot.hero;
-            const shapes = objects.map(o => ({ ...o, key: o.id || `${o.kind}:${o.x},${o.y}`, shape: 'ellipse' }));
-            if (hero && Number.isFinite(Number(hero.rx)) && Number.isFinite(Number(hero.ry))) shapes.push({ key: 'self', kind: 'hero', x: Number(hero.rx), y: Number(hero.ry), shape: 'ellipse' });
-            if (state.fog && hero && town.visibility > 0) shapes.push({ key: 'view', kind: 'view', x: hero.x - town.visibility, y: hero.y - town.visibility, size: 2 * town.visibility + 1, shape: 'rect' });
+            const shapes = objects.map(o => ({ ...o, key: o.id || `${o.kind}:${o.x},${o.y}` }));
+            if (hero && Number.isFinite(Number(hero.rx)) && Number.isFinite(Number(hero.ry))) shapes.push({ key: 'self', kind: 'hero', x: Number(hero.rx), y: Number(hero.ry) });
+            if (state.fog && hero && town.visibility > 0) shapes.push({ key: 'view', kind: 'view', x: Number(hero.rx) - town.visibility, y: Number(hero.ry) - town.visibility, size: 2 * town.visibility + 1 });
             for (const o of shapes) {
                 if (!Number.isFinite(Number(o.x)) || !Number.isFinite(Number(o.y))) continue;
                 desired.add(o.key);
                 let mark = marks.get(o.key);
-                if (!mark) { mark = document.createElementNS(overlay.namespaceURI, o.shape); setAttribute(mark, 'data-kind', o.kind); setAttribute(mark, 'vector-effect', 'non-scaling-stroke'); overlay.append(mark); marks.set(o.key, mark); }
-                const color = o.kind === 'view' ? '#c7d0d9' : (snapshot.colors[o.kind] || '#fff');
-                if (o.shape === 'rect') { setAttribute(mark, 'x', o.x); setAttribute(mark, 'y', o.y); setAttribute(mark, 'width', o.size); setAttribute(mark, 'height', o.size); }
-                else {
-                    setAttribute(mark, 'cx', Number(o.x) + 0.5); setAttribute(mark, 'cy', Number(o.y) + 0.5);
-                    const size = /heros|titan|collosus|elite[23]/.test(o.kind) ? 4.5 : 3;
-                    setAttribute(mark, 'rx', size / rect.width * town.w); setAttribute(mark, 'ry', size / rect.height * town.h);
+                const fresh = !mark;
+                if (fresh) { mark = document.createElement('div'); mark.dataset.kind = o.kind; markerLayer.append(mark); marks.set(o.key, mark); }
+                const special = o.kind === 'hero' || o.kind === 'view';
+                const pulse = PULSE.has(o.kind) || Boolean(o.suspect);
+                const animate = !special && !fresh && !resized;
+                const classes = special ? `pa-mm-${o.kind}` : `pa-mm-obj pa-mm-${o.kind}${o.player ? ' pa-mm-player' : ''}${pulse ? ' pa-mm-pulse' : ''}${o.suspect ? ' pa-mm-suspect' : ''}${o.kind === 'resp' && o.checked ? ' pa-mm-near' : ''}${animate ? ' pa-mm-anim' : ''}`;
+                if (mark.className !== classes) mark.className = classes;
+                let width, height, left, top;
+                if (o.kind === 'view') {
+                    width = o.size * scaleX; height = o.size * scaleY; left = o.x * scaleX; top = o.y * scaleY;
+                } else {
+                    const size = o.kind === 'hero' ? dotSize + 1 : (pulse ? Math.round(dotSize * 1.5) : dotSize);
+                    width = o.spanX ? Math.max(dotSize, o.spanX * scaleX) : size;
+                    height = o.spanY ? Math.max(dotSize, o.spanY * scaleY) : size;
+                    left = (Number(o.x) + 0.5) * scaleX - (o.kind === 'hero' ? dotSize : width) / 2;
+                    top = (Number(o.y) + 0.5) * scaleY - (o.kind === 'hero' ? dotSize : height) / 2;
                 }
-                const ring = o.kind === 'view' || /^resp/.test(o.kind) || o.kind === 'marker';
-                setAttribute(mark, 'fill', ring ? 'none' : color); setAttribute(mark, 'stroke', o.suspect ? '#ffd23f' : (o.checked ? '#fff' : color)); setAttribute(mark, 'stroke-width', ring ? 1.5 : 1);
+                mark.style.width = width + 'px'; mark.style.height = height + 'px';
+                mark.style.transform = `translate(${left.toFixed(2)}px,${top.toFixed(2)}px)`;
+                if (!special) { mark.style.background = snapshot.colors[o.kind] || '#fff'; mark.style.color = snapshot.colors[o.kind] || '#fff'; mark.style.zIndex = String(MARKER_LAYERS[o.kind] || 100); }
+                if (!special && (fresh || resized)) window.requestAnimationFrame(() => { if (mark.isConnected) mark.classList.add('pa-mm-anim'); });
             }
             for (const [key, mark] of marks) if (!desired.has(key)) { mark.remove(); marks.delete(key); }
         }
@@ -400,6 +431,7 @@ GogatkiRuntime.register({
             }
             const backgroundReady = surface && prepareBackground();
             binding.overlay.style.display = backgroundReady ? '' : 'none';
+            binding.markerHost.style.display = backgroundReady ? '' : 'none';
             if (!surface) { stopCommand(); showStatus('Nie rozpoznano obszaru mapy. Natywna mapa działa bez zmian.'); return; }
             if (!backgroundReady) {
                 stopCommand();

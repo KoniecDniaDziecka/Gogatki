@@ -46,7 +46,7 @@ const assert = require('node:assert/strict');
             window.originalParser = original;
             window.Engine = {
                 hero: { d: { id: 1, x: 1, y: 1, lvl: 100 }, autoGoTo: point => walks.push(point) },
-                map: { d: { id: 1, name: 'Testowa mapa', file: 'test.png', x: 32, y: 16, visibility: 4, backgroundOffset: { x: 1, y: 1 } }, img: terrainImage, size: { x: 32, y: 16 }, col: { check: () => false } },
+                map: { d: { id: 1, name: 'Testowa mapa', file: 'test.png', x: 32, y: 16, visibility: 4, backgroundOffset: { x: 1, y: 1 } }, img: terrainImage, size: { x: 32, y: 16 }, col: { check: () => false }, gateways: { 1: { x: 15, y: 8, name: 'Przejście testowe' }, 2: { x: 16, y: 8, name: 'Przejście testowe' } } },
                 npcs: { check: () => npcs }, others: { check: () => players, getById: id => players[id] },
                 communication: { parseJSON: original }
             };
@@ -58,7 +58,24 @@ const assert = require('node:assert/strict');
         const native = page.locator('#native');
         const ui = native.locator('[data-gogatki-map-ui]');
         const layer = native.locator('[data-gogatki-map-layer]');
-        await layer.locator('[data-kind=heros]').waitFor({ state: 'attached' });
+        const marks = native.locator('[data-gogatki-map-markers]');
+        await marks.locator('[data-kind=heros]').waitFor({ state: 'attached' });
+        const markerStyle = selector => marks.locator(selector).evaluate(node => {
+            const css = getComputedStyle(node);
+            return { tag: node.tagName, classes: node.className, width: parseFloat(css.width), radius: css.borderRadius, background: css.backgroundColor, border: css.borderTopWidth, borderColor: css.borderTopColor, shadow: css.boxShadow, ring: getComputedStyle(node, '::before').animationName };
+        });
+        const herosStyle = await markerStyle('[data-kind=heros]');
+        assert.equal(herosStyle.width, 15, 'Important NPCs use the original 1.5x tile marker');
+        assert(herosStyle.classes.includes('pa-mm-pulse'));
+        assert.equal(herosStyle.ring, 'pa-mm-ring', 'Original expanding rings are retained');
+        const heroStyle = await markerStyle('[data-kind=hero]');
+        assert.equal(heroStyle.radius, '3px', 'Own character is a rounded square, not a circle');
+        assert.equal(heroStyle.background, 'rgb(255, 42, 42)');
+        assert(heroStyle.shadow.includes('255, 255, 255'));
+        assert((await markerStyle('[data-kind=mob]')).shadow.includes('255, 255, 255'), 'Ordinary mobs have the original white outline');
+        const gatewayStyle = await markerStyle('[data-kind=gw]');
+        assert.equal(gatewayStyle.radius, '3px');
+        assert.equal(gatewayStyle.width, 20, 'Wide gateways retain their span');
         assert.equal(await page.locator('.handheld-window').count(), 1);
         assert.equal(await page.locator('.pa-mm').count(), 0);
         assert.equal(await page.evaluate(() => document.getElementById('map') === initialCanvas), true);
@@ -87,7 +104,7 @@ const assert = require('node:assert/strict');
 
         async function assertAlignment() {
             const positions = await page.evaluate(() => {
-                const r = initialCanvas.getBoundingClientRect(), marker = document.querySelector('[data-kind=heros]').getBoundingClientRect();
+                const r = initialCanvas.getBoundingClientRect(), marker = document.querySelector('[data-gogatki-map-markers]').shadowRoot.querySelector('[data-kind=heros]').getBoundingClientRect();
                 return { actual: [marker.left + marker.width / 2, marker.top + marker.height / 2], expected: [r.left + 7.5 / 32 * r.width, r.top + 4.5 / 16 * r.height] };
             });
             assert(Math.abs(positions.actual[0] - positions.expected[0]) < 1);
@@ -124,25 +141,27 @@ const assert = require('node:assert/strict');
         const search = ui.getByRole('searchbox', { name: 'Szukaj na mapie' });
         await search.fill('heros');
         await page.waitForFunction(() => document.querySelector('[data-gogatki-map-ui]').shadowRoot.querySelectorAll('.entry').length === 1);
-        assert.equal(await layer.locator('[data-kind=enemy]').count(), 0);
-        assert.equal(await layer.locator('[data-kind=heros]').count(), 1);
+        assert.equal(await marks.locator('[data-kind=enemy]').count(), 0);
+        assert.equal(await marks.locator('[data-kind=heros]').count(), 1);
         await ui.getByRole('button', { name: 'Podejdź', exact: true }).click();
         assert.deepEqual(await page.evaluate(() => walks[0]), { x: 7, y: 4 });
         await search.fill('0,0');
-        await layer.locator('[data-kind=marker]').waitFor({ state: 'attached' });
+        await marks.locator('[data-kind=marker]').waitFor({ state: 'attached' });
         await search.fill('');
         await ui.getByLabel('Moby', { exact: true }).uncheck();
-        await layer.locator('[data-kind=mob]').waitFor({ state: 'detached' });
+        await marks.locator('[data-kind=mob]').waitFor({ state: 'detached' });
         assert.equal(await page.evaluate(() => saved['mapa-podreczna:global:v1'].mmShowMobs), false);
         assert.equal(await page.locator('[data-gogatki-map-ui] img').count(), 0, 'Server names are rendered as text');
 
         const parser = await page.evaluate(() => {
             const comm = Engine.communication;
-            const result = comm.parseJSON({ other: { 20: { x: 3, y: 1 } }, handheld_minimap: { hero_localizations: [{ name: 'Resp testowy', positions: [[12, 6]] }] } }, 'preserved');
+            const result = comm.parseJSON({ other: { 20: { x: 3, y: 1 } }, handheld_minimap: { hero_localizations: [{ name: 'Resp testowy', positions: [[12, 6]] }, { name: 'Resp eventowy', kind: 'event', positions: [[20, 10]] }] } }, 'preserved');
             return [result, parserThis === comm, parserExtra];
         });
         assert.deepEqual(parser, [123, true, 'preserved']);
-        await layer.locator('[data-kind=resp]').waitFor({ state: 'attached' });
+        await marks.locator('[data-kind=resp]').waitFor({ state: 'attached' });
+        assert.equal((await markerStyle('[data-kind=resp]')).border, '2px');
+        assert.equal((await markerStyle('[data-kind=respEvent]')).borderColor, 'rgb(0, 191, 255)');
         await ui.getByRole('button', { name: 'Goń', exact: true }).click();
         await page.waitForFunction(() => walks.length > 1);
         assert.equal(await page.evaluate(() => requests.length), 0, 'Chase starts without enabling attacks');
@@ -153,10 +172,24 @@ const assert = require('node:assert/strict');
         await page.evaluate(() => { window.attackCount = requests.length; });
         await page.waitForTimeout(1300);
         assert.equal(await page.evaluate(() => requests.length), await page.evaluate(() => attackCount));
+        await page.evaluate(() => { Engine.hero.d.x = 12; Engine.hero.d.y = 6; });
+        await page.waitForFunction(() => document.querySelector('[data-gogatki-map-markers]').shadowRoot.querySelector('[data-kind=resp]').classList.contains('pa-mm-near'));
+        assert.equal((await markerStyle('[data-kind=resp]')).borderColor, 'rgb(255, 243, 107)');
+        assert.equal((await markerStyle('[data-kind=resp]')).border, '3px');
+        await page.evaluate(() => {
+            Engine.hero.d.x = 2; Engine.hero.d.y = 1;
+            Engine.communication.parseJSON({ other: { 21: { nick: 'Obserwator', x: 22, y: 11, relation: 1 } } });
+        });
+        await page.waitForFunction(() => document.querySelector('[data-gogatki-map-markers]').shadowRoot.querySelector('[data-kind=respEvent]').classList.contains('pa-mm-suspect'));
+        assert.equal((await markerStyle('[data-kind=respEvent]')).background, 'rgb(255, 77, 210)');
+        assert.equal((await markerStyle('[data-kind=respEvent]')).border, '0px');
+        await ui.getByRole('button', { name: 'Ustawienia mapy+', exact: true }).click();
+        await page.screenshot({ path: '/tmp/mapa-podreczna-markers.png' });
+        await ui.getByRole('button', { name: 'Ustawienia mapy+', exact: true }).click();
 
         await page.evaluate(() => { Engine.map.d.id = 2; Engine.map.d.name = 'Druga mapa'; npcs = {}; players = {}; });
-        await layer.locator('[data-kind=heros]').waitFor({ state: 'detached' });
-        await layer.locator('[data-kind=resp]').waitFor({ state: 'detached' });
+        await marks.locator('[data-kind=heros]').waitFor({ state: 'detached' });
+        await marks.locator('[data-kind=resp]').waitFor({ state: 'detached' });
         await page.evaluate(() => definition.start());
         assert.equal(await page.locator('[data-gogatki-map-ui]').count(), 1, 'Duplicate start is ignored');
         await page.screenshot({ path: '/tmp/mapa-podreczna-plus.png' });

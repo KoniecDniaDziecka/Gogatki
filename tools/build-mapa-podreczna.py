@@ -1,12 +1,15 @@
 """Bundle the native NI map adapter and the extracted Dark-Sad data model."""
 from pathlib import Path
 import re
+import json
 
 root = Path(__file__).resolve().parents[1]
 runtime = (root / 'sources/mapa-podreczna/runtime.js').read_text()
 model = (root / 'sources/mapa-podreczna/model.js').read_text()
+markers = (root / 'sources/mapa-podreczna/markers.css').read_text()
 assert runtime.count('// __MODEL__') == 1
-module = runtime.replace('// __MODEL__', model)
+assert runtime.count('// __MARKER_STYLE__') == 1
+module = runtime.replace('// __MODEL__', model).replace('// __MARKER_STYLE__', 'const MAP_MARKER_CSS = ' + json.dumps(markers, ensure_ascii=False) + ';')
 (root / 'gogatki/modules/mapa-podreczna.js').write_text(module)
 
 version = re.search(r'^// Mapa podręczna\+ ([\d.]+)', runtime).group(1)

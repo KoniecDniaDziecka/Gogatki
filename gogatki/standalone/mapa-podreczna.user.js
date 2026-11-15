@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Mapa podręczna+ — samodzielna (NI)
 // @namespace    gogatki.local.mapa-podreczna.standalone
-// @version      1.0.2
+// @version      1.0.3
 // @description  Oznaczenia, filtry i wyszukiwarka w istniejącej mapie podręcznej NI, bez panelu Gogatków.
 // @author       Gogatki; model danych na podstawie Dark-Sad 6.1.5
 // @match        https://*.margonem.pl/*
@@ -36,7 +36,7 @@
     let definition;
     // A private registry keeps the identical module independent of Gogatki's loader.
     const GogatkiRuntime = Object.freeze({ register(value) { definition = value; } });
-// Mapa podręczna+ 1.0.2 — enhancement of the native NI window.
+// Mapa podręczna+ 1.0.3 — enhancement of the native NI window.
 GogatkiRuntime.register({
     id: 'mapa-podreczna',
     name: 'Mapa podręczna+',
@@ -674,6 +674,11 @@ net.on('cl', (cl) => {
 
 }
 
+        const MAP_MARKER_CSS = "/* Marker styles from Dark-Sad Panel dodatków 6.1.5; isolated in Shadow DOM. */\n:host { all: initial; pointer-events: none; }\n* { box-sizing: border-box; pointer-events: none; }\n.pa-mm-objects { position: absolute; inset: 0; pointer-events: none; }\n.pa-mm-obj {\n  position: absolute;\n  left: 0;\n  top: 0;\n  will-change: transform;\n  border-radius: 50%;\n  box-shadow: 0 0 0 1px rgba(0,0,0,.55);\n  pointer-events: none;\n}\n.pa-mm-obj.pa-mm-anim { transition: transform .45s linear; }\n.pa-mm-obj.pa-mm-grave { box-shadow: 0 0 0 1.5px #000, 0 0 4px rgba(0,0,0,.8); }\n.pa-mm-obj.pa-mm-mob { box-shadow: 0 0 0 1px rgba(255,255,255,.85), 0 0 0 2px rgba(0,0,0,.5); }\n.pa-mm-obj.pa-mm-gw { border-radius: 3px; box-shadow: 0 0 0 1px rgba(255,255,255,.35); }\n.pa-mm-obj.pa-mm-player { box-shadow: 0 0 0 1px rgba(0,0,0,.8); }\n.pa-mm-obj.pa-mm-pulse {\n  overflow: visible;\n  box-shadow: 0 0 0 2px #000, 0 0 10px 2px currentColor;\n  animation: pa-mm-glow .9s ease-in-out infinite;\n}\n.pa-mm-obj.pa-mm-pulse::before, .pa-mm-obj.pa-mm-pulse::after {\n  content: '';\n  position: absolute;\n  inset: -2px;\n  border: 2px solid currentColor;\n  border-radius: 50%;\n  animation: pa-mm-ring 1.6s ease-out infinite;\n  pointer-events: none;\n}\n.pa-mm-obj.pa-mm-pulse::after { animation-delay: .8s; }\n@keyframes pa-mm-ring { 0% { transform: scale(1); opacity: .95; } 100% { transform: scale(3.4); opacity: 0; } }\n.pa-mm-obj.pa-mm-resp, .pa-mm-obj.pa-mm-respEvent { background: transparent !important; border: 2px solid #c6ba35; box-shadow: none; }\n.pa-mm-obj.pa-mm-respEvent { border-color: #00bfff; }\n.pa-mm-obj.pa-mm-resp.pa-mm-near {\n  border: 3px solid #fff36b;\n  background: rgba(255, 236, 80, .45) !important;\n  box-shadow: 0 0 0 1px #000, 0 0 10px 3px rgba(255, 236, 80, .8);\n  z-index: 150 !important;\n}\n/* resp, przy którym stoi inny gracz – wygląda jak heros (może tam być) */\n.pa-mm-obj.pa-mm-resp.pa-mm-suspect, .pa-mm-obj.pa-mm-respEvent.pa-mm-suspect {\n  border: 0 !important; background: #ffd23f !important; color: #ffd23f !important;\n  box-shadow: 0 0 0 1.5px #000, 0 0 10px 3px rgba(255,210,63,.75); z-index: 160 !important;\n}\n.pa-mm-obj.pa-mm-respEvent.pa-mm-suspect { background: #ff4dd2 !important; color: #ff4dd2 !important; box-shadow: 0 0 0 1.5px #000, 0 0 10px 3px rgba(255,77,210,.75); }\n.pa-mm-obj.pa-mm-marker { animation: pa-mm-flash .5s steps(2) infinite; border-radius: 3px; }\n@keyframes pa-mm-flash { 50% { filter: invert(1); } }\n@keyframes pa-mm-glow { 50% { box-shadow: 0 0 0 2px #fff, 0 0 18px 6px currentColor; filter: brightness(1.2); } }\n.pa-mm-hero {\n  position: absolute;\n  z-index: 300;\n  left: 0;\n  top: 0;\n  border-radius: 3px;\n  background: #ff2a2a;\n  box-shadow: 0 0 0 1.5px #fff, 0 0 8px rgba(255,42,42,.9);\n  pointer-events: none;\n  will-change: transform;\n}\n.pa-mm-view {\n  position: absolute;\n  z-index: 250;\n  left: 0;\n  top: 0;\n  border: 1px solid rgba(255,230,90,.9);\n  border-radius: 3px;\n  background: rgba(255,230,90,.06);\n  box-sizing: border-box;\n  pointer-events: none;\n  will-change: transform;\n}\n";
+        const MARKER_LAYERS = { gw: 70, item: 80, grave: 85, resp: 90, respEvent: 90, npc: 110, mob: 110,
+            elite: 120, elite2: 130, elite3: 130, other: 140, friend: 140, clan: 140, ally: 140,
+            party: 142, enemy: 145, titan: 150, collosus: 150, heros: 160, herosEvent: 160, marker: 200 };
+        const PULSE = new Set(['titan', 'collosus', 'heros', 'herosEvent', 'elite3']);
 
         const defaults = { mmShowMobs: true, mmShowNpcs: true, mmShowOthers: true, mmShowSpawns: true,
             mmSpawnRange: 10, mmGwAvail: false, fog: true, attack: false, drawer: false };
@@ -867,7 +872,7 @@ net.on('cl', (cl) => {
         function mount(native) {
             const host = document.createElement('div');
             host.dataset.gogatkiMapUi = '';
-            host.style.cssText = 'position:absolute;right:26px;top:2px;width:20px;height:20px;z-index:100001;';
+            host.style.cssText = 'position:absolute;right:26px;top:2px;width:20px;height:20px;z-index:100002;';
             const root = host.attachShadow({ mode: 'open' });
             root.innerHTML = `<style>
                 :host{all:initial;font:12px Arial,sans-serif;color:#c7d0d9}*{box-sizing:border-box;font:inherit;text-shadow:none}
@@ -922,7 +927,15 @@ net.on('cl', (cl) => {
             terrain.dataset.gogatkiMapTerrain = ''; terrain.setAttribute('preserveAspectRatio', 'none');
             overlay.append(backdrop, terrain);
             native.append(overlay);
-            return { native, host, root, drawer, input, status: root.querySelector('.status'), list: root.querySelector('.list'), overlay, terrain, background: null, isolation, surface: null, marks: new Map(), rows: new Map(), rect: null, map: String(snapshot?.town?.id) };
+            const markerHost = document.createElement('div');
+            markerHost.dataset.gogatkiMapMarkers = '';
+            markerHost.setAttribute('aria-hidden', 'true');
+            markerHost.style.cssText = 'position:absolute;pointer-events:none;overflow:hidden;z-index:100001;display:none;';
+            const markerRoot = markerHost.attachShadow({ mode: 'open' });
+            const markerStyle = document.createElement('style'); markerStyle.textContent = MAP_MARKER_CSS;
+            const markerLayer = document.createElement('div'); markerLayer.className = 'pa-mm-objects';
+            markerRoot.append(markerStyle, markerLayer); native.append(markerHost);
+            return { native, host, root, drawer, input, status: root.querySelector('.status'), list: root.querySelector('.list'), overlay, terrain, markerHost, markerLayer, markerGeometry: '', background: null, isolation, surface: null, marks: new Map(), rows: new Map(), rect: null, map: String(snapshot?.town?.id) };
         }
         function placeControls() {
             const { native, host } = binding, frame = native.getBoundingClientRect();
@@ -968,7 +981,7 @@ net.on('cl', (cl) => {
                 if (binding.isolation.value) binding.native.style.setProperty('isolation', binding.isolation.value, binding.isolation.priority);
                 else binding.native.style.removeProperty('isolation');
             }
-            binding.host.remove(); binding.overlay.remove(); binding = null;
+            binding.host.remove(); binding.overlay.remove(); binding.markerHost.remove(); binding = null;
             stopCommand();
         }
         function hover(event) {
@@ -982,10 +995,11 @@ net.on('cl', (cl) => {
         function leave() { showStatus(''); }
         function setAttribute(node, key, value) { value = String(value); if (node.getAttribute(key) !== value) node.setAttribute(key, value); }
         function renderLayer(objects) {
-            const { overlay, marks, rect, native } = binding, town = snapshot.town;
+            const { overlay, markerHost, markerLayer, marks, rect, native } = binding, town = snapshot.town;
             const nr = native.getBoundingClientRect(), sx = nr.width / (native.offsetWidth || nr.width), sy = nr.height / (native.offsetHeight || nr.height);
             const ncss = window.getComputedStyle(native);
-            Object.assign(overlay.style, { left: ((rect.left - nr.left) / sx - (parseFloat(ncss.borderLeftWidth) || 0)) + 'px', top: ((rect.top - nr.top) / sy - (parseFloat(ncss.borderTopWidth) || 0)) + 'px', width: rect.width / sx + 'px', height: rect.height / sy + 'px' });
+            const geometry = { left: ((rect.left - nr.left) / sx - (parseFloat(ncss.borderLeftWidth) || 0)) + 'px', top: ((rect.top - nr.top) / sy - (parseFloat(ncss.borderTopWidth) || 0)) + 'px', width: rect.width / sx + 'px', height: rect.height / sy + 'px' };
+            Object.assign(overlay.style, geometry); Object.assign(markerHost.style, geometry);
             setAttribute(overlay, 'viewBox', `0 0 ${town.w} ${town.h}`);
             let clip = { left: rect.left, top: rect.top, right: rect.left + rect.width, bottom: rect.top + rect.height };
             for (let parent = binding.surface.parentElement; parent; parent = parent.parentElement) {
@@ -995,25 +1009,42 @@ net.on('cl', (cl) => {
                 if (parent === native) break;
             }
             overlay.style.clipPath = `inset(${Math.max(0, clip.top - rect.top) / sy}px ${Math.max(0, rect.left + rect.width - clip.right) / sx}px ${Math.max(0, rect.top + rect.height - clip.bottom) / sy}px ${Math.max(0, clip.left - rect.left) / sx}px)`;
+            markerHost.style.clipPath = overlay.style.clipPath;
+            const scaleX = rect.width / sx / town.w, scaleY = rect.height / sy / town.h;
+            const dotSize = Math.max(7, Math.round(scaleX));
+            const geometryKey = `${town.id}:${geometry.width}:${geometry.height}`;
+            const resized = geometryKey !== binding.markerGeometry;
+            binding.markerGeometry = geometryKey;
             const desired = new Set();
             const hero = snapshot.hero;
-            const shapes = objects.map(o => ({ ...o, key: o.id || `${o.kind}:${o.x},${o.y}`, shape: 'ellipse' }));
-            if (hero && Number.isFinite(Number(hero.rx)) && Number.isFinite(Number(hero.ry))) shapes.push({ key: 'self', kind: 'hero', x: Number(hero.rx), y: Number(hero.ry), shape: 'ellipse' });
-            if (state.fog && hero && town.visibility > 0) shapes.push({ key: 'view', kind: 'view', x: hero.x - town.visibility, y: hero.y - town.visibility, size: 2 * town.visibility + 1, shape: 'rect' });
+            const shapes = objects.map(o => ({ ...o, key: o.id || `${o.kind}:${o.x},${o.y}` }));
+            if (hero && Number.isFinite(Number(hero.rx)) && Number.isFinite(Number(hero.ry))) shapes.push({ key: 'self', kind: 'hero', x: Number(hero.rx), y: Number(hero.ry) });
+            if (state.fog && hero && town.visibility > 0) shapes.push({ key: 'view', kind: 'view', x: Number(hero.rx) - town.visibility, y: Number(hero.ry) - town.visibility, size: 2 * town.visibility + 1 });
             for (const o of shapes) {
                 if (!Number.isFinite(Number(o.x)) || !Number.isFinite(Number(o.y))) continue;
                 desired.add(o.key);
                 let mark = marks.get(o.key);
-                if (!mark) { mark = document.createElementNS(overlay.namespaceURI, o.shape); setAttribute(mark, 'data-kind', o.kind); setAttribute(mark, 'vector-effect', 'non-scaling-stroke'); overlay.append(mark); marks.set(o.key, mark); }
-                const color = o.kind === 'view' ? '#c7d0d9' : (snapshot.colors[o.kind] || '#fff');
-                if (o.shape === 'rect') { setAttribute(mark, 'x', o.x); setAttribute(mark, 'y', o.y); setAttribute(mark, 'width', o.size); setAttribute(mark, 'height', o.size); }
-                else {
-                    setAttribute(mark, 'cx', Number(o.x) + 0.5); setAttribute(mark, 'cy', Number(o.y) + 0.5);
-                    const size = /heros|titan|collosus|elite[23]/.test(o.kind) ? 4.5 : 3;
-                    setAttribute(mark, 'rx', size / rect.width * town.w); setAttribute(mark, 'ry', size / rect.height * town.h);
+                const fresh = !mark;
+                if (fresh) { mark = document.createElement('div'); mark.dataset.kind = o.kind; markerLayer.append(mark); marks.set(o.key, mark); }
+                const special = o.kind === 'hero' || o.kind === 'view';
+                const pulse = PULSE.has(o.kind) || Boolean(o.suspect);
+                const animate = !special && !fresh && !resized;
+                const classes = special ? `pa-mm-${o.kind}` : `pa-mm-obj pa-mm-${o.kind}${o.player ? ' pa-mm-player' : ''}${pulse ? ' pa-mm-pulse' : ''}${o.suspect ? ' pa-mm-suspect' : ''}${o.kind === 'resp' && o.checked ? ' pa-mm-near' : ''}${animate ? ' pa-mm-anim' : ''}`;
+                if (mark.className !== classes) mark.className = classes;
+                let width, height, left, top;
+                if (o.kind === 'view') {
+                    width = o.size * scaleX; height = o.size * scaleY; left = o.x * scaleX; top = o.y * scaleY;
+                } else {
+                    const size = o.kind === 'hero' ? dotSize + 1 : (pulse ? Math.round(dotSize * 1.5) : dotSize);
+                    width = o.spanX ? Math.max(dotSize, o.spanX * scaleX) : size;
+                    height = o.spanY ? Math.max(dotSize, o.spanY * scaleY) : size;
+                    left = (Number(o.x) + 0.5) * scaleX - (o.kind === 'hero' ? dotSize : width) / 2;
+                    top = (Number(o.y) + 0.5) * scaleY - (o.kind === 'hero' ? dotSize : height) / 2;
                 }
-                const ring = o.kind === 'view' || /^resp/.test(o.kind) || o.kind === 'marker';
-                setAttribute(mark, 'fill', ring ? 'none' : color); setAttribute(mark, 'stroke', o.suspect ? '#ffd23f' : (o.checked ? '#fff' : color)); setAttribute(mark, 'stroke-width', ring ? 1.5 : 1);
+                mark.style.width = width + 'px'; mark.style.height = height + 'px';
+                mark.style.transform = `translate(${left.toFixed(2)}px,${top.toFixed(2)}px)`;
+                if (!special) { mark.style.background = snapshot.colors[o.kind] || '#fff'; mark.style.color = snapshot.colors[o.kind] || '#fff'; mark.style.zIndex = String(MARKER_LAYERS[o.kind] || 100); }
+                if (!special && (fresh || resized)) window.requestAnimationFrame(() => { if (mark.isConnected) mark.classList.add('pa-mm-anim'); });
             }
             for (const [key, mark] of marks) if (!desired.has(key)) { mark.remove(); marks.delete(key); }
         }
@@ -1061,6 +1092,7 @@ net.on('cl', (cl) => {
             }
             const backgroundReady = surface && prepareBackground();
             binding.overlay.style.display = backgroundReady ? '' : 'none';
+            binding.markerHost.style.display = backgroundReady ? '' : 'none';
             if (!surface) { stopCommand(); showStatus('Nie rozpoznano obszaru mapy. Natywna mapa działa bez zmian.'); return; }
             if (!backgroundReady) {
                 stopCommand();

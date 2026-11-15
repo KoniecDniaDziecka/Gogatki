@@ -1,0 +1,74 @@
+/* Marker styles from Dark-Sad Panel dodatków 6.1.5; isolated in Shadow DOM. */
+:host { all: initial; pointer-events: none; }
+* { box-sizing: border-box; pointer-events: none; }
+.pa-mm-objects { position: absolute; inset: 0; pointer-events: none; }
+.pa-mm-obj {
+  position: absolute;
+  left: 0;
+  top: 0;
+  will-change: transform;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(0,0,0,.55);
+  pointer-events: none;
+}
+.pa-mm-obj.pa-mm-anim { transition: transform .45s linear; }
+.pa-mm-obj.pa-mm-grave { box-shadow: 0 0 0 1.5px #000, 0 0 4px rgba(0,0,0,.8); }
+.pa-mm-obj.pa-mm-mob { box-shadow: 0 0 0 1px rgba(255,255,255,.85), 0 0 0 2px rgba(0,0,0,.5); }
+.pa-mm-obj.pa-mm-gw { border-radius: 3px; box-shadow: 0 0 0 1px rgba(255,255,255,.35); }
+.pa-mm-obj.pa-mm-player { box-shadow: 0 0 0 1px rgba(0,0,0,.8); }
+.pa-mm-obj.pa-mm-pulse {
+  overflow: visible;
+  box-shadow: 0 0 0 2px #000, 0 0 10px 2px currentColor;
+  animation: pa-mm-glow .9s ease-in-out infinite;
+}
+.pa-mm-obj.pa-mm-pulse::before, .pa-mm-obj.pa-mm-pulse::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  animation: pa-mm-ring 1.6s ease-out infinite;
+  pointer-events: none;
+}
+.pa-mm-obj.pa-mm-pulse::after { animation-delay: .8s; }
+@keyframes pa-mm-ring { 0% { transform: scale(1); opacity: .95; } 100% { transform: scale(3.4); opacity: 0; } }
+.pa-mm-obj.pa-mm-resp, .pa-mm-obj.pa-mm-respEvent { background: transparent !important; border: 2px solid #c6ba35; box-shadow: none; }
+.pa-mm-obj.pa-mm-respEvent { border-color: #00bfff; }
+.pa-mm-obj.pa-mm-resp.pa-mm-near {
+  border: 3px solid #fff36b;
+  background: rgba(255, 236, 80, .45) !important;
+  box-shadow: 0 0 0 1px #000, 0 0 10px 3px rgba(255, 236, 80, .8);
+  z-index: 150 !important;
+}
+/* resp, przy którym stoi inny gracz – wygląda jak heros (może tam być) */
+.pa-mm-obj.pa-mm-resp.pa-mm-suspect, .pa-mm-obj.pa-mm-respEvent.pa-mm-suspect {
+  border: 0 !important; background: #ffd23f !important; color: #ffd23f !important;
+  box-shadow: 0 0 0 1.5px #000, 0 0 10px 3px rgba(255,210,63,.75); z-index: 160 !important;
+}
+.pa-mm-obj.pa-mm-respEvent.pa-mm-suspect { background: #ff4dd2 !important; color: #ff4dd2 !important; box-shadow: 0 0 0 1.5px #000, 0 0 10px 3px rgba(255,77,210,.75); }
+.pa-mm-obj.pa-mm-marker { animation: pa-mm-flash .5s steps(2) infinite; border-radius: 3px; }
+@keyframes pa-mm-flash { 50% { filter: invert(1); } }
+@keyframes pa-mm-glow { 50% { box-shadow: 0 0 0 2px #fff, 0 0 18px 6px currentColor; filter: brightness(1.2); } }
+.pa-mm-hero {
+  position: absolute;
+  z-index: 300;
+  left: 0;
+  top: 0;
+  border-radius: 3px;
+  background: #ff2a2a;
+  box-shadow: 0 0 0 1.5px #fff, 0 0 8px rgba(255,42,42,.9);
+  pointer-events: none;
+  will-change: transform;
+}
+.pa-mm-view {
+  position: absolute;
+  z-index: 250;
+  left: 0;
+  top: 0;
+  border: 1px solid rgba(255,230,90,.9);
+  border-radius: 3px;
+  background: rgba(255,230,90,.06);
+  box-sizing: border-box;
+  pointer-events: none;
+  will-change: transform;
+}
