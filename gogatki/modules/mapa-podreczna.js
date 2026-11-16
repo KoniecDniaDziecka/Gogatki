@@ -1,8 +1,8 @@
-// Mapa podręczna+ 1.0.10 — enhancement of the native NI window.
+// Mapa podręczna+ 1.1.0 — enhancement of the native NI window with Fog Light.
 GogatkiRuntime.register({
     id: 'mapa-podreczna',
     name: 'Mapa+',
-    description: 'NI: oznaczenia, filtry i wyszukiwarka w istniejącej mapie podręcznej gry.',
+    description: 'NI: oznaczenia, filtry, wyszukiwarka i Fog Light w mapie podręcznej gry.',
     start() {
         'use strict';
         const window = unsafeWindow, document = window.document;
@@ -645,13 +645,80 @@ net.on('cl', (cl) => {
 }
 
         const MAP_MARKER_CSS = "/* Marker styles adapted from Dark-Sad Panel dodatków 6.1.5; isolated in Shadow DOM. */\n:host { all: initial; pointer-events: none; }\n* { box-sizing: border-box; pointer-events: none; }\n.pa-mm-objects { position: absolute; inset: 0; pointer-events: none; }\n.pa-mm-obj {\n  position: absolute;\n  left: 0;\n  top: 0;\n  will-change: transform;\n  border-radius: 50%;\n  box-shadow: 0 0 0 1px rgba(0,0,0,.55);\n  pointer-events: none;\n}\n.pa-mm-obj.pa-mm-anim { transition: transform .45s linear; }\n.pa-mm-obj.pa-mm-grave { box-shadow: 0 0 0 1px #b1c0cb, 0 0 0 2px #000; }\n.pa-mm-obj.pa-mm-mob { background: transparent !important; box-shadow: 0 0 0 1px currentColor, 0 0 0 2px rgba(0,0,0,.5); }\n.pa-mm-obj.pa-mm-gw { border-radius: 3px; box-shadow: 0 0 0 1px rgba(255,255,255,.35); }\n.pa-mm-obj.pa-mm-player { box-shadow: 0 0 0 1px rgba(0,0,0,.8); }\n.pa-mm-obj.pa-mm-pulse {\n  overflow: visible;\n  box-shadow: 0 0 0 2px #000, 0 0 10px 2px currentColor;\n  animation: pa-mm-glow .9s ease-in-out infinite;\n}\n.pa-mm-obj.pa-mm-pulse::before, .pa-mm-obj.pa-mm-pulse::after {\n  content: '';\n  position: absolute;\n  inset: -2px;\n  border: 2px solid currentColor;\n  border-radius: 50%;\n  animation: pa-mm-ring 1.6s ease-out infinite;\n  pointer-events: none;\n}\n.pa-mm-obj.pa-mm-pulse::after { animation-delay: .8s; }\n@keyframes pa-mm-ring { 0% { transform: scale(1); opacity: .95; } 100% { transform: scale(3.4); opacity: 0; } }\n.pa-mm-obj.pa-mm-resp, .pa-mm-obj.pa-mm-respEvent { background: transparent !important; border: 2px solid currentColor; box-shadow: none; }\n.pa-mm-obj.pa-mm-resp.pa-mm-near {\n  border: 3px solid currentColor;\n  background: color-mix(in srgb, currentColor 45%, transparent) !important;\n  box-shadow: 0 0 0 1px #000, 0 0 10px 3px currentColor;\n  z-index: 150 !important;\n}\n/* resp, przy którym stoi inny gracz – wygląda jak heros (może tam być) */\n.pa-mm-obj.pa-mm-resp.pa-mm-suspect, .pa-mm-obj.pa-mm-respEvent.pa-mm-suspect {\n  border: 0 !important; background: var(--map-color-heros) !important; color: var(--map-color-heros) !important;\n  box-shadow: 0 0 0 1.5px #000, 0 0 10px 3px currentColor; z-index: 160 !important;\n}\n.pa-mm-obj.pa-mm-marker { animation: pa-mm-flash .5s steps(2) infinite; border-radius: 3px; }\n@keyframes pa-mm-flash { 50% { filter: invert(1); } }\n@keyframes pa-mm-glow { 50% { box-shadow: 0 0 0 2px #fff, 0 0 18px 6px currentColor; filter: brightness(1.2); } }\n.pa-mm-hero {\n  position: absolute;\n  z-index: 300;\n  left: 0;\n  top: 0;\n  border-radius: 2px;\n  background: var(--map-color-hero);\n  box-shadow: 0 0 0 1.5px #fff, 0 0 8px var(--map-color-hero);\n  pointer-events: none;\n  will-change: transform;\n}\n.pa-mm-view {\n  position: absolute;\n  z-index: 250;\n  left: 0;\n  top: 0;\n  border: 1px solid rgba(255,230,90,.9);\n  border-radius: 3px;\n  background: rgba(255,230,90,.06);\n  box-sizing: border-box;\n  pointer-events: none;\n  will-change: transform;\n}\n";
+        // Fog Light: samodzielna adaptacja logiki Maddonz (Barlag).
+// Źródło: KoniecDniaDziecka/test, margonem-sources/maddonz.original.js, FogLight.
+function createFogLight(PAGE, enabled, deleteNpcs) {
+    const remembered = new Set();
+    let mapId, purging = false;
+    const map = () => PAGE.Engine?.map?.d || {};
+    const npc = id => PAGE.Engine?.npcs?.getById?.(id)?.d || PAGE.Engine?.npcs?.check?.()?.[id]?.d;
+    const monster = data => data && [2, 3].includes(Number(data.type));
+    const idOf = entry => String(entry && typeof entry === 'object' ? entry.id : entry);
+    function syncMap() {
+        const id = map().id;
+        if (mapId !== undefined && String(id) !== String(mapId)) remembered.clear();
+        mapId = id;
+    }
+    function visible(data) {
+        const range = Number(map().visibility), hero = PAGE.Engine?.hero?.d;
+        // Without complete visibility data, keep the game's deletion behavior.
+        if (!Number.isFinite(range) || range < 0 || !Number.isFinite(Number(hero?.x)) || !Number.isFinite(Number(hero?.y)) ||
+            !Number.isFinite(Number(data.x)) || !Number.isFinite(Number(data.y))) return true;
+        return Math.abs(hero.x - data.x) <= range && Math.abs(hero.y - data.y) <= range;
+    }
+    function purge(ids) {
+        if (!ids.length) return;
+        purging = true;
+        try { deleteNpcs(ids); } finally { purging = false; }
+    }
+    function clear() {
+        syncMap();
+        const ids = [...remembered];
+        remembered.clear();
+        purge(ids);
+    }
+    function before(packet) {
+        syncMap();
+        if (!packet || typeof packet !== 'object') return packet;
+        if (packet.town) { remembered.clear(); return packet; }
+        if (!enabled() || purging || Number(map().pvp) !== 2 || !Array.isArray(packet.npcs_del)) return packet;
+        const deletions = packet.npcs_del.filter(entry => {
+            const id = idOf(entry), data = npc(id);
+            if (!id.startsWith('echo') && monster(data) && !visible(data)) {
+                remembered.add(id);
+                return false;
+            }
+            remembered.delete(id);
+            return true;
+        });
+        return deletions.length === packet.npcs_del.length ? packet : { ...packet, npcs_del: deletions };
+    }
+    function after(packet) {
+        syncMap();
+        if (purging || !enabled() || (packet?.h?.x == null && packet?.h?.y == null)) return;
+        const updates = Array.isArray(packet.npcs) ? packet.npcs : Object.entries(packet.npcs || {})
+            .filter(([, data]) => data && typeof data === 'object').map(([id, data]) => ({ ...data, id: data.id ?? id }));
+        const refreshed = new Set(updates.filter(data => !data.del).map(idOf));
+        const remove = [];
+        for (const id of remembered) {
+            const data = npc(id);
+            if (!data || (monster(data) && visible(data))) {
+                if (!refreshed.has(id)) remove.push(id);
+                remembered.delete(id);
+            }
+        }
+        purge(remove);
+    }
+    return { before, after, clear, syncMap };
+}
+
         const MARKER_LAYERS = { gw: 70, item: 80, grave: 85, resp: 90, respEvent: 90, npc: 110, mob: 110,
             elite: 120, elite2: 130, elite3: 130, other: 140, friend: 140, clan: 140, ally: 140,
             party: 142, enemy: 145, clanEnemy: 145, titan: 150, collosus: 150, heros: 160, herosEvent: 160, marker: 200 };
         const PULSE = new Set(['titan', 'collosus', 'heros', 'herosEvent', 'elite3']);
 
         const defaults = { mmShowMobs: true, mmShowNpcs: true, mmShowOthers: true, mmShowSpawns: true,
-            mmSpawnRange: 10, mmGwAvail: false, fog: true, attack: false, drawer: false };
+            mmSpawnRange: 10, mmGwAvail: false, fog: true, fogLight: true, attack: false, drawer: false };
         let saved;
         try { saved = GM_getValue(KEY, {}); } catch { saved = {}; }
         const state = { ...defaults };
@@ -662,6 +729,13 @@ net.on('cl', (cl) => {
         let hint = '', warned = false;
         const setText = (node, value) => { if (node && node.textContent !== value) node.textContent = value; };
         const model = createMapModel(window, state, search, () => {});
+        const fogLight = createFogLight(window, () => state.fogLight && !disposed, ids => {
+            const packet = { npcs_del: ids.map(id => ({ id })) };
+            const comm = window.Engine?.communication;
+            if (typeof comm?.parseJSON === 'function') comm.parseJSON(packet);
+            // Also update the cache if the game's communication object was replaced.
+            model.feed(packet);
+        });
         const heroTransforms = new WeakMap();
         const surfaceRegions = new WeakMap();
         // The dock controls this hidden bridge, never reparents the game's map.
@@ -765,7 +839,7 @@ net.on('cl', (cl) => {
                 return { tag: node.tagName, class: String(node.className || '').slice(0, 120), visible: isVisible(node), width: Math.round(r.width * 100) / 100, height: Math.round(r.height * 100) / 100,
                     image: shortURL(node.currentSrc || node.src || css.backgroundImage), selected: node === binding.surface };
             }).filter(Boolean).slice(0, 40) : [];
-            return JSON.stringify({ version: '1.0.10', status: binding?.status.textContent, active: binding?.overlay.style.display !== 'none',
+            return JSON.stringify({ version: '1.1.0', status: binding?.status.textContent, active: binding?.overlay.style.display !== 'none', fogLight: state.fogLight,
                 dimensions: { model: { w: snapshot?.town?.w, h: snapshot?.town?.h }, engine: { x: d.x, y: d.y }, size: { x: map?.size?.x, y: map?.size?.y } },
                 file: shortURL(snapshot?.town?.file), image: shortURL(map?.img?.currentSrc || map?.img?.src), background: binding?.background ? { ready: !!binding.background.ready, failed: binding.background.failed, source: shortURL(binding.background.source) } : null, nodes }, null, 2);
         }
@@ -823,9 +897,25 @@ net.on('cl', (cl) => {
             unhook();
             const original = comm.parseJSON;
             function wrapper(data) {
-                try { return original.apply(this, arguments); }
+                const args = [...arguments];
+                let packet;
+                if (!disposed) try {
+                    const parsed = typeof data === 'string' ? JSON.parse(data) : data;
+                    packet = fogLight.before(parsed);
+                    if (packet !== parsed) args[0] = typeof data === 'string' ? JSON.stringify(packet) : packet;
+                } catch (error) { if (!warned) { warned = true; console.warn('[Mapa podręczna+] Fog Light:', error); } }
+                let parsedSuccessfully = false;
+                try {
+                    const result = original.apply(this, args);
+                    parsedSuccessfully = true;
+                    return result;
+                }
                 finally {
-                    if (!disposed) try { model.feed(typeof data === 'string' ? JSON.parse(data) : data); }
+                    if (!disposed) try {
+                        packet ??= typeof data === 'string' ? JSON.parse(data) : data;
+                        model.feed(packet);
+                        if (parsedSuccessfully) fogLight.after(packet);
+                    }
                     catch (error) { if (!warned) { warned = true; console.warn('[Mapa podręczna+] Dane mapy:', error); } }
                 }
             }
@@ -913,14 +1003,15 @@ net.on('cl', (cl) => {
                 input[type=checkbox]::before,input[type=checkbox]::after{content:none}input:checked::after{content:'✓';color:#12c9bd;font:12px/12px Arial}
                 .status{font-size:11px;color:#b1c0cb;margin:6px 0;overflow-wrap:anywhere}.entry{border-top:1px solid #384651;padding:5px 0}.name{font-size:11px;overflow-wrap:anywhere}.actions{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}.actions button{font-size:11px;background:#38566c}.coords{color:#b1c0cb;font-size:11px;margin-top:2px}
             </style><button type="button" class="toggle" aria-label="Ustawienia mapy+" aria-expanded="false" title="Ustawienia mapy+"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.5"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3M5 5l2 2m10 10 2 2M5 19l2-2M17 7l2-2"/></svg></button>
-            <section class="drawer" aria-label="Rozszerzenia mapy podręcznej" hidden><input type="search" placeholder="Nazwa lub x,y" aria-label="Szukaj na mapie"><div class="options"></div><p class="status" role="status"></p><button type="button" class="stop" hidden>Zatrzymaj podążanie</button><details><summary>Pomoc · 1.0.10</summary><button type="button" class="diagnose">Kopiuj diagnostykę</button><textarea aria-label="Diagnostyka mapy" readonly hidden style="width:100%;height:100px;color:#c7d0d9;background:#252b31"></textarea></details><div class="list"></div></section>`;
+            <section class="drawer" aria-label="Rozszerzenia mapy podręcznej" hidden><input type="search" placeholder="Nazwa lub x,y" aria-label="Szukaj na mapie"><div class="options"></div><p class="status" role="status"></p><button type="button" class="stop" hidden>Zatrzymaj podążanie</button><details><summary>Pomoc · 1.1.0</summary><button type="button" class="diagnose">Kopiuj diagnostykę</button><textarea aria-label="Diagnostyka mapy" readonly hidden style="width:100%;height:100px;color:#c7d0d9;background:#252b31"></textarea></details><div class="list"></div></section>`;
             const drawer = root.querySelector('.drawer'), toggle = root.querySelector('.toggle');
             drawer.hidden = !state.drawer; toggle.setAttribute('aria-expanded', String(state.drawer));
-            const options = [['mmShowMobs', 'Moby'], ['mmShowNpcs', 'NPC'], ['mmShowOthers', 'Gracze'], ['mmShowSpawns', 'Respy'], ['fog', 'Zasięg widzenia'], ['mmGwAvail', 'Dostępne przejścia'], ['attack', 'Atakuj w pościgu']];
+            const options = [['mmShowMobs', 'Moby'], ['mmShowNpcs', 'NPC'], ['mmShowOthers', 'Gracze'], ['mmShowSpawns', 'Respy'], ['fog', 'Zasięg widzenia'], ['fogLight', 'Fog Light'], ['mmGwAvail', 'Dostępne przejścia'], ['attack', 'Atakuj w pościgu']];
             for (const [key, title] of options) {
                 const label = document.createElement('label'), input = document.createElement('input');
                 input.type = 'checkbox'; input.checked = state[key]; input.dataset.option = key;
-                input.addEventListener('change', () => { state[key] = input.checked; save(); });
+                if (key === 'fogLight') label.title = 'Zachowuj poznane potwory poza zasięgiem widzenia na mapach PvP.';
+                input.addEventListener('change', () => { state[key] = input.checked; if (key === 'fogLight' && !state.fogLight) fogLight.clear(); save(); });
                 label.append(input, document.createTextNode(title)); root.querySelector('.options').append(label);
             }
             toggle.addEventListener('click', event => { event.stopPropagation(); state.drawer = !state.drawer; drawer.hidden = !state.drawer; toggle.setAttribute('aria-expanded', String(state.drawer)); save(); });
@@ -1152,7 +1243,7 @@ net.on('cl', (cl) => {
         }
         function tick() {
             if (disposed) return;
-            hook(); snapshot = model.snapshot();
+            hook(); fogLight.syncMap(); snapshot = model.snapshot();
             const native = findWindow();
             launcher.dataset.compact = String(!native);
             if (native !== binding?.native) { unmount(); if (native) binding = mount(native); }
@@ -1187,7 +1278,9 @@ net.on('cl', (cl) => {
         function destroy(event) {
             if (event?.persisted) return;
             if (disposed) return; disposed = true;
-            window.clearInterval(timer); unmount(); unhook();
+            window.clearInterval(timer);
+            try { fogLight.clear(); } catch (error) { console.warn('[Mapa podręczna+] Czyszczenie Fog Light:', error); }
+            unmount(); unhook();
             launcher.remove();
             window.removeEventListener('pagehide', destroy);
             if (window[INSTANCE]?.destroy === destroy) delete window[INSTANCE];

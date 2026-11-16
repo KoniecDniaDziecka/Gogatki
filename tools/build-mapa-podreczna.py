@@ -7,9 +7,11 @@ root = Path(__file__).resolve().parents[1]
 runtime = (root / 'sources/mapa-podreczna/runtime.js').read_text()
 model = (root / 'sources/mapa-podreczna/model.js').read_text()
 markers = (root / 'sources/mapa-podreczna/markers.css').read_text()
+fog_light = (root / 'sources/mapa-podreczna/fog-light.js').read_text()
 assert runtime.count('// __MODEL__') == 1
 assert runtime.count('// __MARKER_STYLE__') == 1
-module = runtime.replace('// __MODEL__', model).replace('// __MARKER_STYLE__', 'const MAP_MARKER_CSS = ' + json.dumps(markers, ensure_ascii=False) + ';')
+assert runtime.count('// __FOG_LIGHT__') == 1
+module = runtime.replace('// __MODEL__', model).replace('// __MARKER_STYLE__', 'const MAP_MARKER_CSS = ' + json.dumps(markers, ensure_ascii=False) + ';').replace('// __FOG_LIGHT__', fog_light)
 (root / 'gogatki/modules/mapa-podreczna.js').write_text(module)
 
 version = re.search(r'^// Mapa podręczna\+ ([\d.]+)', runtime).group(1)
@@ -18,8 +20,8 @@ header = f'''// ==UserScript==
 // @name         Mapa podręczna+ — samodzielna (NI)
 // @namespace    gogatki.local.mapa-podreczna.standalone
 // @version      {version}
-// @description  Oznaczenia, filtry i wyszukiwarka w istniejącej mapie podręcznej NI, bez panelu Gogatków.
-// @author       Gogatki; model danych na podstawie Dark-Sad 6.1.5
+// @description  Oznaczenia, filtry, wyszukiwarka i Fog Light w mapie podręcznej NI, bez panelu Gogatków.
+// @author       Gogatki; model danych: Dark-Sad 6.1.5; Fog Light: Maddonz (Barlag)
 // @match        https://*.margonem.pl/*
 // @match        https://*.margonem.com/*
 // @match        http://*.margonem.pl/*

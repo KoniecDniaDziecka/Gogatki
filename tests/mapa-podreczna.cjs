@@ -61,6 +61,12 @@ const assert = require('node:assert/strict');
             window.players = { 20: { d: { id: 20, x: 2, y: 1, nick: 'Wróg testowy', relation: 3, lvl: 100, prof: 'w' } } };
             const original = function (data, extra) {
                 window.parserThis = this; window.parserExtra = extra;
+                window.parserInputType = typeof data;
+                if (typeof data === 'string') data = JSON.parse(data);
+                if (extra === 'throw-parser') throw new Error('Native parser error');
+                if (data?.h) Object.assign(Engine.hero.d, data.h);
+                if (data?.npcs) for (const npc of data.npcs) npcs[npc.id] = { d: { ...npcs[npc.id]?.d, ...npc } };
+                if (data?.npcs_del) for (const entry of data.npcs_del) delete npcs[typeof entry === 'object' ? entry.id : entry];
                 if (data?.other) for (const [id, patch] of Object.entries(data.other)) if (players[id]) Object.assign(players[id].d, patch);
                 return 123;
             };
@@ -264,6 +270,53 @@ const assert = require('node:assert/strict');
         const drawerBounds = await ui.locator('.drawer').boundingBox();
         const windowBounds = await native.boundingBox();
         assert(drawerBounds.x >= windowBounds.x && drawerBounds.x + drawerBounds.width <= windowBounds.x + windowBounds.width, 'Settings drawer fits the native window');
+        const fogOption = ui.getByLabel('Fog Light', { exact: true });
+        assert.equal(await fogOption.isChecked(), true, 'Fog Light is enabled by default');
+        const fogEntry = ui.locator('.entry').filter({hasText:'Fog testowy'});
+        await page.evaluate(() => {
+            Engine.map.d.pvp=2;
+            Engine.communication.parseJSON({npcs:[{id:99,x:25,y:12,nick:'Fog testowy',type:2,wt:0,lvl:5}]});
+        });
+        await fogEntry.waitFor({state:'attached'});
+        const fogParser = await page.evaluate(() => {
+            const comm=Engine.communication;
+            const result=comm.parseJSON(JSON.stringify({npcs_del:[{id:99}]}),'fog-preserved');
+            return [result,parserThis===comm,parserExtra,parserInputType,Boolean(npcs[99])];
+        });
+        assert.deepEqual(fogParser,[123,true,'fog-preserved','string',true],'Fog Light retains NPCs and parser calling convention');
+        assert.equal(await fogEntry.count(),1,'Known monster remains on Map+');
+        await fogOption.uncheck();
+        assert.equal(await page.evaluate(() => saved['mapa-podreczna:global:v1'].fogLight),false,'Fog Light preference is saved');
+        assert.equal(await page.evaluate(() => Boolean(npcs[99])),false,'Disabling Fog Light purges native ghosts');
+        await fogEntry.waitFor({state:'detached'});
+        await page.evaluate(() => {
+            Engine.communication.parseJSON({npcs:[{id:100,x:25,y:12,nick:'Fog testowy',type:2,wt:0,lvl:5}]});
+            Engine.communication.parseJSON({npcs_del:[{id:100}]});
+        });
+        assert.equal(await page.evaluate(() => Boolean(npcs[100])),false,'Disabled Fog Light leaves native deletions intact');
+        await fogOption.check();
+        await native.locator('.close-button').click();
+        await native.waitFor({state:'hidden'});
+        await page.evaluate(() => {
+            Engine.communication.parseJSON({npcs:[{id:101,x:25,y:12,nick:'Fog testowy',type:2,wt:0,lvl:5}]});
+            Engine.communication.parseJSON({npcs_del:[{id:101}]});
+        });
+        assert.equal(await page.evaluate(() => Boolean(npcs[101])),true,'Fog Light runs with the native map closed');
+        await mapTile.click();
+        await fogOption.waitFor();
+        assert.equal(await fogOption.isChecked(),true,'Fog Light choice survives native window reconstruction');
+        await page.evaluate(() => Engine.communication.parseJSON({h:{x:25,y:12}}));
+        assert.equal(await page.evaluate(() => Boolean(npcs[101])),false,'Unconfirmed monster is removed when back in sight');
+        await fogEntry.waitFor({state:'detached'});
+        await page.evaluate(() => {
+            Engine.communication.parseJSON({h:{x:1,y:1}});
+            delete Engine.map.d.pvp;
+        });
+        assert.equal(await page.evaluate(() => {
+            try {Engine.communication.parseJSON({},'throw-parser');return false;}
+            catch(error){return error.message==='Native parser error';}
+        }),true,'Native parser exceptions propagate');
+
         const search = ui.getByRole('searchbox', { name: 'Szukaj na mapie' });
         await search.fill('heros');
         await page.waitForFunction(() => document.querySelector('[data-gogatki-map-ui]').shadowRoot.querySelectorAll('.entry').length === 1);
@@ -331,7 +384,7 @@ const assert = require('node:assert/strict');
         await ui.locator('summary').click();
         await ui.getByRole('button', { name: 'Kopiuj diagnostykę', exact: true }).click();
         const report = JSON.parse(await ui.getByLabel('Diagnostyka mapy', { exact: true }).inputValue());
-        assert.equal(report.version, '1.0.10');
+        assert.equal(report.version, '1.1.0');
         assert.equal(report.active, false);
         assert(report.status.includes('Nie rozpoznano obszaru mapy'));
         assert(report.nodes.some(node => node.tag === 'CANVAS' && !node.visible));
@@ -344,7 +397,14 @@ const assert = require('node:assert/strict');
         assert.equal(await layer.evaluate(element => element.style.display), 'none', 'Failed terrain load keeps the original map instead of doubling its markers');
         await page.evaluate(() => { Engine.map.img = terrainImage; });
         await page.waitForFunction(() => document.querySelector('[data-gogatki-map-layer]').style.display !== 'none');
+        await page.evaluate(() => {
+            Engine.map.d.pvp=2;
+            Engine.communication.parseJSON({npcs:[{id:299,x:30,y:15,nick:'Fog cleanup',type:2,wt:0,lvl:5}]});
+            Engine.communication.parseJSON({npcs_del:[{id:299}]});
+        });
+        assert.equal(await page.evaluate(() => Boolean(npcs[299])),true,'A remembered monster is present before cleanup');
         await page.evaluate(() => window.__gogatkiNativeMap.destroy());
+        assert.equal(await page.evaluate(() => Boolean(npcs[299])),false,'Cleanup removes retained native NPCs');
         await page.waitForTimeout(50);
         await mapTile.waitFor({ state: 'detached' });
         assert.equal(await page.locator('#gogatki-mapa-plus').count(), 0, 'Destroy removes the dock bridge');
@@ -370,6 +430,6 @@ const assert = require('node:assert/strict');
         assert.deepEqual(errors, []);
         assert.deepEqual(remote.filter(url => /^https?:/.test(url)), [], 'No HTTP calls in this fixture');
         await page.evaluate(() => window.__gogatkiTileDock.destroy());
-        console.log(`PASS (${standalone ? 'standalone with NI readiness' : 'module'}): large letterboxed maps; narrow maps; CSS terrain; late dimensions; smaller mob/E2 markers; diagnostic report; clean terrain replaces native markers; background offset and failed-image fallback; existing native window/canvas/clicks retained; marker alignment after move/resize; search/coords/filters/storage; parser return/this/arguments; spawns; explicit chase/attack/stop; map change; duplicate start; close/reopen; cleanup`);
+        console.log(`PASS (${standalone ? 'standalone with NI readiness' : 'module'}): Fog Light/native and map markers/disable/closed map/cleanup; large and narrow maps; terrain; dimensions; markers; diagnostics; filters/storage; parser return/this/arguments/errors; spawns; explicit chase/attack/stop; map change; duplicate start; close/reopen`);
     } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });
