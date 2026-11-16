@@ -1,4 +1,4 @@
-// Koszty ulepszeń + Extended Item Tip 1.1.0
+// Koszty ulepszeń + Extended Item Tip 1.1.1
 // Rozszerzenia dymków: Maddonz (Barlag), margonem-sources/maddonz.original.js.
 // Wzory i rozpoznawanie dymków: Dark-Sad, Panel dodatków 6.1.5,
 // Sebastian00P/PanelDodatkow/script.js (blob e589b5b7ccb42279d2e9ff386777d6bb2631b86c).
@@ -145,7 +145,7 @@ GogatkiRuntime.register({
             input[type=checkbox]:checked:after{content:'';width:7px;height:4px;border:solid #12c9bd;border-width:0 0 2px 2px;transform:rotate(-45deg)}
             :focus-visible{outline:2px solid #12c9bd;outline-offset:1px}small{font-size:11px;line-height:1.4;color:#b1c0cb}
             .collapsed{width:var(--tile);height:var(--tile)}.collapsed header,.collapsed .gear{width:100%;height:100%}.collapsed strong,.collapsed main{display:none}
-        </style><section class="panel" aria-label="Koszty ulepszeń i Extended Item Tip"><header><strong>Koszty ulepszeń</strong><button type="button" class="gear" aria-label="Opcje dymków przedmiotów" title="LPM: opcje · PPM: zwiń"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3"/></svg></button></header><main><small>Extended Item Tip + koszty ulepszeń${isNI ? '' : ' (koszty dostępne na NI)'}</small><div class="options">${fields.map(([key,label]) => `<label><input type="checkbox" data-key="${key}">${label}</label>`).join('')}</div></main></section>`;
+        </style><section class="panel" aria-label="Koszty ulepszeń i Extended Item Tip"><header><strong>Koszty ulepszeń</strong><button type="button" class="gear" aria-label="Opcje dymków przedmiotów" title="LPM: opcje · PPM: zwiń"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 11h12v2h7l-4 3h-5v3h3v2H5v-2h3v-3H6l-4-3v-2Z"/><circle cx="18" cy="5.5" r="4"/><path d="m17 4.5 1-1v4m-1 0h2"/></svg></button></header><main><small>Extended Item Tip + koszty ulepszeń${isNI ? '' : ' (koszty dostępne na NI)'}</small><div class="options">${fields.map(([key,label]) => `<label><input type="checkbox" data-key="${key}">${label}</label>`).join('')}</div></main></section>`;
         document.body.append(host);
         function placePanel() {
             if (window.__gogatkiTileDock?.isDocked(host)) return;
