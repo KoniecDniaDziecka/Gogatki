@@ -1,4 +1,4 @@
-/* Cyberpunk NI 0.2.79 — motyw dla nowego interfejsu Margonem.
+/* Cyberpunk NI 0.2.80 — motyw dla nowego interfejsu Margonem.
  * Skrypt .user.js włącza go atrybutem data-cyberpunk-ni="on" na <html>.
  * Zmienne poniżej sterują paletą. Nie wymaga zewnętrznych grafik ani fontów.
  * Najlepiej używać z wyłączonym DarknessNI i innymi motywami całego NI.
@@ -3243,3 +3243,27 @@ html[data-cyberpunk-ni="on"] .friend-enemy-list .column .scroll-wrapper > .scrol
 }
 }
 /* CP-SOCIAL-SCROLLBAR-END */
+
+/* CP-ENHANCE-PROGRESS-BEGIN: gra rysuje postęp na -1, podgląd na -2.
+ * Tło na -3 pozostawia natywne szerokości i ramkę nad wypełnieniem. */
+@layer cyberpunk-ni-window-finishes {
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .crafting, .crafting-window, .left-grouped-list-and-right-description-window) .enhance__progress-bg {
+  position: relative !important;
+  background: transparent !important;
+}
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .crafting, .crafting-window, .left-grouped-list-and-right-description-window) .enhance__progress-bg::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: 1px !important;
+  background: var(--cp-bg) !important;
+  z-index: -3 !important;
+  pointer-events: none !important;
+}
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .crafting, .crafting-window, .left-grouped-list-and-right-description-window) .enhance__progress--preview {
+  background-color: #548e94 !important;
+}
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .crafting, .crafting-window, .left-grouped-list-and-right-description-window) .enhance__progress-text--preview {
+  color: #8bded4 !important;
+}
+}
+/* CP-ENHANCE-PROGRESS-END */
