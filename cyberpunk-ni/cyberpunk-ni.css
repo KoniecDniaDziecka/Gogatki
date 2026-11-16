@@ -1,4 +1,4 @@
-/* Cyberpunk NI 0.2.80 — motyw dla nowego interfejsu Margonem.
+/* Cyberpunk NI 0.2.81 — motyw dla nowego interfejsu Margonem.
  * Skrypt .user.js włącza go atrybutem data-cyberpunk-ni="on" na <html>.
  * Zmienne poniżej sterują paletą. Nie wymaga zewnętrznych grafik ani fontów.
  * Najlepiej używać z wyłączonym DarknessNI i innymi motywami całego NI.
@@ -3267,3 +3267,19 @@ html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .crafting, .crafting
 }
 }
 /* CP-ENHANCE-PROGRESS-END */
+
+/* CP-MAIL-READABILITY-BEGIN: czarny tekst był przeznaczony do jasnego papieru. */
+@layer cyberpunk-ni-window-finishes {
+html[data-cyberpunk-ni="on"] .mails-window .one-mail-wraper :is(.msg-content, .mail-footer),
+html[data-cyberpunk-ni="on"] .mails-window .mail-column .footer {
+  color: var(--cp-text) !important;
+  text-shadow: none !important;
+}
+html[data-cyberpunk-ni="on"] .mails-window .one-mail-wraper .one-mail-head .from b:not(.special b) {
+  color: var(--cp-cyan) !important;
+}
+html[data-cyberpunk-ni="on"] .mails-window .mail-column .scroll-wrapper > .scrollbar-wrapper {
+  translate: 8px 0 !important;
+}
+}
+/* CP-MAIL-READABILITY-END */
