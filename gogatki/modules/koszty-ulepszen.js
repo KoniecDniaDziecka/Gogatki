@@ -1,10 +1,11 @@
-// Koszty ulepszeń 1.0.3
+// Koszty ulepszeń + Extended Item Tip 1.1.0
+// Rozszerzenia dymków: Maddonz (Barlag), margonem-sources/maddonz.original.js.
 // Wzory i rozpoznawanie dymków: Dark-Sad, Panel dodatków 6.1.5,
 // Sebastian00P/PanelDodatkow/script.js (blob e589b5b7ccb42279d2e9ff386777d6bb2631b86c).
 GogatkiRuntime.register({
     id: 'koszty-ulepszen',
     name: 'Koszty ulepszeń',
-    description: 'Koszty ulepszenia w dymku legendy',
+    description: 'Koszty ulepszeń i rozszerzone dymki przedmiotów (Extended Item Tip).',
     start() {
         'use strict';
         const window = unsafeWindow;
@@ -14,12 +15,24 @@ GogatkiRuntime.register({
         const SECTION_CLASS = 'gogatki-upgrade-costs';
         const TIP_SELECTOR = '.tip-wrapper';
         if (window.top !== window.self || window[INSTANCE]) return;
-        if (!window.Engine && window.g) {
-            const text = 'Koszty ulepszeń działają w nowym interfejsie (NI).';
-            if (typeof window.message === 'function') window.message(text);
-            else console.warn('[Gogatki] ' + text);
-            return;
+        const isNI = Boolean(window.Engine);
+        const KEY = 'koszty-ulepszen:global:v1';
+        const defaults = { costs:true, hiddenSignature:false, legendaryInfo:true, essenceValue:true,
+            percentToHeal:true, healToPercent:true, itemIcons:false, collapsed:true, settings:true, right:18, top:160 };
+        let saved;
+        try { saved = GM_getValue(KEY, null); } catch {}
+        if (saved == null) {
+            try { saved = JSON.parse(window.localStorage.getItem('maddonz-extracted:extended-item-tip:v1')); } catch {}
         }
+        const settings = { ...defaults };
+        for (const name of Object.keys(defaults)) {
+            if (typeof saved?.[name] === typeof defaults[name] &&
+                (typeof saved[name] !== 'number' || Number.isFinite(saved[name]))) settings[name] = saved[name];
+        }
+        const save = () => { try { GM_setValue(KEY, { ...settings }); } catch {} };
+        let disposed = false;
+        const hooks = [];
+
 
         const style = document.createElement('style');
         style.id = STYLE_ID;
@@ -37,6 +50,151 @@ GogatkiRuntime.register({
             .${SECTION_CLASS} .guc-total{margin-top:4px;padding-top:3px}
         `;
         (document.head || document.documentElement).appendChild(style);
+
+        const costCSS = style.textContent;
+        function updateExtendedStyle() {
+            style.textContent = costCSS + (settings.hiddenSignature ?
+                '.item-tip-section.s-6 .looter,#tip i.looter,#tip i.looter+br{display:none!important}' : '') +
+                (settings.itemIcons ? '.tip-wrapper .item-type{opacity:0}#tip .item-head .head-icons{bottom:0!important}#tip .item-name{min-height:2.5lh}' +
+                '.cl-icon.icon-21{background-image:url(https://cronus.margonem.com/img/gui/notyfikacje-sprite.png);background-position:-19px -38px}' +
+                '.cl-icon.icon-28{background-image:url(https://cronus.margonem.com/img/gui/notyfikacje-sprite.png);background-position:-335px -119px}' +
+                '.cl-icon.icon-29{background-image:url(https://cronus.margonem.com/img/gui/notyfikacje-sprite.png);background-position:-401px -100px}' +
+                '.cl-icon.icon-32{background-image:url(https://cronus.margonem.com/img/gui/notyfikacje-sprite.png);background-position:-355px -119px}' : '');
+        }
+        const escape = value => String(value ?? '').replace(/[&<>"']/g,
+            char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+        function readStats(item) {
+            if (item._cachedStats) return item._cachedStats;
+            return Object.fromEntries(String(item.stat || '').split(';').filter(Boolean).map(pair => {
+                const separator = pair.indexOf('=');
+                return separator < 0 ? [pair, ''] : [pair.slice(0, separator), pair.slice(separator + 1)];
+            }));
+        }
+        function transformTip(item, html) {
+            if (!item || typeof html !== 'string') return html;
+            const stats = readStats(item);
+            if (settings.legendaryInfo && stats.rarity === 'legendary' && stats.loot) {
+                const [nick, , count, timestamp, monster] = String(stats.loot).split(',');
+                const group = Number(count) === 2 ? ' wraz z ziomeczkiem' :
+                    Number(count) > 2 ? ' w ' + Number(count) + '-osobowej drużynie' : '';
+                const time = window.ut_fulltime?.(Number(timestamp)) || new Date(Number(timestamp) * 1000).toLocaleString('pl-PL');
+                const text = 'W dniu ' + time + ' został(a) pokonany(a) ' + monster + ' przez ' + nick + group;
+                html = html.replace(/(<i[^>]*\blooter[^>]*>)([\s\S]*?)(<\/i>)/,
+                    (_, open, old, close) => open + escape(text) + close);
+            }
+            const cl = Number(item.cl);
+            if (settings.essenceValue && ((cl > 0 && cl < 15) || cl === 29) && Number(stats.lvl) >= 20 &&
+                !('cursed' in stats) && !('artisan_worthless' in stats) && item.salvageItems != null) {
+                html = html.replace(/(<div[^>]*class="[^"]*\bitem-name\b[^"]*"[^>]*>.*?)(<\/div>)/,
+                    (_, name, end) => name + ' [' + escape(item.salvageItems) + '] ' + end);
+            }
+            const hero = isNI ? window.Engine?.hero?.d : window.hero;
+            const hp = Number(hero?.maxhp ?? hero?.warrior_stats?.maxhp);
+            if (hp > 0 && settings.percentToHeal && Number(stats.perheal) > 0) {
+                html = html.replace(/Leczy <span class="damage">(\d+%)<\/span> życia/g,
+                    `Leczy <span class="damage">$1 (${Math.floor(Number(stats.perheal) / 100 * hp)})</span> życia`);
+            }
+            if (hp > 0 && settings.healToPercent && Number(stats.leczy) > 0) {
+                html = html.replace(/Leczy <span class="damage">(.+?)<\/span> punktów życia/g,
+                    `Leczy <span class="damage">$1 (${(Number(stats.leczy) / hp * 100).toFixed(0)}%)</span> życia`);
+            }
+            if (settings.itemIcons) {
+                const flags = ['artisan_worthless','permbound','soulbound','binds','noauction','nodepo','nodepoclan'].filter(key => key in stats);
+                const icons = (Number.isInteger(cl) ? [String(cl)] : []).concat(flags)
+                    .map(key => '<div class="cl-icon icon-' + key + '"></div>').join('');
+                html = html.replace('<div class="head-icons">', '$&' + icons);
+            }
+            return html;
+        }
+        function installParser() {
+            if (disposed) return;
+            const owner = isNI ? window.MargoTipsParser : window;
+            const name = isNI ? 'getTip' : 'itemTip';
+            if (!owner || typeof owner[name] !== 'function' || hooks.some(hook => hook.owner === owner && hook.name === name)) return;
+            const original = owner[name];
+            function wrapped(...args) {
+                const result = Reflect.apply(original, this, args);
+                if (disposed) return result;
+                try { return transformTip(args[0], result); }
+                catch (error) { console.error('[Koszty ulepszeń]', error); return result; }
+            }
+            try { owner[name] = wrapped; } catch { return; }
+            if (owner[name] === wrapped) hooks.push({owner, name, original, wrapped});
+        }
+
+        const host = document.createElement('div');
+        host.id = 'gogatki-item-tips';
+        host.style.cssText = 'all:initial;display:block;position:fixed;z-index:2147483000;';
+        const root = host.attachShadow({mode:'open'});
+        const fields = [
+            ['costs', 'Koszty ulepszeń legendy (NI)'],
+            ['hiddenSignature', 'Usuń podpis z legendy'],
+            ['legendaryInfo', 'Godzina i grupa zdobycia legendy'],
+            ['essenceValue', 'Wartość esencji z rozbicia'],
+            ['percentToHeal', 'Leczenie procentowe jako punkty życia'],
+            ['healToPercent', 'Punkty leczenia jako procent życia'],
+            ['itemIcons', 'Ikony przedmiotów']
+        ];
+        root.innerHTML = `<style>
+            :host{all:initial;color-scheme:dark}*{box-sizing:border-box;text-shadow:none}[hidden]{display:none!important}
+            .panel{width:290px;max-width:100vw;font:12px/1.4 Arial,sans-serif;color:#c7d0d9;background:#171b20;border:1px solid #668298;border-radius:4px;overflow:hidden}
+            header{height:28px;display:flex;align-items:center;justify-content:space-between;background:#252b31;cursor:move;touch-action:none;user-select:none}
+            strong{padding-left:8px;color:#12c9bd}.gear{display:flex;align-items:center;justify-content:center;width:26px;height:26px;padding:3px;border:0;background:#252b31;color:#12c9bd;cursor:pointer}.gear svg{display:block;pointer-events:none}
+            main{padding:8px;max-height:calc(100vh - 32px);overflow:auto}.options{display:grid;gap:8px;margin-top:8px}label{display:flex;align-items:center;gap:7px;cursor:pointer}
+            input[type=checkbox]{appearance:none;display:grid;place-content:center;flex:none;width:14px;height:14px;margin:0;padding:0;background:#171b20;border:1px solid #668298;border-radius:2px}
+            input[type=checkbox]:checked:after{content:'';width:7px;height:4px;border:solid #12c9bd;border-width:0 0 2px 2px;transform:rotate(-45deg)}
+            :focus-visible{outline:2px solid #12c9bd;outline-offset:1px}small{font-size:11px;line-height:1.4;color:#b1c0cb}
+            .collapsed{width:var(--tile);height:var(--tile)}.collapsed header,.collapsed .gear{width:100%;height:100%}.collapsed strong,.collapsed main{display:none}
+        </style><section class="panel" aria-label="Koszty ulepszeń i Extended Item Tip"><header><strong>Koszty ulepszeń</strong><button type="button" class="gear" aria-label="Opcje dymków przedmiotów" title="LPM: opcje · PPM: zwiń"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3"/></svg></button></header><main><small>Extended Item Tip + koszty ulepszeń${isNI ? '' : ' (koszty dostępne na NI)'}</small><div class="options">${fields.map(([key,label]) => `<label><input type="checkbox" data-key="${key}">${label}</label>`).join('')}</div></main></section>`;
+        document.body.append(host);
+        function placePanel() {
+            if (window.__gogatkiTileDock?.isDocked(host)) return;
+            const box = host.getBoundingClientRect();
+            settings.right = Math.max(0, Math.min(settings.right, window.innerWidth - box.width));
+            settings.top = Math.max(0, Math.min(settings.top, window.innerHeight - box.height));
+            host.style.right = settings.right + 'px'; host.style.top = settings.top + 'px';
+        }
+        function renderPanel() {
+            const size = document.querySelector('#gogatek-panel')?.shadowRoot?.querySelector('.launcher')?.getBoundingClientRect().height || 28;
+            host.style.setProperty('--tile', size + 'px');
+            root.querySelector('.panel').classList.toggle('collapsed', settings.collapsed);
+            root.querySelector('.options').hidden = !settings.settings;
+            root.querySelector('.gear').setAttribute('aria-expanded', String(!settings.collapsed && settings.settings));
+            placePanel();
+        }
+        for (const input of root.querySelectorAll('input')) {
+            const name = input.dataset.key; input.checked = settings[name];
+            if (name === 'costs' && !isNI) input.disabled = true;
+            input.addEventListener('change', () => {
+                settings[name] = input.checked; save(); updateExtendedStyle();
+                document.querySelectorAll(TIP_SELECTOR).forEach(updateTip);
+            });
+        }
+        const gear = root.querySelector('.gear'), header = root.querySelector('header');
+        let drag, moved = false;
+        gear.addEventListener('click', () => {
+            if (moved) return;
+            if (settings.collapsed) settings.collapsed = false; else settings.settings = !settings.settings;
+            renderPanel(); save();
+        });
+        gear.addEventListener('contextmenu', event => {event.preventDefault();settings.collapsed = !settings.collapsed;renderPanel();save();});
+        header.addEventListener('pointerdown', event => {
+            if (event.button !== 0) return;
+            moved = false; drag = {x:event.clientX,y:event.clientY,right:settings.right,top:settings.top};
+            if (!gear.contains(event.target)) header.setPointerCapture(event.pointerId);
+        });
+        header.addEventListener('pointermove', event => {
+            if (!drag) return;
+            const dx = event.clientX - drag.x, dy = event.clientY - drag.y;
+            if (!moved && Math.hypot(dx,dy) < 4) return;
+            moved = true; header.setPointerCapture(event.pointerId);
+            settings.right = drag.right - dx; settings.top = drag.top + dy; placePanel();
+        });
+        function endDrag() {if (drag) {drag = null;save();}}
+        for (const event of ['pointerup','pointercancel','lostpointercapture']) header.addEventListener(event, endDrag);
+        function resizePanel() {renderPanel();save();}
+        window.addEventListener('resize', resizePanel);
+        renderPanel(); updateExtendedStyle(); save();
 
         function calcCosts(level) {
             if (!Number.isFinite(level) || level <= 0) return null;
@@ -88,7 +246,7 @@ GogatkiRuntime.register({
             const levelMatch = levelText.match(/poziom:\s*(\d+)/i);
             const level = levelMatch ? Number(levelMatch[1]) : 0;
             const costs = calcCosts(level);
-            if (wrapper.getAttribute('data-type') !== 't_item' || !legendary || !costs) {
+            if (!isNI || !settings.costs || wrapper.getAttribute('data-type') !== 't_item' || !legendary || !costs) {
                 existing?.remove();
                 return;
             }
@@ -126,13 +284,22 @@ GogatkiRuntime.register({
         });
         function destroy(event) {
             if (event?.persisted) return;
+            disposed = true;
             observer.disconnect();
+            window.clearInterval(parserTimer);
+            for (const { owner, name, original, wrapped } of hooks) {
+                if (owner[name] === wrapped) owner[name] = original;
+            }
+            window.removeEventListener('resize', resizePanel);
+            host.remove();
             document.querySelectorAll('.' + SECTION_CLASS).forEach(section => section.remove());
             style.remove();
             window.removeEventListener('pagehide', destroy);
             if (window[INSTANCE]?.destroy === destroy) delete window[INSTANCE];
         }
         window[INSTANCE] = { destroy };
+        installParser();
+        const parserTimer = window.setInterval(installParser, 500);
         document.querySelectorAll(TIP_SELECTOR).forEach(updateTip);
         observer.observe(document.body, {
             childList: true, subtree: true, characterData: true, attributes: true,

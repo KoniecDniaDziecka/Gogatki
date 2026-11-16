@@ -5,6 +5,7 @@
     const window = unsafeWindow;
     function createTileDock({onCleanup = () => {}} = {}) {
         const specs = [
+            {id:'gogatki-item-tips', name:'Koszty ulepszeń', control:'.gear', shadow:true, clickToOpen:true},
             {id:'gogatki-alerts', name:'Alerts', control:'.gear', shadow:true, clickToOpen:true, icon:'bell'},
             {id:'gogatki-proximity-build', name:'Zestaw pod przeciwnika', control:'.gear', shadow:true, click:true, activeControl:true, activeEvent:'gogatki:toggle-active'},
             {id:'gogatki-mapa-plus', name:'Mapa+', control:'.open-map', click:true, icon:'map'},
