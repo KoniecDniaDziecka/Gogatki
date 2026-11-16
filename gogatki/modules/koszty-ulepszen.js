@@ -1,4 +1,4 @@
-// Koszty ulepszeń + Extended Item Tip 1.1.2
+// Koszty ulepszeń + Extended Item Tip 1.1.3
 // Rozszerzenia dymków: Maddonz (Barlag), margonem-sources/maddonz.original.js.
 // Wzory i rozpoznawanie dymków: Dark-Sad, Panel dodatków 6.1.5,
 // Sebastian00P/PanelDodatkow/script.js (blob e589b5b7ccb42279d2e9ff386777d6bb2631b86c).
@@ -18,7 +18,7 @@ GogatkiRuntime.register({
         const isNI = Boolean(window.Engine);
         const KEY = 'koszty-ulepszen:global:v1';
         const defaults = { costs:true, hiddenSignature:false, legendaryInfo:true, essenceValue:true,
-            percentToHeal:true, healToPercent:true, itemIcons:false, collapsed:true, settings:true, right:18, top:160 };
+            percentToHeal:true, healToPercent:true, itemIcons:false, collapsed:true, right:18, top:160 };
         let saved;
         try { saved = GM_getValue(KEY, null); } catch {}
         if (saved == null) {
@@ -145,7 +145,7 @@ GogatkiRuntime.register({
             input[type=checkbox]:checked:after{content:'';width:7px;height:4px;border:solid #12c9bd;border-width:0 0 2px 2px;transform:rotate(-45deg)}
             :focus-visible{outline:2px solid #12c9bd;outline-offset:1px}small{font-size:11px;line-height:1.4;color:#b1c0cb}
             .collapsed{width:var(--tile);height:var(--tile)}.collapsed header,.collapsed .gear{width:100%;height:100%}.collapsed strong,.collapsed main{display:none}
-        </style><section class="panel" aria-label="Koszty ulepszeń i Extended Item Tip"><header><strong>Koszty ulepszeń</strong><button type="button" class="gear" aria-label="Opcje dymków przedmiotów" title="LPM: opcje · PPM: zwiń"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 5 2.4 4.8 5.3.8-3.9 3.8.9 5.3L9 17.2l-4.7 2.5.9-5.3-3.9-3.8 5.3-.8L9 5Z"/><circle cx="18" cy="5" r="4"/><path d="m17 4 1-1v4m-1 0h2"/></svg></button></header><main><small>Extended Item Tip + koszty ulepszeń${isNI ? '' : ' (koszty dostępne na NI)'}</small><div class="options">${fields.map(([key,label]) => `<label><input type="checkbox" data-key="${key}">${label}</label>`).join('')}</div></main></section>`;
+        </style><section class="panel" aria-label="Koszty ulepszeń i Extended Item Tip"><header><strong>Koszty ulepszeń</strong><button type="button" class="gear" aria-label="Opcje dymków przedmiotów" title="LPM: rozwiń lub zwiń do docku · PPM: zwiń"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 5 2.4 4.8 5.3.8-3.9 3.8.9 5.3L9 17.2l-4.7 2.5.9-5.3-3.9-3.8 5.3-.8L9 5Z"/><circle cx="18" cy="5" r="4"/><path d="m17 4 1-1v4m-1 0h2"/></svg></button></header><main><small>Extended Item Tip + koszty ulepszeń${isNI ? '' : ' (koszty dostępne na NI)'}</small><div class="options">${fields.map(([key,label]) => `<label><input type="checkbox" data-key="${key}">${label}</label>`).join('')}</div></main></section>`;
         document.body.append(host);
         function placePanel() {
             if (window.__gogatkiTileDock?.isDocked(host)) return;
@@ -158,8 +158,7 @@ GogatkiRuntime.register({
             const size = document.querySelector('#gogatek-panel')?.shadowRoot?.querySelector('.launcher')?.getBoundingClientRect().height || 28;
             host.style.setProperty('--tile', size + 'px');
             root.querySelector('.panel').classList.toggle('collapsed', settings.collapsed);
-            root.querySelector('.options').hidden = !settings.settings;
-            root.querySelector('.gear').setAttribute('aria-expanded', String(!settings.collapsed && settings.settings));
+            root.querySelector('.gear').setAttribute('aria-expanded', String(!settings.collapsed));
             placePanel();
         }
         for (const input of root.querySelectorAll('input')) {
@@ -174,7 +173,7 @@ GogatkiRuntime.register({
         let drag, moved = false;
         gear.addEventListener('click', () => {
             if (moved) return;
-            if (settings.collapsed) settings.collapsed = false; else settings.settings = !settings.settings;
+            settings.collapsed = !settings.collapsed;
             renderPanel(); save();
         });
         gear.addEventListener('contextmenu', event => {event.preventDefault();settings.collapsed = !settings.collapsed;renderPanel();save();});
