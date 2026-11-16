@@ -1,4 +1,4 @@
-// Zestaw pod przeciwnika 1.0.7 — integracja z Gogatkami.
+// Zestaw pod przeciwnika 1.0.8 — integracja z Gogatkami.
 (() => {
 'use strict';
 const PROFESSIONS = {w:'Wojownik',p:'Paladyn',b:'Tancerz ostrzy',m:'Mag',t:'Tropiciel',h:'Łowca'};
@@ -66,48 +66,111 @@ GogatkiRuntime.register({id:'proximity-build',name:'Zestaw pod przeciwnika',desc
     }
 // Observe packets without changing game processing.
 function installGogatkiBuildCapture(w) {
-  if(w.__gogatkiBuildCapture)return w.__gogatkiBuildCapture;
-  const state={builds:{},current:null,version:0,inBattle:false,town:null,party:null,partyKnown:false};
-  state.consume=function(packet){
-    if(!packet||typeof packet!=='object')return;
-    if(packet.town && typeof packet.town==='object'){
-      const changed=packet.town.file || (packet.town.id!=null && state.town?.id!=null && String(packet.town.id)!==String(state.town.id));
-      state.town=changed ? {...packet.town} : {...state.town,...packet.town};
+  if(w.__gogatkiBuildCapture?.apiVersion===2){w.__gogatkiBuildCapture.refresh();return w.__gogatkiBuildCapture;}
+  w.__gogatkiBuildCapture?.cleanup?.();
+  const state={apiVersion:2,profile:null,builds:{},current:null,version:0,inBattle:false,town:null,party:null,partyKnown:false};
+  const restores=[];
+  let stopped=false,owner=null,wrapped=null,engine=null,signature='',liveList=false,bridgeVersion=-1,staged=null;
+  function profile(id=w.Engine?.hero?.d?.id){
+    return /^[1-9]\d*$/.test(String(id??''))?String(w.location.hostname).toLowerCase()+':'+id:null;
+  }
+  const cacheKey=()=>state.profile&&'gogatki:proximity:build-list:v1:'+state.profile;
+  function entries(list){
+    return Array.isArray(list)?list.filter(b=>b&&b.id!=null&&Number.isInteger(Number(b.id))&&Number(b.id)>=0):[];
+  }
+  function metadata(){return Object.values(state.builds).map(b=>({id:Number(b.id),name:String(b.name??'')})).sort((a,b)=>a.id-b.id);}
+  function storeList(){
+    const key=cacheKey(),value=metadata(),next=JSON.stringify(value);
+    if(!key||next===signature)return;
+    signature=next;
+    try{GM_setValue(key,{list:value});}catch(error){console.warn('[Gogatki: zestawy] Zapis listy:',error);}
+  }
+  function restoreList(){
+    const key=cacheKey();if(!key||liveList)return;
+    let saved;try{saved=GM_getValue(key,null);}catch{return;}
+    if(!Array.isArray(saved?.list))return;
+    const next={};for(const b of entries(saved.list))next[b.id]={id:Number(b.id),name:String(b.name??'')};
+    if(JSON.stringify(next)!==JSON.stringify(state.builds)){state.builds=next;state.version++;}
+    signature=JSON.stringify(metadata());
+    // A cached name list is useful in the UI; an old active build is never trusted.
+  }
+  function sync(next=profile()){
+    if(state.profile===next&&engine===w.Engine)return;
+    const previous=state.profile;
+    state.profile=next;engine=w.Engine;state.builds={};state.current=null;state.inBattle=false;
+    state.town=null;state.party=null;state.partyKnown=false;state.version++;
+    signature='';liveList=false;bridgeVersion=-1;
+    if(previous!==null||staged?.engine!==engine)staged=null;
+    restoreList();
+  }
+  function applyBuilds(data){
+    if(!data||typeof data!=='object')return;
+    const before=JSON.stringify(state.builds),current=state.current;
+    if(data.action==='INIT')state.builds={};
+    if(Array.isArray(data.list)){
+      for(const b of entries(data.list))state.builds[b.id]={id:Number(b.id),name:String(b.name??state.builds[b.id]?.name??'')};
+      liveList=true;
+    }
+    if(data.currentId!=null)state.current=data.currentId;
+    if(before!==JSON.stringify(state.builds)||String(current)!==String(state.current))state.version++;
+    if(Array.isArray(data.list))storeList();
+  }
+  state.consume=function(packet,expectedProfile){
+    if(stopped||!packet||typeof packet!=='object')return;
+    if(expectedProfile&&(profile()!==expectedProfile||state.profile!==expectedProfile))return;
+    sync(profile(packet.h?.id??w.Engine?.hero?.d?.id));
+    if(!state.profile){if(packet.builds)staged={data:JSON.parse(JSON.stringify(packet.builds)),engine:w.Engine};return;}
+    if(packet.town&&typeof packet.town==='object'){
+      const changed=packet.town.file||(packet.town.id!=null&&state.town?.id!=null&&String(packet.town.id)!==String(state.town.id));
+      state.town=changed?{...packet.town}:{...state.town,...packet.town};
     }
     if(Object.prototype.hasOwnProperty.call(packet,'party')){
       state.partyKnown=true;
-      state.party=packet.party && typeof packet.party==='object' && Object.keys(packet.party).length ? packet.party : null;
+      state.party=packet.party&&typeof packet.party==='object'&&Object.keys(packet.party).length?packet.party:null;
     }
-    const b=packet.builds;
-    if(b){
-      if(b.action==='INIT')state.builds={};
-      if(Array.isArray(b.list))for(const entry of b.list)if(entry&&Number.isInteger(Number(entry.id)))state.builds[entry.id]={...state.builds[entry.id],...entry};
-      if(b.currentId!=null)state.current=b.currentId;
-      state.version++;
-    }
+    applyBuilds(packet.builds);
     if(packet.f?.init!=null)state.inBattle=true;
-    if(packet.f?.endBattle)state.inBattle=false;
-    if(packet.town?.file)state.inBattle=false;
+    if(packet.f?.endBattle||packet.town?.file)state.inBattle=false;
   };
-  w.__gogatkiBuildCapture=state;
-  let timer;
-  function hook(){
-    const owner=w.Engine?.communication;
-    if(typeof owner?.parseJSON!=='function')return false;
-    const original=owner.parseJSON;
-    const wrapped=function(packet){
-      // Observation errors must never prevent game processing.
-      try{state.consume(packet);}catch(error){console.warn('[Gogatki: zestawy] Dane zestawów:',error);}
-      return original.apply(this,arguments);
+  function hook(force=false){
+    const next=w.Engine?.communication;if(typeof next?.parseJSON!=='function')return;
+    // Other addons may wrap our parser; leave that chain intact during polling.
+    if(next===owner&&(!force||next.parseJSON===wrapped))return;
+    if(owner&&owner!==next){staged=null;state.current=null;state.version++;}
+    owner=next;const observedEngine=w.Engine,original=next.parseJSON;
+    wrapped=function(...args){
+      let snapshot;
+      try{const p=args[0];snapshot=p&&typeof p==='object'?JSON.parse(JSON.stringify({builds:p.builds,h:p.h?.id!=null?{id:p.h.id}:undefined,town:p.town,party:p.party,f:p.f?{init:p.f.init,endBattle:p.f.endBattle}:undefined})):null;
+        if(p&&!Object.hasOwn(p,'party')&&snapshot)delete snapshot.party;
+      }catch(error){console.warn('[Gogatki: zestawy] Kopia danych:',error);}
+      const result=original.apply(this,args);
+      try{if(w.Engine===observedEngine&&w.Engine?.communication===next)state.consume(snapshot);}catch(error){console.warn('[Gogatki: zestawy] Dane zestawów:',error);}
+      return result;
     };
-    owner.parseJSON=wrapped;
-    state.cleanup=()=>{if(owner.parseJSON===wrapped)owner.parseJSON=original;};
-    return true;
+    const installed=wrapped;next.parseJSON=installed;
+    restores.push(()=>{if(next.parseJSON===installed)next.parseJSON=original;});
   }
-  if(!hook()){
-    timer=w.setInterval(()=>{if(hook())w.clearInterval(timer);},10);
-    w.addEventListener('pagehide',()=>w.clearInterval(timer),{once:true});
-  }
+  state.refresh=function(reloadCache=false){
+    if(stopped)return;
+    sync();hook(reloadCache);
+    if(!state.profile)return;
+    if(staged&&staged.engine===engine){const data=staged.data;staged=null;applyBuilds(data);}
+    const early=w.__gogatkiEarlyBuilds?.peek?.();
+    if(early&&early.profile===state.profile&&early.engine===engine&&early.communication===w.Engine?.communication&&early.version!==bridgeVersion){
+      bridgeVersion=early.version;
+      if(early.received)applyBuilds({action:early.complete?'INIT':'UPDATE_DATA',list:Object.values(early.builds),currentId:early.current});
+    }
+    if(reloadCache)restoreList();
+    // This is the same native current-build indicator used by Maddonz.
+    if(state.current==null&&w.Engine?.allInit!==false&&!w.Engine?.lock?.check?.('logoff')){
+      const text=w.document.querySelector('.builds-interface .build-index')?.textContent?.trim();
+      if(text&&/^\d+$/.test(text)&&state.builds[text]&&String(state.current)!==text){state.current=Number(text);state.version++;}
+    }
+  };
+  const timer=w.setInterval(()=>{try{state.refresh();}catch(error){console.warn('[Gogatki: zestawy] Odświeżanie:',error);}},100);
+  state.cleanup=()=>{if(stopped)return;stopped=true;w.clearInterval(timer);for(const restore of restores.reverse())restore();if(w.__gogatkiBuildCapture===state)delete w.__gogatkiBuildCapture;};
+  w.addEventListener('pagehide',state.cleanup,{once:true});
+  w.__gogatkiBuildCapture=state;state.refresh();
   return state;
 }
 
@@ -140,7 +203,7 @@ installGogatkiBuildCapture(w);
     config.builds={...(saved.builds || {})};
     delete config.radius; // Retired manual range; ignore legacy profiles.
     const save=()=>GM_setValue(storageKey,JSON.parse(JSON.stringify(config)));
-    const capture=w.__gogatkiBuildCapture || {builds:{},current:null};
+    const capture=installGogatkiBuildCapture(w);
     const host=document.createElement('div'); host.id='gogatki-proximity-build';
     const root=host.attachShadow({mode:'open'});
     root.innerHTML=`<style>
@@ -159,7 +222,7 @@ installGogatkiBuildCapture(w);
       const launcher=document.querySelector('#gogatek-panel')?.shadowRoot?.querySelector('.launcher');
       panel.style.setProperty('--tile',(launcher?.getBoundingClientRect().height || 28)+'px');
       if(persist)GM_setValue(windowStateKey,value);
-      if(value)renderBuilds();
+      if(value){capture.refresh();renderBuilds();}
       clampPosition();
     }
     tile.onclick=()=>setOpen(panel.classList.contains('collapsed'));
@@ -197,7 +260,7 @@ installGogatkiBuildCapture(w);
         select.value=selected;
       }
     }
-    root.querySelector('#refresh').onclick=()=>{renderBuilds();say(Object.keys(capture.builds).length?'Lista zestawów odświeżona.':'Brak danych zestawów. Odśwież grę z włączonym skryptem, następnie otwórz zestawy postaci.');};
+    root.querySelector('#refresh').onclick=()=>{capture.refresh(true);renderBuilds();say(Object.keys(capture.builds).length?'Lista zestawów odświeżona.':'Gra nie przesłała jeszcze listy — otwórz zestawy postaci w grze.');};
     renderBuilds();
     let version=-1,pending=null,lastAttempt=0,blockedUntil=0,inBattle=false;
     let lastMap=null;
@@ -209,6 +272,8 @@ installGogatkiBuildCapture(w);
           w.clearInterval(timer);host.remove();delete w.__gogatkiProximity;
           start();return;
         }
+        capture.refresh();
+        if(w.Engine?.allInit===false||w.Engine?.lock?.check?.('logoff')){say('Oczekiwanie na zalogowanie postaci.');return;}
         if(version!==capture.version){version=capture.version;renderBuilds();}
         inBattle=!!capture.inBattle || !!w.Engine?.lock?.check?.('battle');
         if(typeof w._g!=='function'){say('Oczekiwanie na komunikację gry.');return;}
@@ -241,7 +306,7 @@ installGogatkiBuildCapture(w);
         lastAttempt=Date.now();pending={build,time:lastAttempt};
         const request='builds&action=updateCurrent&id='+encodeURIComponent(build)+(w.Engine?.skills?'&skillshop=1':'');
         say('Zmiana zestawu: '+situation);
-        w._g(request,packet=>{capture.consume?.(packet);});
+        w._g(request,packet=>{capture.consume?.(packet,profile);});
       }catch(error){config.enabled=false;refreshEnabled();save();say('Automat zatrzymany: '+error.message);console.error('[Gogatki: zestawy]',error);}
     }
     const timer=w.setInterval(tick,250);
@@ -280,6 +345,7 @@ installGogatkiBuildCapture(w);
   }
 });
 })();
+
 
 
 

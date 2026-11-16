@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Gogatki — panel dodatków
 // @namespace    gogatek.local
-// @version      0.9.6
+// @version      0.9.7
 // @description  Wspólny panel i przełączniki dodatków do Margonem.
 // @match        https://*.margonem.pl/*
 // @match        https://*.margonem.com/*
@@ -22,13 +22,90 @@
 // @grant        unsafeWindow
 // @grant        GM_xmlhttpRequest
 // @connect      raw.githubusercontent.com
-// @run-at       document-idle
+// @run-at       document-start
 // @noframes
 // @downloadURL  https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/gogatki.user.js
 // @updateURL    https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/gogatki.user.js
 // ==/UserScript==
 
+// Capture the login build list before asynchronously downloaded addons start.
+(() => {
+    'use strict';
+    const w = unsafeWindow;
+    let enabled = false;
+    try { enabled = GM_getValue('gogatek:modules:v1', {})?.['proximity-build'] === true; } catch {}
+    if (!enabled || w.top !== w.self || w.__gogatkiEarlyBuilds) return;
+    const bridge = {profile:null, engine:null, communication:null, builds:{}, current:null, received:false, complete:false, version:0};
+    const restorers = [];
+    let stopped = false, owner = null, tries = 0, timer, staged = null;
+    function profile(id = w.Engine?.hero?.d?.id) {
+        return /^[1-9]\d*$/.test(String(id ?? '')) ? String(w.location.hostname).toLowerCase() + ':' + id : null;
+    }
+    function sync(next = profile()) {
+        if (bridge.profile !== next || bridge.engine !== w.Engine) {
+            if (bridge.profile !== null || bridge.engine !== w.Engine) staged = null;
+            bridge.profile = next; bridge.engine = w.Engine; bridge.builds = {};
+            bridge.current = null; bridge.received = false; bridge.complete = false; bridge.version++;
+        }
+    }
+    bridge.peek = () => {
+        sync();
+        if (bridge.profile && staged?.engine === w.Engine) { const data = staged.data; staged = null; observe(data, w.Engine.hero.d.id); }
+        return bridge;
+    };
+    function observe(data, identity) {
+        sync(profile(identity));
+        if (!bridge.profile) { if (data) staged = {data, engine:w.Engine}; return; }
+        if (!data || typeof data !== 'object') return;
+        if (data.action === 'INIT') { bridge.builds = {}; bridge.complete = true; }
+        if (Array.isArray(data.list)) {
+            for (const entry of data.list) if (entry && Number.isInteger(Number(entry.id)) && Number(entry.id) >= 0)
+                bridge.builds[entry.id] = {id:Number(entry.id), name:String(entry.name ?? bridge.builds[entry.id]?.name ?? '')};
+            bridge.received = true;
+        }
+        if (data.currentId != null) bridge.current = data.currentId;
+        bridge.version++;
+    }
+    function hook() {
+        if (stopped) return;
+        bridge.peek();
+        const next = w.Engine?.communication;
+        if (!next || typeof next.parseJSON !== 'function' || next === owner) return;
+        if (owner) { staged = null; bridge.current = null; bridge.received = false; bridge.complete = false; bridge.version++; }
+        owner = next; bridge.communication = next;
+        const observedEngine = w.Engine, original = next.parseJSON;
+        function wrapped(...args) {
+            let builds = null, identity = args[0]?.h?.id;
+            try { if (args[0]?.builds) builds = JSON.parse(JSON.stringify(args[0].builds)); } catch {}
+            const result = original.apply(this, args);
+            if (!stopped && w.Engine === observedEngine && w.Engine?.communication === next) {
+                try { observe(builds, identity ?? w.Engine?.hero?.d?.id); } catch (error) { console.warn('[Gogatki] Zestawy przy logowaniu:', error); }
+            }
+            return result;
+        }
+        next.parseJSON = wrapped;
+        restorers.push(() => { if (next.parseJSON === wrapped) next.parseJSON = original; });
+    }
+    w.__gogatkiEarlyBuilds = bridge;
+    hook();
+    // Fast startup observation; once installed, only watch for a replaced engine.
+    timer = w.setInterval(() => {
+        hook();
+        if (owner || ++tries >= 6000) {
+            w.clearInterval(timer);
+            if (owner) timer = w.setInterval(hook, 250);
+        }
+    }, 10);
+    w.addEventListener('pagehide', () => {
+        stopped = true; w.clearInterval(timer);
+        queueMicrotask(() => { for (const restore of restorers.reverse()) restore(); });
+        if (w.__gogatkiEarlyBuilds === bridge) delete w.__gogatkiEarlyBuilds;
+    }, {once:true});
+})();
 
+// Mount the existing panel after DOM readiness, as before; only build capture starts early.
+(() => {
+    const mount = () => {
 (() => {
     'use strict';
     const window = unsafeWindow;
@@ -664,14 +741,7 @@ const fallbackCatalogue = {"schemaVersion":1,"modules":[{"id":"ulepa","name":"Ul
         window.addEventListener('pagehide', () => clearInterval(wait), {once:true});
     }
 })();
-
-
-
-
-
-
-
-
-
-
-
+    };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount, {once:true});
+    else mount();
+})();
