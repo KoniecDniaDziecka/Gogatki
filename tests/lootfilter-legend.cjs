@@ -52,101 +52,83 @@ async function fixture(browser,mode,options={}){
  for(const mode of ['NI','SI']){
   {
    const f=await fixture(browser,mode,{mutate:true,config:{autoAccept:'always'}}),p=f.page;
+   eq(await f.legend.locator('summary').textContent(),'Lega info',mode+' section name');
+   eq(await f.legend.locator('input').count(),2,mode+' only chat options remain');
+   eq(await f.legend.locator('button').count(),0,mode+' no effect preview');
+   eq(await f.legend.locator('[data-legend]').evaluateAll(inputs=>inputs.map(input=>input.dataset.legend)),['enabled','clanMessageTemplate'],mode+' enable and template controls');
    const result=await p.evaluate(()=>{const owner=window.Engine?.communication||window;const result=test.parse(test.loot(),'preserved');return [result,test.thisValue===owner,test.extra];});
    eq(result,[42,true,'preserved'],mode+' native parser calling convention');
    eq(await p.evaluate(()=>test.finalized.length),0,mode+' legendary loot never auto-finalizes');
-   eq(await p.evaluate(()=>test.requests.filter(r=>r.query.startsWith('chat'))),[{query:'chat&channel=clan',data:{c:'ITEM#hash1'}}],mode+' legend chat uses pre-parser snapshot');
-   eq(await p.evaluate(()=>test.requests.filter(r=>r.query.startsWith('loot')).length),1,mode+' filters still select the loot');
-   eq(await p.evaluate(()=>test.sounds),[{url:'https://cronus.margonem.com/sounds/heroes_here.mp3',volume:mode==='NI'?.65:.45}],mode+' sound and volume');
-   eq(await p.evaluate(()=>document.body.style.getPropertyValue('--gogatki-loot-legend-size')),'30px',mode+' native glow');
-   eq(await p.locator('.gogatki-loot-legend-window').count(),1,mode+' native loot window is highlighted');
+   eq(await p.evaluate(()=>test.requests.filter(r=>r.query.startsWith('chat'))),[{query:'chat&channel=clan',data:{c:'ITEM#hash1'}}],mode+' clan message uses pre-parser snapshot');
+   eq(await p.evaluate(()=>test.requests.filter(r=>r.query.startsWith('loot')).length),1,mode+' filters still select loot');
+   eq(await p.evaluate(()=>test.sounds.length),0,mode+' no sound playback');
+   eq(await p.evaluate(()=>document.body.style.getPropertyValue('--gogatki-loot-legend-size')),'',mode+' no glow');
+   eq(await p.locator('#gogatki-loot-legend-style,[data-gogatki-loot-confetti],.gogatki-loot-legend-window').count(),0,mode+' no effect DOM');
    await p.evaluate(()=>test.parse(test.loot()));
-   eq(await p.evaluate(()=>test.requests.filter(r=>r.query.startsWith('chat')).length),1,mode+' repeated init does not duplicate clan message');
-   eq(await p.evaluate(()=>test.sounds.length),1,mode+' repeated init does not replay sound');
+   eq(await p.evaluate(()=>test.requests.filter(r=>r.query.startsWith('chat')).length),1,mode+' repeated init sends one message');
    await p.evaluate(()=>test.parse(test.loot(2,'common')));
-   eq(await p.evaluate(()=>test.finalized.length),1,mode+' ordinary loot can still auto-finalize');
-   eq(await p.evaluate(()=>document.body.style.getPropertyValue('--gogatki-loot-legend-size')),'',mode+' ordinary loot clears effects');
-   await p.evaluate(()=>{
-    const packet=test.loot(3,'common');packet.item[4]={id:4,hid:'mixed',name:'Mixed legend',cl:1,loc:'k',stat:'rarity=legendary'};
-    test.parse(packet);
-   });
-   eq(await p.evaluate(()=>test.finalized.length),1,mode+' a colossus legend in mixed loot also blocks auto-finalization');
+   eq(await p.evaluate(()=>test.finalized.length),1,mode+' ordinary loot auto-finalizes');
+   await p.evaluate(()=>{const packet=test.loot(3,'common');packet.item[4]={id:4,hid:'mixed',name:'Mixed legend',cl:1,loc:'k',stat:'rarity=legendary'};test.parse(packet);});
+   eq(await p.evaluate(()=>test.finalized.length),1,mode+' mixed loot containing legend blocks auto-finalization');
    await f.close();
   }
   {
    const f=await fixture(browser,mode,{config:{enabled:false}}),p=f.page;
    await p.evaluate(()=>test.parse(test.loot(5)));
    eq(await p.evaluate(()=>test.requests.filter(r=>r.query.startsWith('loot')).length),0,mode+' disabled filters send no selection');
-   eq(await p.evaluate(()=>test.sounds.length),1,mode+' notification independent from filter switch');
-   await f.set('enabled',false);
-   eq(await p.evaluate(()=>document.body.style.getPropertyValue('--gogatki-loot-legend-size')),'',mode+' notification switch clears glow');
-   await p.evaluate(()=>test.parse(test.loot(6)));
-   eq(await p.evaluate(()=>test.sounds.length),1,mode+' disabled notification remains silent');
+   eq(await p.evaluate(()=>test.requests.filter(r=>r.query.startsWith('chat')).length),1,mode+' clan info independent from filters');
+   await f.set('enabled',false);await p.evaluate(()=>test.parse(test.loot(6)));
+   eq(await p.evaluate(()=>test.requests.filter(r=>r.query.startsWith('chat')).length),1,mode+' Lega info switch stops messages');
    await f.close();
   }
   {
    const f=await fixture(browser,mode),p=f.page;
-   await f.set('mute',true);await f.set('clanMessageTemplate','');
-   await p.evaluate(()=>test.parse(test.loot(7)));
-   eq(await p.evaluate(()=>test.sounds.length),0,mode+' mute');
+   await f.set('clanMessageTemplate','');await p.evaluate(()=>test.parse(test.loot(7)));
    eq(await p.evaluate(()=>test.requests.filter(r=>r.query.startsWith('chat')).length),0,mode+' empty template suppresses chat');
-   await f.set('enabled',false);await f.set('mute',false);await f.set('customAudio','https://example.com/custom.mp3');
-   await f.set('clanMessageTemplate','${name}: ${id}');await f.set('shadowColor','#12c9bd');await f.set('shadowSize',45);await f.set('confetti',true);await f.set('enabled',true);
-   await f.legend.getByRole('button',{name:'Podgląd powiadomienia'}).click();
-   eq(await p.evaluate(()=>test.requests.filter(r=>r.query.startsWith('chat')).length),0,mode+' preview never sends chat');
-   eq(await p.evaluate(()=>test.sounds.at(-1).url),'https://example.com/custom.mp3',mode+' custom sound');
-   const pausedBefore=await p.evaluate(()=>test.paused);
-   await f.set('mute',true);
-   eq((await p.evaluate(()=>test.paused))>pausedBefore,true,mode+' muting stops currently playing audio');
-   await f.set('mute',false);
-   eq(await p.evaluate(()=>document.body.style.getPropertyValue('--gogatki-loot-legend-window')),'#12c9bd',mode+' custom color');
-   eq(await p.locator('[data-gogatki-loot-confetti]').count(),1,mode+' local confetti');
+   await f.set('clanMessageTemplate','${name}: ${id}');
    await p.evaluate(()=>test.parse(test.loot(8,'legendary','k','colossus')));
-   eq(await p.evaluate(()=>test.requests.filter(r=>r.query.startsWith('chat'))),[{query:'chat&channel=clan',data:{c:'Item 8: ITEM#hash8'}}],mode+' colossus legend notification and template');
-   eq(await p.evaluate(()=>test.requests.filter(r=>r.query.startsWith('loot')).length),1,mode+' colossus notification does not invoke fight filters');
-   await f.set('randomAudio','https://example.com/random.mp3');
-   await f.legend.getByRole('button',{name:'Podgląd powiadomienia'}).click();
-   eq(await p.evaluate(()=>test.sounds.at(-1).url),'https://example.com/random.mp3',mode+' random sound list');
-   await f.set('enabled',false);
-   eq(await p.locator('[data-gogatki-loot-confetti]').count(),0,mode+' disable removes confetti');
+   eq(await p.evaluate(()=>test.requests.filter(r=>r.query.startsWith('chat'))),[{query:'chat&channel=clan',data:{c:'Item 8: ITEM#hash8'}}],mode+' colossus loot and template');
+   eq(await p.evaluate(()=>test.requests.filter(r=>r.query.startsWith('loot')).length),1,mode+' colossus does not invoke fight filters');
    await f.close();
   }
   {
    const f=await fixture(browser,mode,{config:{enabled:false}}),p=f.page;
    await p.evaluate(()=>test.parse(test.loot(50,'legendary','g')));
-   eq(await p.evaluate(()=>test.sounds.length),0,mode+' inventory legend is not a dropped legend');
-   await p.evaluate(()=>{
-    const packet=test.loot(51);packet.item[52]={...packet.item[51],id:52,hid:'hash52',name:'Second legend'};
-    packet.loot.endTs=100.1;test.parse(packet);
-   });
-   eq(await p.evaluate(()=>test.requests.filter(r=>r.query.startsWith('chat'))),[{query:'chat&channel=clan',data:{c:'ITEM#hash51 ITEM#hash52'}}],mode+' multiple legends share one message');
-   await p.waitForTimeout(150);
-   eq(await p.evaluate(()=>document.body.style.getPropertyValue('--gogatki-loot-legend-size')),'',mode+' loot deadline removes glow');
+   eq(await p.evaluate(()=>test.requests.length),0,mode+' inventory item is not a dropped legend');
+   await p.evaluate(()=>{const packet=test.loot(51);packet.item[52]={...packet.item[51],id:52,hid:'hash52',name:'Second legend'};test.parse(packet);});
+   eq(await p.evaluate(()=>test.requests),[{query:'chat&channel=clan',data:{c:'ITEM#hash51 ITEM#hash52'}}],mode+' multiple legends share a message');
    await f.close();
   }
   {
    const f=await fixture(browser,mode,{noClan:true}),p=f.page;
    await p.evaluate(()=>test.parse(test.loot(9)));
    eq(await p.evaluate(()=>test.requests.filter(r=>r.query.startsWith('chat')).length),0,mode+' no clan skip');
-   eq(await p.evaluate(()=>test.sounds.length),1,mode+' no clan still notifies');
    await f.close();
   }
   {
    const f=await fixture(browser,mode),p=f.page;
    await p.evaluate(()=>{test.parse(test.loot(10));test.parse(test.loot(11));test.hero.id=2;});
    await p.waitForTimeout(1600);
-   eq(await p.evaluate(()=>test.requests.filter(r=>r.query.startsWith('chat')).length),1,mode+' queued messages do not follow character changes');
+   eq(await p.evaluate(()=>test.requests.filter(r=>r.query.startsWith('chat')).length),1,mode+' queued message cannot follow character change');
+   await p.evaluate(()=>{test.hero.id=1;test.parse(test.loot(12));test.parse(test.loot(13));});
+   await f.set('enabled',false);await p.waitForTimeout(1600);
+   eq(await p.evaluate(()=>test.requests.filter(r=>r.query.startsWith('chat')).length),2,mode+' disabling drops pending messages');
    await f.close();
   }
   {
-   const f=await fixture(browser,mode,{config:{minPrice:'5000',whiteList:['keep']},legacy:{active:false,mute:true,shadowColor:'#112233',shadowSize:50}}),p=f.page;
-   eq(await p.evaluate(()=>store['loot-filter-settings-v1'].minPrice),'5000',mode+' existing filter settings preserved');
-   eq(await p.evaluate(()=>store['loot-filter-settings-v1'].legendNotification.enabled),false,mode+' standalone opt-out migrated');
-   eq(await p.evaluate(()=>store['loot-filter-settings-v1'].legendNotification.shadowColor),'#112233',mode+' standalone color migrated');
-   await f.set('enabled',true);await f.set('customAudio','https://example.com/persist.mp3');
+   const f=await fixture(browser,mode,{config:{minPrice:'5000',whiteList:['keep']},legacy:{active:false,clanMessageTemplate:'${name}',mute:false,confetti:true,shadowColor:'#112233'}}),p=f.page;
+   eq(await p.evaluate(()=>store['loot-filter-settings-v1'].minPrice),'5000',mode+' existing filters preserved');
+   eq(await p.evaluate(()=>store['loot-filter-settings-v1'].legendNotification),{enabled:false,clanMessageTemplate:'${name}'},mode+' migrate only chat preferences');
+   await f.set('enabled',true);await f.set('clanMessageTemplate','Lega ${name} ${id}');
    await p.reload();await f.setup();await f.install();await f.panel.waitFor();
-   eq(await p.evaluate(()=>store['loot-filter-settings-v1'].legendNotification.customAudio),'https://example.com/persist.mp3',mode+' settings persist');
-   eq(await p.evaluate(()=>store['loot-filter-settings-v1'].legendNotification.enabled),true,mode+' persisted settings win over legacy');
+   eq(await p.evaluate(()=>store['loot-filter-settings-v1'].legendNotification),{enabled:true,clanMessageTemplate:'Lega ${name} ${id}'},mode+' settings persist');
+   await p.evaluate(()=>test.parse(test.loot(20)));
+   eq(await p.evaluate(()=>test.sounds.length),0,mode+' old sound settings cannot revive playback');
+   await f.close();
+  }
+  {
+   const f=await fixture(browser,mode,{config:{legendNotification:{enabled:true,clanMessageTemplate:'Old ${id}',mute:false,confetti:true,shadowSize:99}}}),p=f.page;
+   eq(await p.evaluate(()=>store['loot-filter-settings-v1'].legendNotification),{enabled:true,clanMessageTemplate:'Old ${id}'},mode+' strip removed options from existing GM settings');
    await f.close();
   }
   {
@@ -154,30 +136,28 @@ async function fixture(browser,mode,options={}){
    await p.evaluate(source=>new Function('GogatkiDockRuntime','unsafeWindow','GM_getValue','GM_setValue',source)({register:value=>{window.__gogatkiTileDock=value.create();}},window,GM_getValue,GM_setValue),dock);
    await f.panel.locator('[data-settings]').click();
    await p.waitForFunction(()=>document.getElementById('standalone-loot-filter').hasAttribute('data-gogatki-docked'));
-   await p.evaluate(()=>test.parse(test.loot(12)));
-   eq(await p.evaluate(()=>test.sounds.length),1,mode+' notifications remain active in dock');
+   await p.evaluate(()=>test.parse(test.loot(30)));
+   eq(await p.evaluate(()=>test.requests.filter(r=>r.query.startsWith('chat')).length),1,mode+' clan info active in dock');
    const tile=p.locator('[data-gogatki-dock-item="standalone-loot-filter"]');await tile.click();
    await p.waitForFunction(()=>!document.getElementById('standalone-loot-filter').hasAttribute('data-gogatki-docked'));
    eq(await f.panel.locator('main').isVisible(),true,mode+' dock restores settings');
-   await f.install();await p.evaluate(()=>test.parse(test.loot(12)));
-   eq(await p.evaluate(()=>test.sounds.length),1,mode+' duplicate module start ignored');
+   await f.install();await p.evaluate(()=>test.parse(test.loot(30)));
+   eq(await p.evaluate(()=>test.requests.filter(r=>r.query.startsWith('chat')).length),1,mode+' duplicate module start ignored');
    await p.evaluate(()=>window.dispatchEvent(new PageTransitionEvent('pagehide')));
    eq(await p.evaluate(mode=>(mode==='NI'?Engine.communication.parseJSON:parseInput)===test.nativeParser,mode),true,mode+' parser restored on cleanup');
-   eq(await p.locator('#gogatki-loot-legend-style').count(),0,mode+' style cleaned');
-   eq(await p.evaluate(()=>document.body.style.getPropertyValue('--gogatki-loot-legend-size')),'',mode+' body glow cleaned');
    eq(await f.panel.count(),0,mode+' panel removed on cleanup');
    await f.close();
   }
   {
    const f=await fixture(browser,mode),p=f.page;
-   eq(await p.evaluate(()=>{try{test.parse(test.loot(13),'throw');return false;}catch(e){return e.message==='Native failure';}}),true,mode+' native errors propagate');
-   eq(await p.evaluate(()=>test.requests.length),0,mode+' failed native parsing triggers no actions');
-   await p.evaluate(()=>test.parse(JSON.stringify(test.loot(14)),'string'));
-   eq(await p.evaluate(()=>test.inputType),'string',mode+' native string packet preserved');
-   eq(await p.evaluate(()=>test.sounds.length),1,mode+' string packet notification');
+   eq(await p.evaluate(()=>{try{test.parse(test.loot(40),'throw');return false;}catch(e){return e.message==='Native failure';}}),true,mode+' native errors propagate');
+   eq(await p.evaluate(()=>test.requests.length),0,mode+' no actions after parser failure');
+   await p.evaluate(()=>test.parse(JSON.stringify(test.loot(41)),'string'));
+   eq(await p.evaluate(()=>test.inputType),'string',mode+' string packets preserved');
+   eq(await p.evaluate(()=>test.requests.filter(r=>r.query.startsWith('chat')).length),1,mode+' string packet clan info');
    await f.close();
   }
  }
- console.log('PASS: '+checks+' Lootfilter/I Am Legend assertions on NI/SI');
+ console.log('PASS: '+checks+' Lootfilter/Lega info assertions on NI/SI');
  }finally{await browser.close();}
 })().catch(error=>{console.error(error);process.exitCode=1;});

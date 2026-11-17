@@ -1,5 +1,5 @@
-// Lootfilter 1.1.0 — LPM: okno, PPM: działanie filtrów.
-GogatkiRuntime.register({id:"lootfilter",name:"Lootfilter",description:"Filtry łupu i powiadomienia o legendzie (I Am Legend)",start() {
+// Lootfilter 1.1.1 — LPM: okno, PPM: działanie filtrów.
+GogatkiRuntime.register({id:"lootfilter",name:"Lootfilter",description:"Filtry łupu i Lega info na czat klanowy",start() {
     // Keep checkbox styling consistent in already installed Gogatki panels.
     const gogatkiRoot = document.querySelector('#gogatek-panel')?.shadowRoot;
     if (gogatkiRoot && !gogatkiRoot.getElementById('gogatki-anty-x-checkboxes')) {
@@ -31,73 +31,23 @@ GogatkiRuntime.register({id:"lootfilter",name:"Lootfilter",description:"Filtry �
         teleport: true, talisman: true, key: true, bag: true, minPrice: '', minHealing: '',
         groupLegendary: false, negation: false, whiteList: [], blackList: [], customLogic: '',
         left: 24, right: null, top: 200, settingsOpen: false });
-    const LEGEND_EFFECTS_CSS = ".game-layer:after,#bground:after{content:\"\";box-shadow:inset 0 0 calc(var(--gogatki-loot-legend-size) * 2) var(--gogatki-loot-legend-size) var(--gogatki-loot-legend-map);z-index:25;pointer-events:none;width:100%;height:100%;animation:var(--gogatki-loot-legend-anim-duration) infinite alternate gogatki-loot-legend-pulse-1;position:absolute;top:0}#base:after{left:100%}#loots .loot-wrapper:has(.itemHighlighter.t_leg){box-shadow:0 0 var(--gogatki-loot-legend-size) calc(var(--gogatki-loot-legend-size) / 4) var(--gogatki-loot-legend-wrapper);animation:var(--gogatki-loot-legend-anim-duration) infinite alternate gogatki-loot-legend-pulse-4}.loot-window .loot-item-wrapper:has([data-item-type=t-leg]){box-shadow:0 0 var(--gogatki-loot-legend-size) calc(var(--gogatki-loot-legend-size) / 4) var(--gogatki-loot-legend-wrapper);animation:var(--gogatki-loot-legend-anim-duration) infinite alternate gogatki-loot-legend-pulse-4}#loots .itemHighlighter.t_leg,.loot-window [data-item-type=t-leg]{box-shadow:0 0 var(--gogatki-loot-legend-size) calc(var(--gogatki-loot-legend-size) / 2) var(--gogatki-loot-legend-item);animation:var(--gogatki-loot-legend-anim-duration) infinite alternate gogatki-loot-legend-pulse-2}.loot-window [data-item-type=t-leg]{z-index:1}.gogatki-loot-legend-window.border-window:before{content:\"\";opacity:.75;border:5px solid var(--gogatki-loot-legend-window);box-sizing:border-box;z-index:-1;border-radius:10px;width:calc(100% + 40px);height:calc(100% + 68px);position:absolute;top:-34px;left:-20px}.gogatki-loot-legend-window{box-shadow:0 0 calc(var(--gogatki-loot-legend-size) * 2) var(--gogatki-loot-legend-size) var(--gogatki-loot-legend-window);animation:var(--gogatki-loot-legend-anim-duration) infinite alternate gogatki-loot-legend-pulse-3;border-radius:10px}#loots:has(.itemHighlighter.t_leg) #loots_button{animation:gogatki-loot-legend-button-rgb var(--gogatki-loot-legend-anim-button) linear forwards infinite}.loot-window:has([data-item-type=t-leg]) .accept-button{animation:gogatki-loot-legend-button-rgb var(--gogatki-loot-legend-anim-button) linear forwards infinite}@keyframes gogatki-loot-legend-button-rgb{0%{filter:hue-rotate()}to{filter:hue-rotate(360deg)}}@keyframes gogatki-loot-legend-pulse-1{0%{box-shadow:inset 0 0 calc(var(--gogatki-loot-legend-size) * 2) calc(var(--gogatki-loot-legend-size) * .5) var(--gogatki-loot-legend-map)}to{box-shadow:inset 0 0 calc(var(--gogatki-loot-legend-size) * 2) calc(var(--gogatki-loot-legend-size) * 2) var(--gogatki-loot-legend-map)}}@keyframes gogatki-loot-legend-pulse-2{0%{box-shadow:0 0 var(--gogatki-loot-legend-size) calc(var(--gogatki-loot-legend-size) * .5 * .5) var(--gogatki-loot-legend-item)}to{box-shadow:0 0 var(--gogatki-loot-legend-size) calc(var(--gogatki-loot-legend-size) * .5 * 2) var(--gogatki-loot-legend-item)}}@keyframes gogatki-loot-legend-pulse-3{0%{box-shadow:0 0 calc(var(--gogatki-loot-legend-size) * 2) calc(var(--gogatki-loot-legend-size) * .5) var(--gogatki-loot-legend-window)}to{box-shadow:0 0 calc(var(--gogatki-loot-legend-size) * 2) calc(var(--gogatki-loot-legend-size) * 2) var(--gogatki-loot-legend-window)}}@keyframes gogatki-loot-legend-pulse-4{0%{box-shadow:0 0 calc(var(--gogatki-loot-legend-size) * 2) calc(var(--gogatki-loot-legend-size) * .25) var(--gogatki-loot-legend-wrapper)}to{box-shadow:0 0 calc(var(--gogatki-loot-legend-size) * 2) calc(var(--gogatki-loot-legend-size) * .75) var(--gogatki-loot-legend-wrapper)}}\n";
-    // I Am Legend: Maddonz (Barlag), margonem-sources/maddonz.original.js.
-    function legendDefaults() {
-        return {enabled:true,randomColor:false,shadowColor:'#ff0000',shadowColor2:'#ff0000',shadowColor3:'#ff0000',shadowColor4:'#ff0000',shadowSize:30,
-            animation:true,clanMessageTemplate:'${id}',mute:false,customAudio:'',randomAudio:'',confetti:false,rgbButton:true};
-    }
-    function normalizeLegendConfig(saved) {
-        const result=legendDefaults();
+    // Lega info — wiadomości klanowe na podstawie I Am Legend (Maddonz, Barlag).
+    function legaInfoDefaults() { return {enabled:true,clanMessageTemplate:'${id}'}; }
+    function normalizeLegaInfoConfig(saved) {
+        const result=legaInfoDefaults();
         if(!saved || typeof saved!=='object')return result;
         if(typeof saved.active==='boolean')result.enabled=saved.active;
-        for(const key of Object.keys(result)) {
-            if(typeof result[key]==='boolean' && typeof saved[key]==='boolean')result[key]=saved[key];
-            else if(typeof result[key]==='string' && typeof saved[key]==='string')result[key]=saved[key];
-        }
-        for(const key of ['shadowColor','shadowColor2','shadowColor3','shadowColor4']) {
-            if(!/^#[\da-f]{6}$/i.test(result[key]))result[key]='#ff0000';
-        }
-        if(result.customAudio && !/^https:\/\//i.test(result.customAudio))result.customAudio='';
-        if(Array.isArray(saved.randomAudio))result.randomAudio=saved.randomAudio.filter(value=>typeof value==='string').join('|');
-        result.shadowSize=Number.isFinite(Number(saved.shadowSize))?Math.min(200,Math.max(5,Number(saved.shadowSize))):30;
+        if(typeof saved.enabled==='boolean')result.enabled=saved.enabled;
+        if(typeof saved.clanMessageTemplate==='string')result.clanMessageTemplate=saved.clanMessageTemplate;
         return result;
     }
-    function createLegendNotifier(page, settings, report) {
-        const doc=page.document;
-        const style=doc.createElement('style');style.id='gogatki-loot-legend-style';doc.head.append(style);
-        const seen=new Set(),confettiNodes=new Set(),confettiTimers=new Set(),chatQueue=[];
-        let audio,expiry=null,chatTimer=null,lastChat=-Infinity,glowing=false,disposed=false;
+    function createLegaInfo(page, settings, report) {
+        const seen=new Set(),chatQueue=[];
+        let chatTimer=null,lastChat=-Infinity,disposed=false;
         const identity=()=>{
             const h=page.Engine?.hero?.d || page.hero;
             return h?.clan?`${page.location.host}:${h.id}:${h.clan?.id??h.clan}`:null;
         };
-        function stop() {
-            page.clearTimeout(expiry);expiry=null;glowing=false;audio?.pause();style.textContent='';
-            doc.querySelectorAll('.gogatki-loot-legend-window').forEach(node=>node.classList.remove('gogatki-loot-legend-window'));
-            for(const key of ['size','window','map','item','wrapper','anim-duration','anim-button'])doc.body.style.removeProperty('--gogatki-loot-legend-'+key);
-        }
-        function light() {
-            const s=settings();glowing=true;style.textContent=LEGEND_EFFECTS_CSS;
-            const color=value=>s.randomColor?'#'+Math.floor(Math.random()*0x1000000).toString(16).padStart(6,'0'):value;
-            const values={size:s.shadowSize+'px',window:color(s.shadowColor),map:color(s.shadowColor2),item:color(s.shadowColor3),wrapper:color(s.shadowColor4),
-                'anim-duration':s.animation?'1.5s':'0s','anim-button':s.rgbButton?'6s':'0s'};
-            for(const [key,value] of Object.entries(values))doc.body.style.setProperty('--gogatki-loot-legend-'+key,value);
-            const native=page.Engine?.loots?.wnd?.$?.[0];
-            if(native?.classList)native.classList.add('gogatki-loot-legend-window');
-            else doc.querySelectorAll(page.Engine?'.loot-window':'#loots').forEach(node=>node.classList.add('gogatki-loot-legend-window'));
-        }
-        function sound() {
-            const s=settings();if(s.mute)return;
-            audio?.pause();
-            const random=s.randomAudio.split('|').map(value=>value.trim()).filter(value=>/^https:\/\//i.test(value));
-            const url=random.length?random[Math.floor(Math.random()*random.length)]:s.customAudio || 'https://cronus.margonem.com/sounds/heroes_here.mp3';
-            audio=doc.createElement('audio');audio.src=url;
-            const volume=page.Engine?.soundManager?.getDataSettingMainVolume?.() ?? page.sound?.manager?.data?.volume ?? 50;
-            audio.volume=Math.min(100,Math.max(0,Number(volume)||0))/100;
-            try {audio.play()?.catch(()=>{if(!disposed)report('Kliknij w grę, aby odblokować dźwięk powiadomienia.');});} catch {}
-        }
-        function confetti() {
-            if(!settings().confetti)return;
-            const host=doc.createElement('div');host.dataset.gogatkiLootConfetti='';
-            host.style.cssText='all:initial;position:fixed;inset:0;z-index:2147482999;pointer-events:none;overflow:hidden;';
-            const root=host.attachShadow({mode:'open'});doc.body.append(host);confettiNodes.add(host);
-            for(let n=0;n<60;n++) {
-                const piece=doc.createElement('i');piece.style.cssText=`position:absolute;display:block;left:${Math.random()*100}%;top:-12px;width:7px;height:12px;background:hsl(${Math.random()*360} 90% 60%);`;
-                root.append(piece);piece.animate([{transform:'translateY(0) rotate(0deg)'},{transform:`translate(${Math.random()*200-100}px,${page.innerHeight+30}px) rotate(${Math.random()*1000}deg)`}],{duration:1800+Math.random()*1500,fill:'forwards'});
-            }
-            const timer=page.setTimeout(()=>{host.remove();confettiNodes.delete(host);confettiTimers.delete(timer);},3500);confettiTimers.add(timer);
-        }
         function drainChat() {
             chatTimer=null;
             while(chatQueue.length) {
@@ -111,37 +61,28 @@ GogatkiRuntime.register({id:"lootfilter",name:"Lootfilter",description:"Filtry �
             }
         }
         function change() {
-            if(settings().mute)audio?.pause();
-            if(!settings().enabled) {
-                stop();page.clearTimeout(chatTimer);chatTimer=null;chatQueue.length=0;
-                for(const timer of confettiTimers)page.clearTimeout(timer);confettiTimers.clear();
-                for(const node of confettiNodes)node.remove();confettiNodes.clear();
-            } else if(glowing)light();
+            if(!settings().enabled || !settings().clanMessageTemplate) {
+                page.clearTimeout(chatTimer);chatTimer=null;chatQueue.length=0;
+            }
         }
         function process(event) {
             if(disposed || !settings().enabled || !event?.loot?.init)return;
             const legends=event.items.filter(item=>item._cachedStats.rarity==='legendary');
             const signature=String(event.loot.endTs ?? event.loot.id ?? '')+':'+legends.map(item=>item.id).sort().join(',');
-            if(legends.length && seen.has(signature))return;
-            stop();if(!legends.length)return;
+            if(!legends.length || seen.has(signature))return;
             seen.add(signature);if(seen.size>64)seen.delete(seen.values().next().value);
-            light();sound();confetti();
-            const until=(Number(event.loot.endTs)-Number(page.Engine?.ev ?? page.g?.ev ?? event.ev))*1000;
-            expiry=page.setTimeout(stop,Number.isFinite(until)?Math.max(0,until):60000);
             const template=settings().clanMessageTemplate,who=identity();
             if(template && who) {
                 const text=legends.map(item=>template.replace(/\$\{(id|name)\}/g,(_,key)=>key==='id'?(item.hid?'ITEM#'+item.hid:item.name):item.name)).join(' ');
                 chatQueue.push({text,identity:who});if(chatTimer===null)drainChat();
             }
         }
-        function preview() {if(disposed || !settings().enabled)return;stop();light();sound();confetti();expiry=page.setTimeout(stop,5000);}
         function destroy() {
-            if(disposed)return;disposed=true;stop();style.remove();page.clearTimeout(chatTimer);chatQueue.length=0;
-            for(const timer of confettiTimers)page.clearTimeout(timer);for(const node of confettiNodes)node.remove();confettiTimers.clear();confettiNodes.clear();seen.clear();
+            if(disposed)return;disposed=true;page.clearTimeout(chatTimer);chatQueue.length=0;seen.clear();
         }
-        return {process,preview,change,destroy};
+        return {process,change,destroy};
     }
-    function mountLegendSettings(host, getConfig, save, notify) {
+    function mountLegaInfoSettings(host, getConfig, save, notify) {
         const root=host.attachShadow({mode:'open'});
         root.innerHTML=`<style>
             :host{all:initial;display:block;color-scheme:dark}*{box-sizing:border-box;text-shadow:none}
@@ -150,27 +91,22 @@ GogatkiRuntime.register({id:"lootfilter",name:"Lootfilter",description:"Filtry �
             input{width:100%;min-width:0;background:#252b31;color:#c7d0d9;border:1px solid #668298;border-radius:3px;padding:4px;font:12px Arial,sans-serif}
             input[type=checkbox]{appearance:none;display:grid;place-content:center;width:14px;height:14px;flex:none;padding:0;margin:0;background:#171b20}
             input[type=checkbox]:checked:after{content:'';width:7px;height:4px;border:solid #12c9bd;border-width:0 0 2px 2px;transform:rotate(-45deg)}
-            input[type=color]{height:24px}button{background:#38566c;color:#c7d0d9;border:1px solid #6d879a;border-radius:3px;padding:5px;cursor:pointer;font:12px Arial,sans-serif}
             :focus-visible{outline:2px solid #12c9bd;outline-offset:1px}
-        </style><details><summary>I Am Legend</summary><div class="fields"></div></details>`;
-        const fields=[['enabled','Powiadomienia o legendzie','checkbox'],['mute','Wycisz dźwięk','checkbox'],['customAudio','Własny dźwięk (HTTPS)','url'],['randomAudio','Losowe dźwięki HTTPS (oddziel |)','text'],
-            ['randomColor','Losowy kolor','checkbox'],['shadowColor','Podświetlenie okna łupu','color'],['shadowColor2','Podświetlenie mapy','color'],['shadowColor3','Podświetlenie legendy','color'],['shadowColor4','Podświetlenie ramki','color'],
-            ['shadowSize','Wielkość podświetlenia','number'],['animation','Animowane podświetlenie','checkbox'],['clanMessageTemplate','Wiadomość na klan (${id}, ${name}); puste wyłącza','text'],['confetti','Konfetti','checkbox'],['rgbButton','Potwierdź RGB','checkbox']];
+        </style><details><summary>Lega info</summary><div class="fields"></div></details>`;
+        const fields=[['enabled','Wysyłaj informacje o legendzie na czat klanowy','checkbox'],
+            ['clanMessageTemplate','Szablon wiadomości (${id}, ${name}); puste wyłącza','text']];
         for(const [key,text,type] of fields) {
             const label=document.createElement('label'),input=document.createElement('input');input.type=type;input.dataset.legend=key;
             if(type==='checkbox'){input.checked=getConfig()[key];label.append(input,document.createTextNode(text));}
             else {label.className='field';input.value=getConfig()[key];label.append(document.createTextNode(text),input);}
-            if(type==='number'){input.min='5';input.max='200';input.step='1';}
-            if(type==='url')input.pattern='https://.*';
             input.addEventListener('change',()=>{
                 if(!input.reportValidity())return;
-                getConfig()[key]=type==='checkbox'?input.checked:type==='number'?Number(input.value):input.value.trim();
+                getConfig()[key]=type==='checkbox'?input.checked:input.value.trim();
                 save();notify.change();
             });
             root.querySelector('.fields').append(label);
         }
-        const preview=document.createElement('button');preview.type='button';preview.textContent='Podgląd powiadomienia';preview.title='Efekt i dźwięk bez wysyłania wiadomości na klan.';
-        preview.addEventListener('click',notify.preview);root.querySelector('.fields').append(preview);
+
     }
 
     function normalize(item, id) {
@@ -259,7 +195,7 @@ GogatkiRuntime.register({id:"lootfilter",name:"Lootfilter",description:"Filtry �
             const event = loot?.init ? { loot: { ...loot }, items: allItems, ev: data.ev } : null;
             const snapshot = loot?.source === 'fight' ? allItems.filter(item => item.loc === 'l') : [];
             const result = original.apply(this, args);
-            if (event && onLegend) try { onLegend(event); } catch (error) { console.error('[Lootfilter · I Am Legend]', error); }
+            if (event && onLegend) try { onLegend(event); } catch (error) { console.error('[Lootfilter · Lega info]', error); }
             if (snapshot.length) onLoot(snapshot, event);
             return result;
         };
@@ -329,7 +265,7 @@ GogatkiRuntime.register({id:"lootfilter",name:"Lootfilter",description:"Filtry �
         for (const list of ['whiteList', 'blackList']) if (!Array.isArray(config[list])) config[list] = [];
         let legacyLegend = config.legendNotification;
         if (!legacyLegend) { try { legacyLegend = JSON.parse(game.localStorage.getItem('maddonz-extracted:i-am-legend:v1')); } catch {} }
-        config.legendNotification = normalizeLegendConfig(legacyLegend);
+        config.legendNotification = normalizeLegaInfoConfig(legacyLegend);
         save();
         panel = document.createElement('section'); panel.id = 'standalone-loot-filter';
         panel.innerHTML = `<header><span data-name title="Lootfilter">LootFilter</span><button type="button" data-settings title="Ustawienia" aria-label="Ustawienia Lootfiltera"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false" style="display:block;pointer-events:none;flex-shrink:0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m8 3 2 4h4l2-4H8ZM8 8h8M9 8c-2 3-5 5-5 9a4 4 0 0 0 4 4h8a4 4 0 0 0 4-4c0-4-3-6-5-9"/><circle cx="12" cy="15.5" r="2.5"/></svg></button></header>
@@ -350,8 +286,8 @@ GogatkiRuntime.register({id:"lootfilter",name:"Lootfilter",description:"Filtry �
         style.textContent += `:root #standalone-loot-filter [data-name],:root #standalone-loot-filter [data-settings]{color:#12c9bd!important}:root #standalone-loot-filter[data-active="false"] [data-name],:root #standalone-loot-filter[data-active="false"] [data-settings]{color:#74838d!important}`;
         document.head.append(style); document.body.append(panel);
         status = panel.querySelector('[data-status]');
-        notifier = createLegendNotifier(game, () => config.legendNotification, say);
-        mountLegendSettings(panel.querySelector('[data-legend-settings]'), () => config.legendNotification, save, notifier);
+        notifier = createLegaInfo(game, () => config.legendNotification, say);
+        mountLegaInfoSettings(panel.querySelector('[data-legend-settings]'), () => config.legendNotification, save, notifier);
         const filters = [['common','Zwykłe'],['unique','Unikatowe'],['neutral','Neutralne'],['rune','Runy'],['gold','Złoto'],['teleport','Teleporty'],['talisman','Talizmany'],['key','Klucze'],['bag','Torby'],['groupLegendary','Tylko legenda w grupie'],['negation','Odwróć filtry']];
         for (const [field, title] of filters) {
             const label = document.createElement('label');
