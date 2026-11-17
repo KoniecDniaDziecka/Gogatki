@@ -1,4 +1,4 @@
-// Alerts 1.1.0 — Level Up Alert, Status Alert, No More Alerts i Forget Me Not (Maddonz, Barlag).
+// Alerts 1.1.1 — Level Up Alert, Status Alert, No More Alerts i Forget Me Not (Maddonz, Barlag).
 GogatkiRuntime.register({
   id: 'alerts',
   name: 'Alerts',
@@ -227,10 +227,11 @@ GogatkiRuntime.register({
       const dialogRoot = reminderDialog.attachShadow({ mode: 'open' });
       dialogRoot.innerHTML = `<style>
         :host{all:initial;color-scheme:dark}*{box-sizing:border-box}
-        section{width:280px;max-width:calc(100vw - 16px);background:#171b20;border:1px solid #668298;border-radius:4px;color:#c7d0d9;font:12px/1.4 Arial,sans-serif;overflow:hidden}
-        header{background:#252b31;color:#12c9bd;font-weight:bold;padding:7px 9px}p{margin:9px}.actions{display:flex;gap:5px;flex-wrap:wrap;padding:0 9px 9px}
-        button{font:12px Arial,sans-serif;color:#c7d0d9;background:#38566c;border:1px solid #6d879a;border-radius:3px;padding:6px;cursor:pointer}button:focus-visible{outline:2px solid #12c9bd;outline-offset:1px}
-      </style><section role="dialog" aria-labelledby="reminder-title" aria-describedby="reminder-question"><header id="reminder-title">Alerts · Forget Me Not</header><p id="reminder-question">Czy chcesz dzisiaj zmienić wyczerpanie?</p><div class="actions"><button type="button" data-option="1">Zwiększ</button><button type="button" data-option="2">Zmniejsz</button><button type="button" data-option="0">Przypomnij później</button></div></section>`;
+        section{width:220px;max-width:calc(100vw - 16px);background:rgba(23,27,32,.82);border:1px solid #668298;border-radius:4px;color:#c7d0d9;font:12px/1.4 Arial,sans-serif;overflow:hidden}
+        header{display:flex;align-items:center;justify-content:space-between;background:rgba(37,43,49,.9);color:#12c9bd;font-weight:bold;padding:2px 5px 2px 7px}p{margin:6px 7px}.actions{display:flex;gap:5px;padding:0 7px 7px}.actions button{flex:1;min-width:0}
+        button{font:12px Arial,sans-serif;color:#c7d0d9;background:rgba(56,86,108,.9);border:1px solid #6d879a;border-radius:3px;padding:4px;cursor:pointer}button:focus-visible{outline:2px solid #12c9bd;outline-offset:1px}
+        .close{display:flex;align-items:center;justify-content:center;width:20px;height:20px;padding:3px;border:0;background:transparent;color:#c7d0d9}.close:hover{background:#38566c}.close svg{display:block;width:14px;height:14px;pointer-events:none}
+      </style><section role="dialog" aria-labelledby="reminder-title" aria-describedby="reminder-question"><header><span id="reminder-title">Wyczerpanie</span><button type="button" class="close" data-option="0" aria-label="Zamknij przypomnienie" title="Zamknij"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></header><p id="reminder-question">Zmienić wyczerpanie?</p><div class="actions"><button type="button" data-option="2">Zmniejsz</button><button type="button" data-option="1">Zwiększ</button></div></section>`;
       let settled = false;
       reminderDialogResolve = value => {
         if (settled) return; settled = true;

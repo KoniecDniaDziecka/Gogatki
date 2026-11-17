@@ -68,7 +68,7 @@ async function fixture(browser,mode,options={}) {
    await p.evaluate(()=>{test.now+=28800001;});
    await f.dialog.waitFor();
    eq(await p.evaluate(()=>test.requests.at(-1)),'clan&a=skills_show',mode+' repeat after 8 hours');
-   await f.dialog.getByRole('button',{name:'Przypomnij później'}).click();
+   await f.dialog.getByRole('button',{name:'Zamknij przypomnienie'}).click();
    eq(await p.evaluate(()=>test.requests.length),3,mode+' postpone sends no mutation');
    await f.close();
   }
@@ -150,7 +150,7 @@ async function fixture(browser,mode,options={}) {
   }
   {
    const f=await fixture(browser,mode,{callbackOnly:true});
-   await f.dialog.waitFor();await f.dialog.getByRole('button',{name:'Przypomnij później'}).click();
+   await f.dialog.waitFor();await f.dialog.getByRole('button',{name:'Zamknij przypomnienie'}).click();
    eq(await f.page.evaluate(()=>test.requests.length),1,mode+' direct callback response supported');
    await f.close();
   }
