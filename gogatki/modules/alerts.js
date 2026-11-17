@@ -1,13 +1,13 @@
-// Alerts 1.0.0 — Level Up Alert, Status Alert i No More Alerts (Maddonz, Barlag).
+// Alerts 1.1.0 — Level Up Alert, Status Alert, No More Alerts i Forget Me Not (Maddonz, Barlag).
 GogatkiRuntime.register({
   id: 'alerts',
   name: 'Alerts',
-  description: 'Ostrzeżenie przed poziomem, statusy w walce i zwykłe alerty bez potwierdzania.',
+  description: 'Poziom, statusy w walce, zwykłe alerty i przypomnienie o wyczerpaniu.',
   start() {
     const window = unsafeWindow;
     const document = window.document;
 // Źródło logiki: margonem-sources/maddonz.original.js, moduły
-// LevelUpAlert, StatusAlert i NoMoreAlerts. Autorstwo oryginału: Barlag.
+// LevelUpAlert, StatusAlert, NoMoreAlerts i ForgetMeNot. Autorstwo oryginału: Barlag.
 // Samodzielna adaptacja: bez Vue, menedżera i pozostałych modułów Maddonza.
 (() => {
   'use strict';
@@ -19,7 +19,7 @@ GogatkiRuntime.register({
   const STORAGE = 'alerts:global:v1';
   const LEGACY_STORAGE = 'gogatki.alerts.v1';
   const defaults = {
-    level: true, status: true, noMore: true, mute: false, audio: '',
+    level: true, status: true, noMore: true, forgetMeNot: true, mute: false, audio: '',
     statuses: { lastHeal: true, curse: true, blind: true, distract: true },
     collapsed: false, settings: false, right: 16, top: 160,
   };
@@ -37,6 +37,9 @@ GogatkiRuntime.register({
   const hooks = new WeakMap();
   const hookRemovers = [];
   let disposed = false;
+  let reminderBusy = false, reminderAttempt = 0, reminderEpoch = 0, reminderCharacter = null;
+  let reminderPending = null, reminderDialog = null, reminderDialogResolve = null;
+  let reminderStatus = '';
 
   function readSettings() {
     let saved;
@@ -46,7 +49,7 @@ GogatkiRuntime.register({
     }
     const result = { ...defaults, statuses: { ...defaults.statuses } };
     if (!saved || typeof saved !== 'object') return result;
-    for (const key of ['level', 'status', 'noMore', 'mute', 'collapsed', 'settings']) {
+    for (const key of ['level', 'status', 'noMore', 'forgetMeNot', 'mute', 'collapsed', 'settings']) {
       if (typeof saved[key] === 'boolean') result[key] = saved[key];
     }
     for (const key of Object.keys(names)) {
@@ -149,6 +152,138 @@ GogatkiRuntime.register({
     if (packet.f) checkBattle(packet.f);
   }
 
+  // Forget Me Not: oryginalne timeTickets, opt=1/2 i odstęp 8 godzin.
+  function reminderIdentity() {
+    const h = hero();
+    return h?.id && h.clan ? `${window.location.host}:${h.id}:${h.clan?.id ?? h.clan}` : null;
+  }
+
+  function reminderKey() { return `alerts:forget-me-not:last:${window.location.host}:${hero()?.id}`; }
+
+  function lastReminder() {
+    let value;
+    try { value = GM_getValue(reminderKey(), null); } catch {}
+    if (value == null) {
+      try { value = Number(window.localStorage.getItem(`maddonz-extracted:forget-me-not:last:${window.location.host}:${hero()?.id}`)); } catch {}
+    }
+    return Number.isFinite(value) && value > 0 ? value : 0;
+  }
+
+  function inBattle() { return Boolean((window.Engine?.lock || window.g?.lock)?.check?.('battle')); }
+
+  function updateReminderStatus(text = reminderStatus) {
+    reminderStatus = text;
+    if (!root) return;
+    root.querySelector('.reminder-status').textContent = text;
+    root.querySelector('.check-reminder').disabled = !settings.forgetMeNot || reminderBusy;
+  }
+
+  function cancelReminder() {
+    reminderEpoch++;
+    reminderDialogResolve?.(null);
+    reminderDialogResolve = null;
+    reminderDialog?.remove(); reminderDialog = null;
+    const error = Object.assign(new Error('Przypomnienie anulowane.'), { cancelled: true });
+    reminderPending?.finish(error);
+  }
+
+  function requestClan(query, identity) {
+    return new Promise((resolve, reject) => {
+      if (disposed || !settings.forgetMeNot || identity !== reminderIdentity() || inBattle() || typeof window._g !== 'function') {
+        reject(new Error('Zmiana wyczerpania jest dostępna poza walką, po załadowaniu gry.')); return;
+      }
+      let finished = false;
+      const pending = { identity, finish(error, packet) {
+        if (finished) return;
+        finished = true; window.clearTimeout(pending.timer);
+        if (reminderPending === pending) reminderPending = null;
+        error ? reject(error) : resolve(packet);
+      } };
+      pending.timer = window.setTimeout(() => pending.finish(new Error('Brak odpowiedzi gry. Spróbuj ponownie.')), 15000);
+      reminderPending = pending;
+      try {
+        window._g(query, packet => {
+          if (!disposed && pending.identity === reminderIdentity() && packet && Object.hasOwn(packet, 'clan_skills')) pending.finish(null, packet);
+        });
+      } catch (error) { pending.finish(error); }
+    });
+  }
+
+  function consumeClanPacket(packet) {
+    if (!reminderPending || disposed || reminderPending.identity !== reminderIdentity()) return packet;
+    if (!packet || typeof packet !== 'object' || !Object.hasOwn(packet, 'clan_skills')) return packet;
+    // Nie otwieraj klanowego okna umiejętności w odpowiedzi na ciche sprawdzenie.
+    const filtered = { ...packet }; delete filtered.clan_skills;
+    reminderPending.finish(null, packet);
+    return filtered;
+  }
+
+  function askReminder(identity) {
+    return new Promise(resolve => {
+      const previousFocus = document.activeElement;
+      reminderDialog = document.createElement('div');
+      reminderDialog.id = 'gogatki-alerts-reminder';
+      reminderDialog.style.cssText = 'all:initial;position:fixed;z-index:2147483647;left:50%;top:25%;transform:translateX(-50%);';
+      const dialogRoot = reminderDialog.attachShadow({ mode: 'open' });
+      dialogRoot.innerHTML = `<style>
+        :host{all:initial;color-scheme:dark}*{box-sizing:border-box}
+        section{width:280px;max-width:calc(100vw - 16px);background:#171b20;border:1px solid #668298;border-radius:4px;color:#c7d0d9;font:12px/1.4 Arial,sans-serif;overflow:hidden}
+        header{background:#252b31;color:#12c9bd;font-weight:bold;padding:7px 9px}p{margin:9px}.actions{display:flex;gap:5px;flex-wrap:wrap;padding:0 9px 9px}
+        button{font:12px Arial,sans-serif;color:#c7d0d9;background:#38566c;border:1px solid #6d879a;border-radius:3px;padding:6px;cursor:pointer}button:focus-visible{outline:2px solid #12c9bd;outline-offset:1px}
+      </style><section role="dialog" aria-labelledby="reminder-title" aria-describedby="reminder-question"><header id="reminder-title">Alerts · Forget Me Not</header><p id="reminder-question">Czy chcesz dzisiaj zmienić wyczerpanie?</p><div class="actions"><button type="button" data-option="1">Zwiększ</button><button type="button" data-option="2">Zmniejsz</button><button type="button" data-option="0">Przypomnij później</button></div></section>`;
+      let settled = false;
+      reminderDialogResolve = value => {
+        if (settled) return; settled = true;
+        const hadFocus = document.activeElement === reminderDialog;
+        reminderDialog?.remove(); reminderDialog = null; reminderDialogResolve = null;
+        if (hadFocus && previousFocus?.isConnected) previousFocus.focus({ preventScroll: true });
+        resolve(value);
+      };
+      for (const button of dialogRoot.querySelectorAll('button')) button.addEventListener('click', () => {
+        if (identity !== reminderIdentity() || !settings.forgetMeNot || disposed) return reminderDialogResolve?.(null);
+        if (inBattle() && button.dataset.option !== '0') {
+          dialogRoot.querySelector('p').textContent = 'Zakończ walkę, a następnie wybierz zmianę wyczerpania.'; return;
+        }
+        reminderDialogResolve?.(Number(button.dataset.option));
+      });
+      document.body.append(reminderDialog);
+      dialogRoot.querySelector('button').focus({ preventScroll: true });
+    });
+  }
+
+  async function checkReminder(force = false) {
+    const identity = reminderIdentity();
+    if (disposed || !settings.forgetMeNot || reminderBusy) return;
+    if (!identity || inBattle() || typeof window._g !== 'function') {
+      if (force) updateReminderStatus(!identity ? 'Zmiana wyczerpania wymaga klanu.' : 'Sprawdź ponownie po walce i załadowaniu gry.');
+      return;
+    }
+    if (!force && (Date.now() - lastReminder() < 28800000 || Date.now() - reminderAttempt < 60000)) return;
+    reminderBusy = true; reminderAttempt = Date.now();
+    const epoch = reminderEpoch;
+    const current = () => !disposed && settings.forgetMeNot && epoch === reminderEpoch && identity === reminderIdentity();
+    updateReminderStatus('Sprawdzam wyczerpanie…');
+    try {
+      const packet = await requestClan('clan&a=skills_show', identity);
+      if (!current()) return;
+      const skills = packet.clan_skills;
+      if (!skills?.quest_bonuses?.timeTickets?.lvl || !skills.quest_bonuses_use || skills.quest_bonuses_use.timeTickets) {
+        updateReminderStatus('Zmiana wyczerpania jest niedostępna lub została już wykorzystana.'); return;
+      }
+      updateReminderStatus('Wybierz zmianę wyczerpania w przypomnieniu.');
+      const option = await askReminder(identity);
+      if (option == null || !current()) return;
+      if (option) {
+        await requestClan('clan&a=skills_use&name=timeTickets&opt=' + option, identity);
+        if (!current()) return;
+      }
+      try { GM_setValue(reminderKey(), Date.now()); } catch {}
+      updateReminderStatus(option ? 'Wysłano zmianę wyczerpania.' : 'Kolejne przypomnienie za 8 godzin.');
+    } catch (error) {
+      if (current() && !error.cancelled) updateReminderStatus(error.message);
+    } finally { reminderBusy = false; updateReminderStatus(); }
+  }
+
   // Zachowaj kontekst, wynik i wyjątki funkcji gry. Błędy dodatku nie przerywają gry.
   function hook(owner, key, factory) {
     const current = owner?.[key];
@@ -169,6 +304,11 @@ GogatkiRuntime.register({
 
   function packetHook(original) {
     return function (...args) {
+      if (!disposed && reminderPending) try {
+        const packet = typeof args[0] === 'string' ? JSON.parse(args[0]) : args[0];
+        const filtered = consumeClanPacket(packet);
+        if (filtered !== packet) args[0] = typeof args[0] === 'string' ? JSON.stringify(filtered) : filtered;
+      } catch (error) { console.error('[Alerty]', error); }
       const result = Reflect.apply(original, this, args);
       try { if (!disposed) processPacket(args[0]); } catch (error) { console.error('[Alerty]', error); }
       return result;
@@ -197,6 +337,11 @@ GogatkiRuntime.register({
       createPanel();
       try { checkLevel(); } catch (error) { console.error('[Alerty]', error); }
     }
+    const identity = reminderIdentity();
+    if (identity !== reminderCharacter) {
+      cancelReminder(); reminderCharacter = identity; reminderAttempt = 0; updateReminderStatus('');
+    }
+    void checkReminder();
   }
 
   function icon(kind) {
@@ -244,6 +389,7 @@ GogatkiRuntime.register({
           <div class="tile"><label class="module"><input type="checkbox" data-key="level">Level Up Alert</label><small>Ostrzega, gdy zostaje 5% lub mniej do poziomu.</small></div>
           <div class="tile"><label class="module"><input type="checkbox" data-key="status">Status Alert</label><small>Wiadomość i dźwięk o efektach w walce.</small></div>
           <div class="tile"><label class="module"><input type="checkbox" data-key="noMore">No More Alerts</label><small>Zwykłe alerty jako wiadomości. Pytania pozostają.</small></div>
+          <div class="tile"><label class="module"><input type="checkbox" data-key="forgetMeNot">Forget Me Not</label><small>Przypomnienie o klanowej zmianie wyczerpania co 8 godzin.</small><button class="check-reminder" type="button">Sprawdź wyczerpanie</button><small class="reminder-status" role="status"></small></div>
           <div class="options" hidden>
             ${Object.entries(names).map(([key, name]) => `<label><input type="checkbox" data-status="${key}">${name}</label>`).join('')}
             <label><input type="checkbox" data-key="mute">Wycisz dźwięk statusów</label>
@@ -261,9 +407,16 @@ GogatkiRuntime.register({
       input.addEventListener('change', () => {
         if (status) settings.statuses[status] = input.checked;
         else settings[key] = input.checked;
+        if (key === 'forgetMeNot') {
+          if (!settings.forgetMeNot) { cancelReminder(); updateReminderStatus(''); }
+          else { reminderAttempt = 0; void checkReminder(); }
+          updateReminderStatus();
+        }
         save();
       });
     }
+    root.querySelector('.check-reminder').addEventListener('click', () => { void checkReminder(true); });
+    updateReminderStatus();
     const urlInput = root.querySelector('input[type=url]');
     urlInput.value = settings.audio;
     urlInput.addEventListener('input', () => {
@@ -360,6 +513,7 @@ GogatkiRuntime.register({
   function cleanup() {
     if (disposed) return;
     disposed = true;
+    cancelReminder();
     window.clearInterval(timer);
     window.removeEventListener('resize', onResize);
     for (const remove of hookRemovers.reverse()) {
