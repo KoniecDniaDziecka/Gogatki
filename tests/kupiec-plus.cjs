@@ -70,7 +70,7 @@ async function fixture(browser,name,mode='NI',options={}) {
  },{mode,options});
  await install(page);
  const panel=page.locator('#gogatki-'+name);
- await panel.waitFor();
+ await panel.waitFor({state:'attached'});
  return {page,panel,errors,async close(){eq(errors,[],name+' '+mode+' browser errors');await page.close();}};
 }
 async function option(f,key,value){
@@ -119,7 +119,7 @@ async function testLoader(browser) {
   eq(await page.locator('#gogatki-kupiec-plus').count(), 0, mode+' disabled module not started');
   await toggle.check();
   const panel = page.locator('#gogatki-kupiec-plus');
-  await panel.waitFor();
+  await panel.waitFor({state:'attached'});
   eq(await panel.locator('strong').textContent(), 'Kupiec+', mode+' loader starts named module');
   await main.locator('.launcher').evaluate(el => el.click());
   const tile = page.locator('[data-gogatki-dock-item="gogatki-kupiec-plus"]');
@@ -131,12 +131,30 @@ async function testLoader(browser) {
   await tile.click();
   await page.waitForFunction(() => !document.getElementById('gogatki-kupiec-plus').hasAttribute('data-gogatki-docked'));
   eq(await panel.locator('main').isVisible(), true, mode+' dock restores panel');
+  eq(await panel.locator('.options').isVisible(), true, mode+' dock opens all options');
+  const headerBox=await panel.locator('header').boundingBox();
+  await page.mouse.move(headerBox.x+35,headerBox.y+14);await page.mouse.down();
+  await page.mouse.move(headerBox.x-35,headerBox.y+44,{steps:5});await page.mouse.up();
+  await tile.click();
+  eq(await panel.isVisible(),false,mode+' dock hides full window after dragging');
+  await tile.click();
+  eq(await panel.locator('.options').isVisible(),true,mode+' dock restores full window after dragging');
   await tile.click();
   await page.waitForFunction(() => document.getElementById('gogatki-kupiec-plus').hasAttribute('data-gogatki-docked'));
   const position = await page.evaluate(() => [store['kupiec-plus:global:v1'].right,store['kupiec-plus:global:v1'].top]);
   await page.setViewportSize({width:750,height:600});
   await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
   eq(await page.evaluate(() => [store['kupiec-plus:global:v1'].right,store['kupiec-plus:global:v1'].top]), position, mode+' dock preserves floating coordinates');
+  await page.reload();
+  await setup();
+  await page.addScriptTag({path:loader});
+  await page.waitForFunction(id=>document.getElementById(id)?.hasAttribute('data-gogatki-docked'),'gogatki-kupiec-plus');
+  eq(await panel.isVisible(),false,mode+' reload keeps panel hidden in dock');
+  await tile.click();
+  eq(await panel.locator('.options').isVisible(),true,mode+' full options restored after reload');
+  await panel.locator('.gear').click();
+  eq(await panel.isVisible(),false,mode+' gear click hides full window');
+  await page.waitForFunction(id=>document.getElementById(id)?.hasAttribute('data-gogatki-docked'),'gogatki-kupiec-plus');
   await main.locator('.launcher').evaluate(el => el.click());
   await toggle.uncheck();
   await page.reload();
@@ -211,12 +229,15 @@ async function testLoader(browser) {
   }
   await option(f,'divideEnabled',true);await option(f,'expression','/2');
   await f.panel.locator('.gear').click({button:'right'});
-  let box=await f.panel.boundingBox();eq([box.width,box.height],[28,28],mode+' collapsed icon');
+  eq(await f.panel.isVisible(),false,mode+' no floating miniature when collapsed');
   await p.evaluate(()=>document.getElementById('item5').dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,cancelable:true,shiftKey:true})));
   eq(await p.evaluate(()=>test.requests.length),1,mode+' collapsed still splits');
-  await f.panel.locator('.gear').click();
+  await f.panel.locator('.gear').evaluate(el=>el.click());
   const beforeSettings=await f.panel.boundingBox();
+  eq(await f.panel.locator('.options').isVisible(),true,mode+' full window includes options');
   await f.panel.locator('.gear').click();
+  eq(await f.panel.isVisible(),false,mode+' gear has no intermediate compact window');
+  await f.panel.locator('.gear').evaluate(el=>el.click());
   const afterSettings=await f.panel.boundingBox();
   eq([Math.round(afterSettings.x+afterSettings.width),afterSettings.y],
      [Math.round(beforeSettings.x+beforeSettings.width),beforeSettings.y],mode+' settings keep top right corner');
@@ -272,7 +293,7 @@ async function testLoader(browser) {
   eq(await f.page.evaluate(()=>store['kupiec-plus:global:v1'].expression),'/3','combined standalone preferences migrated into GM storage');
   eq(await f.panel.locator('.panel').evaluate(el=>el.classList.contains('collapsed')),true,'combined collapsed preference migrated');
   eq(await f.page.evaluate(()=>[store['kupiec-plus:global:v1'].right,store['kupiec-plus:global:v1'].top]),[70,120],'combined position migrated');
-  await f.panel.locator('.gear').click();
+  await f.panel.locator('.gear').evaluate(el=>el.click());
   await option(f,'expression','/5');
   await f.page.evaluate(()=>{window.dispatchEvent(new Event('pagehide'));localStorage.setItem('maddonz-extracted:merchant-divide:v1',JSON.stringify({expression:'/9'}));});
   await install(f.page);

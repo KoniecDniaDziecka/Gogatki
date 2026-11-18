@@ -9,7 +9,7 @@ for name, binding in [('greater-merchant', 'merchantModule'), ('divide-et-impera
                  '\nreturn { config, run };\n})();\n')
 parts.append((source / 'merchant-divide.js').read_text())
 parts.append('createAddon(config, run);\n')
-module = '''// Kupiec+ 1.0.0 — Greater Merchant + Divide Et Impera (Maddonz, Barlag).
+module = '''// Kupiec+ 1.0.1 — Greater Merchant + Divide Et Impera (Maddonz, Barlag).
 GogatkiRuntime.register({
   id: 'kupiec-plus',
   name: 'Kupiec+',

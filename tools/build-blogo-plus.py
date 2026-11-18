@@ -3,7 +3,7 @@ from pathlib import Path
 
 root = Path(__file__).resolve().parents[1]
 source = root / 'sources/blogo-plus'
-module = '''// Błogo+ 1.0.0 — Buff Yourself (Maddonz, Barlag).
+module = '''// Błogo+ 1.0.1 — Buff Yourself (Maddonz, Barlag).
 GogatkiRuntime.register({
   id: 'blogo-plus',
   name: 'Błogo+',

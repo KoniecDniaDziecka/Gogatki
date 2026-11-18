@@ -10,7 +10,7 @@ function createAddon(config, feature) {
   if (saved == null) {
     try { saved = JSON.parse(window.localStorage.getItem('maddonz-extracted:buff-yourself:v1')) || {}; } catch { saved = {}; }
   }
-  const defaults = {active:true, collapsed:false, settings:false, right:18, top:160, ...config.defaults};
+  const defaults = {active:true, collapsed:false, right:18, top:160, ...config.defaults};
   const state = {...defaults};
   for (const name of Object.keys(defaults)) {
     if (typeof saved?.[name] === typeof defaults[name] &&
@@ -118,7 +118,7 @@ function createAddon(config, feature) {
     return items()[id] || engine()?.items?.getItemById?.(id);
   }
   function place() {
-    if (!host || window.__gogatkiTileDock?.isDocked(host)) return;
+    if (!host || state.collapsed || window.__gogatkiTileDock?.isDocked(host)) return;
     const box = host.getBoundingClientRect();
     state.right = Math.max(0,Math.min(state.right,innerWidth-box.width));
     state.top = Math.max(0,Math.min(state.top,innerHeight-box.height));
@@ -126,10 +126,10 @@ function createAddon(config, feature) {
   }
   const svg = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3"/></svg>';
   function render() {
-    const size = document.querySelector('#gogatek-panel')?.shadowRoot?.querySelector('.launcher')?.getBoundingClientRect().height || 28;
-    host.style.setProperty('--tile',size+'px');root.querySelector('.panel').classList.toggle('collapsed',state.collapsed);
-    root.querySelector('.options').hidden = !state.settings;
-    root.querySelector('.gear').setAttribute('aria-expanded',String(!state.collapsed && state.settings));place();
+    host.dataset.compact = String(state.collapsed);
+    root.querySelector('.panel').classList.toggle('collapsed',state.collapsed);
+    root.querySelector('.gear').setAttribute('aria-expanded',String(!state.collapsed));
+    place();
   }
   function createPanel() {
     host = document.createElement('div');host.id = 'gogatki-'+config.id;
@@ -149,9 +149,9 @@ function createAddon(config, feature) {
       input[type=checkbox]{appearance:none;display:grid;place-content:center;flex:none;width:14px;height:14px;margin:0;padding:0;background:#171b20}
       input[type=checkbox]:checked:after{content:'';width:7px;height:4px;border:solid #12c9bd;border-width:0 0 2px 2px;transform:rotate(-45deg)}
       :focus-visible{outline:2px solid #12c9bd;outline-offset:1px}.actions{display:flex;gap:5px;flex-wrap:wrap}.question{display:grid;gap:6px;border-top:1px solid #668298;padding-top:8px}
-      .collapsed{width:var(--tile);height:var(--tile)}.collapsed header,.collapsed .gear{width:100%;height:100%}.collapsed strong,.collapsed main{display:none}
-    </style><section class="panel" aria-label="${escape(config.name)}"><header><strong>${escape(config.name)}</strong><button class="gear" aria-label="Opcje ${escape(config.name)}" title="LPM: opcje · PPM: zwiń">${svg}</button></header><main>
-      <label><input type="checkbox" data-key="active">Włączony</label><p class="description">${escape(config.description)}</p><div class="actions"></div><div class="question" hidden></div><div class="options" hidden>${fields}</div><p class="status" role="status"></p></main></section>`;
+      :host([data-compact="true"]){display:none!important}
+    </style><section class="panel" aria-label="${escape(config.name)}"><header><strong>${escape(config.name)}</strong><button class="gear" aria-label="Zwiń ${escape(config.name)} do docka" title="LPM / PPM: zwiń do docka">${svg}</button></header><main>
+      <label><input type="checkbox" data-key="active">Włączony</label><p class="description">${escape(config.description)}</p><div class="actions"></div><div class="question" hidden></div><div class="options">${fields}</div><p class="status" role="status"></p></main></section>`;
     document.body.append(host);
     for (const input of root.querySelectorAll('input[data-key]')) {
       const name = input.dataset.key;input.type === 'checkbox' ? input.checked=state[name] : input.value=state[name];
@@ -164,7 +164,7 @@ function createAddon(config, feature) {
     }
     const gear = root.querySelector('.gear'), header = root.querySelector('header');
     let drag, moved = false;
-    listen(gear,'click',() => {if (moved) return;state.collapsed ? state.collapsed=false : state.settings=!state.settings;render();save();});
+    listen(gear,'click',event => {if (moved && event.detail !== 0) return;state.collapsed=!state.collapsed;render();save();});
     listen(gear,'contextmenu',event => {event.preventDefault();state.collapsed=!state.collapsed;render();save();});
     listen(header,'pointerdown',event => {if(event.button!==0)return;moved=false;drag={x:event.clientX,y:event.clientY,right:state.right,top:state.top};if(!gear.contains(event.target))header.setPointerCapture(event.pointerId);});
     listen(header,'pointermove',event => {if(!drag)return;const dx=event.clientX-drag.x,dy=event.clientY-drag.y;if(!moved&&Math.hypot(dx,dy)<4)return;moved=true;header.setPointerCapture(event.pointerId);state.right=drag.right-dx;state.top=drag.top+dy;place();});

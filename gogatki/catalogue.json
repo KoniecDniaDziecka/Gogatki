@@ -5,13 +5,13 @@
       "id": "blogo-plus",
       "name": "Błogo+",
       "description": "Przypomnienia o błogosławieństwie i błogosławienie pobliskich graczy.",
-      "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/blogo-plus.js?v=1.0.0"
+      "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/blogo-plus.js?v=1.0.1"
     },
     {
       "id": "kupiec-plus",
       "name": "Kupiec+",
       "description": "Sprzedaż i uzupełnianie (NI) oraz dzielenie stosów (NI/SI).",
-      "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/kupiec-plus.js?v=1.0.0"
+      "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/kupiec-plus.js?v=1.0.1"
     },
     {
       "id": "alerts",
