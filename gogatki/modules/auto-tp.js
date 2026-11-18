@@ -1,4 +1,4 @@
-// Auto TP 1.0.5 — użycie po zakończeniu i odblokowaniu walki.
+// Auto TP 1.0.6 — użycie po zakończeniu i odblokowaniu walki.
 GogatkiRuntime.register({
   id: 'auto-tp',
   name: 'Auto TP',
@@ -12,6 +12,7 @@ GogatkiRuntime.register({
     range: 5, build: 0, enemyClans: [], items: { afterBattle: 0, closeEnemy: 0, afterFlee: 0 },
     collapsed: false, settings: true, x: null, y: 100 };
   const labels = { afterBattle: 'Użyj po walce', closeEnemy: 'Użyj przy wrogu', afterFlee: 'Użyj z ucieczką' };
+  const battleEnded = f => f && (Number(f.endBattle) === 1 || Number(f.close) === 1);
 
   function createController(api, state, persist, report) {
     let used = false, busy = false, generation = 0;
@@ -47,9 +48,9 @@ GogatkiRuntime.register({
         catch (e) { if (epoch === generation) used = true; report(e.message + ' — uzbrój ponownie'); } finally { busy = false; }
       }
     }
-    async function battleStart(f) {
-      reset();
-      if (!available('afterFlee') || f.endBattle || !api.pvp()) return;
+    async function battleStart(f, rearm = true) {
+      if (rearm) reset();
+      if (!available('afterFlee') || battleEnded(f) || !api.pvp()) return;
       const warriors = Object.entries(f.w || {}).map(([id, w]) => ({ ...w, id: w.id ?? id }));
       if (warriors.some(w => !!+w.npc)) return;
       const opponents = warriors.filter(w => +w.team !== +f.myteam);
@@ -82,6 +83,7 @@ GogatkiRuntime.register({
   let controller, state, root, host, status, inBattle = false, lastMap, currentCharacter;
   const restorers = [];
   let battleSerial = 0, closedBattle = 0, pendingAfterBattle = 0, stopped = false;
+  let parserDepth = 0, parserFailed = false, battleEvents = [];
   let panelObserver;
   const ni = () => !!window.Engine?.hero?.d;
   const hero = () => ni() ? window.Engine.hero.d : window.hero;
@@ -124,16 +126,27 @@ GogatkiRuntime.register({
     if (typeof owner?.[key] !== 'function') return false;
     const original = owner[key];
     function wrapped(...args) {
-      // Both interfaces may consume f while parsing; retain the battle data first.
+      // Keep arrival order when native parsing closes a fight or parses another packet.
       const data = args[0];
       let packet;
       try { packet = data && typeof data === 'object' ? {
-        f: data.f ? structuredClone(data.f) : null,
+        f: data.f ? JSON.parse(JSON.stringify(data.f)) : null,
         town: !!data.town, other: !!data.other, h: !!data.h
       } : null; } catch (e) { console.error('Auto TP', e); }
-      const result = original.apply(this, args);
-      try { processPacket(packet); } catch (e) { console.error('Auto TP', e); }
-      return result;
+      if (!parserDepth) parserFailed = false;
+      battleEvents.push({packet}); parserDepth++;
+      try { return original.apply(this, args); }
+      catch (e) { parserFailed = true; throw e; }
+      finally {
+        parserDepth--;
+        if (!parserDepth) {
+          const events = battleEvents; battleEvents = [];
+          if (!parserFailed && !stopped) for (const event of events) {
+            try { if (event.closed) closeBattle(); else processPacket(event.packet); }
+            catch (e) { console.error('Auto TP', e); }
+          }
+        }
+      }
     }
     owner[key] = wrapped;
     restorers.push(() => { if (owner[key] === wrapped) owner[key] = original; });
@@ -147,17 +160,23 @@ GogatkiRuntime.register({
     if (packet.town) { cancelBattle(); controller.reset(); }
     if (packet.f?.init != null) {
       pendingAfterBattle = 0; battleSerial++; inBattle = true;
-      void controller.battleStart(packet.f);
+      controller.reset();
+      const serial = battleSerial;
+      queueMicrotask(() => {
+        if (!stopped && inBattle && battleSerial === serial) void controller.battleStart(packet.f, false);
+      });
     }
-    if (packet.f?.endBattle) closeBattle();
+    // QF can finish via f.close without opening/closing the native battle window.
+    if (battleEnded(packet.f)) closeBattle();
     if ((packet.other || packet.h) && !pendingAfterBattle) void controller.nearby();
   }
   function flushAfterBattle() {
-    if (stopped || !pendingAfterBattle || inBattle || battleLocked() || controller.isBusy()) return;
+    if (stopped || parserDepth || !pendingAfterBattle || inBattle || battleLocked() || controller.isBusy()) return;
     pendingAfterBattle = 0;
     void controller.afterBattle();
   }
   function closeBattle() {
+    if (parserDepth) { battleEvents.push({closed:true}); return; }
     if (stopped || !battleSerial || closedBattle === battleSerial) return;
     inBattle = false; closedBattle = battleSerial; pendingAfterBattle = battleSerial;
     // Run after the native close/parser finishes and wait for the game battle lock.
@@ -337,12 +356,13 @@ GogatkiRuntime.register({
       if (++refreshTick % 8 === 0 && !['SELECT', 'TEXTAREA', 'INPUT'].includes(root.activeElement?.tagName)) refreshItems();
     } catch (e) { report('Oczekiwanie na grę'); console.debug('Auto TP', e); }
   }, 250);
-  function cleanup() { stopped = true; cancelBattle(); panelObserver?.disconnect(); clearInterval(timer); restorers.reverse().forEach(fn => fn()); host?.remove(); window.removeEventListener('resize', onResize); }
+  function cleanup() { stopped = true; battleEvents = []; cancelBattle(); panelObserver?.disconnect(); clearInterval(timer); restorers.reverse().forEach(fn => fn()); host?.remove(); window.removeEventListener('resize', onResize); }
   window.EmergencyItemStandalone = { destroy() { cleanup(); delete window.__emergencyItemStandalone; delete window.EmergencyItemStandalone; } };
 })();
 
   }
 });
+
 
 
 

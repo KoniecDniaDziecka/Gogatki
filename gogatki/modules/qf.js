@@ -19,6 +19,8 @@ GogatkiRuntime.register({
     elite3: false, hero: false, titan: false, colossus: false, pvp: false, groupPvp: false,
     maxGrp: '', lvlDiff: '', players: [] });
 
+  const battleEnded = f => f && (Number(f.endBattle) === 1 || Number(f.close) === 1);
+
   // Base rules follow SmartAutofight.vue; group PvP has its own opt-in setting.
   function createCore(settings, game) {
     let initiated = false, requestedFast = false;
@@ -68,7 +70,7 @@ GogatkiRuntime.register({
       return params.toString().replace(/^fight=/, 'fight');
     }
     function battle(f) {
-      if (!settings.active || !f?.init || f.endBattle) return false;
+      if (!settings.active || !f?.init || battleEnded(f)) return false;
       const warriors = Object.entries(f.w || {});
       refreshNpcs();
       let fast = false;
@@ -201,7 +203,7 @@ GogatkiRuntime.register({
     const resetBattle = () => { generation++; core.reset(); };
     hook(parserOwner, parserKey, args => {
       const packet = args[0];
-      if (packet?.f?.endBattle || packet?.town) resetBattle();
+      if (battleEnded(packet?.f) || packet?.town) resetBattle();
       if (!packet?.town) core.refreshNpcs();
       const frame = packet?.f?.init ? { ...packet.f, w: Object.fromEntries(Object.entries(packet.f.w || {}).map(([id,n]) => [id,{ ...n }])) } : null;
       decisions.set(args, { fast: core.battle(frame), frame, generation });
@@ -333,6 +335,7 @@ GogatkiRuntime.register({
 
   }
 });
+
 
 
 
