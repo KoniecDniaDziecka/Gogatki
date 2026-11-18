@@ -3322,11 +3322,11 @@ html[data-cyberpunk-ni="on"] :is(.extraction__arrows, .salvage__arrows)::after {
 }
 /* CP-CRAFT-EXTRACTION-END */
 
-/* CP-CRAFT-GRID-PITCH-BEGIN: ikona 32 px + odstęp 2 px daje pole 34 px.
+/* CP-CRAFT-GRID-PITCH-BEGIN: ikona 32 px + odstęp 1 px daje pole 33 px.
  * Rozmiary siatki, pozycje ikon i obszary upuszczania nadal ustala gra. */
 @layer cyberpunk-ni-window-finishes {
 html[data-cyberpunk-ni="on"] :is(.crafting, .crafting-window, .crafting__contents, .left-grouped-list-and-right-description-window) :is(.interface-element-one-item-slot-background-to-repeat, .interface-element-item-slot-grid-stretch) {
-  background-size: 34px 34px !important;
+  background-size: 33px 33px !important;
 }
 }
 /* CP-CRAFT-GRID-PITCH-END */
