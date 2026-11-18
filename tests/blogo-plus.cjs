@@ -71,7 +71,7 @@ async function fixture(browser,name,mode='NI',options={}) {
  await install(page);
  const panel=page.locator('#gogatki-'+name);
  await panel.waitFor({state:'attached'});
- return {page,panel,errors,async close(){eq(errors,[],name+' '+mode+' browser errors');await page.close();}};
+ return {page,panel,question:page.locator('#gogatki-blogo-renewal'),errors,async close(){eq(errors,[],name+' '+mode+' browser errors');await page.close();}};
 }
 async function option(f,key,value){
  const input=f.panel.locator('input[data-key="'+key+'"]');
@@ -145,11 +145,13 @@ async function testLoader(browser) {
    const packet={item:{10:{id:10,name:'Buff',loc:'g',st:10,stat:'ttl=1'}}};
    if(mode==='NI')Engine.communication.parseJSON(packet);else parseInput(packet);
   },mode);
-  await panel.getByRole('button',{name:'Pomiń',exact:true}).waitFor();
-  await page.waitForFunction(()=>!document.getElementById('gogatki-blogo-plus').hasAttribute('data-gogatki-docked'));
-  eq(await panel.locator('.question').isVisible(),true,mode+' reminder opens from dock');
-  await panel.getByRole('button',{name:'Pomiń',exact:true}).click();
-  await tile.click();
+  const reminder=page.locator('#gogatki-blogo-renewal');
+  await reminder.getByRole('button',{name:'Pomiń',exact:true}).waitFor();
+  eq(await reminder.isVisible(),true,mode+' independent reminder visible');
+  eq(await panel.isVisible(),false,mode+' main panel stays hidden during reminder');
+  eq(await panel.getAttribute('data-gogatki-docked'),'',mode+' reminder preserves dock state');
+  await reminder.getByRole('button',{name:'Pomiń',exact:true}).click();
+  eq(await reminder.count(),0,mode+' dismiss removes reminder');
   await page.waitForFunction(()=>document.getElementById('gogatki-blogo-plus').hasAttribute('data-gogatki-docked'));
   const position = await page.evaluate(() => [store['blogo-plus:global:v1'].right,store['blogo-plus:global:v1'].top]);
   await page.setViewportSize({width:750,height:600});
@@ -192,18 +194,23 @@ async function testLoader(browser) {
    test.items[20]={id:20,name:'Buff',loc:'g',st:0,stat:'ttl=1'};
    test.packet({item:{10:{id:10,name:'Buff',loc:'g',st:10,stat:'ttl=1'}}});
   });
-  await f.panel.getByRole('button',{name:'Odnów',exact:true}).click();
+  const popupBox=await f.question.boundingBox();
+  eq([popupBox.width,Math.round(popupBox.x+popupBox.width/2),Math.round(popupBox.y+popupBox.height/2)],[240,600,450],mode+' small centered reminder');
+  eq(await f.panel.locator('.options').isVisible(),true,mode+' visible panel stays open during reminder');
+  await p.evaluate(()=>test.packet({item:{10:{id:10,name:'Buff',loc:'g',st:10,stat:'ttl=1'}}}));
+  eq(await f.question.count(),1,mode+' pending reminder remains a single window');
+  await f.question.getByRole('button',{name:'Odnów',exact:true}).click();
   eq(await p.evaluate(()=>test.requests.map(r=>r.query)),['moveitem&st=1&id=20'],mode+' renewal uses spare blessing');
   await p.evaluate(()=>test.packet({item:{10:{id:10,name:'Buff',loc:'g',st:10,stat:'ttl=1'}}}));
-  eq(await f.panel.locator('.question').isVisible(),false,mode+' duplicate reminder prevented');
+  eq(await f.question.isVisible(),false,mode+' duplicate reminder prevented');
   await p.evaluate(()=>{test.battle=true;test.packet({item:{11:{id:11,name:'Other',loc:'g',st:10,stat:'ttl=1'}}});});
-  eq(await f.panel.locator('.question').isVisible(),false,mode+' reminder waits for battle');
+  eq(await f.question.isVisible(),false,mode+' reminder waits for battle');
   await p.evaluate(()=>test.battle=false);await tick(p);
-  await f.panel.getByRole('button',{name:'Odnów',exact:true}).click();
+  await f.question.getByRole('button',{name:'Odnów',exact:true}).click();
   eq(await p.evaluate(()=>test.lastMessage),'Nie masz więcej użyć danego błogosławieństwa',mode+' missing spare blessing message');
   await option(f,'renewCrimsonBuff',false);
   await p.evaluate(()=>test.packet({item:{12:{id:12,name:'Karmazynowe błogosławieństwo',loc:'g',st:10,stat:'ttl=1'}}}));
-  eq(await f.panel.locator('.question').isVisible(),false,mode+' crimson reminder setting');
+  eq(await f.question.isVisible(),false,mode+' crimson reminder setting');
   await p.evaluate(mode=>{
    test.requests=[];
    const others={2:{id:2,x:1,y:1,relation:1},3:{id:3,x:1,y:0,relation:3},4:{id:4,x:3,y:0,relation:1},5:{id:5,x:0,y:1,relation:6},6:{id:6,x:0,y:1,relation:8}};
@@ -240,7 +247,7 @@ async function testLoader(browser) {
   await option(f,'active',false);
   await p.evaluate(()=>{test.packet({item:{51:{id:51,name:'Buff',loc:'g',st:10,stat:'ttl=1'}}});test.packet({ask:{q:'Karmazynowe błogosławieństwo',re:'dialog&answer='}});});
   eq(await p.evaluate(()=>test.requests.length),0,mode+' disabled module sends no requests');
-  eq(await f.panel.locator('.question').isVisible(),false,mode+' disabled module ignores reminder');
+  eq(await f.question.isVisible(),false,mode+' disabled module ignores reminder');
   await f.close();
  }
  {
@@ -261,10 +268,10 @@ async function testLoader(browser) {
   await f.panel.locator('.gear').click({button:'right'});
   eq(await f.panel.isVisible(),false,'no floating miniature when collapsed');
   await p.evaluate(()=>test.packet({item:{9:{id:9,name:'Buff',st:10,stat:'ttl=1'}}}));
-  eq(await f.panel.locator('.question').evaluate(el=>el.hidden),false,'collapsed module keeps working');
-  eq(await f.panel.locator('.options').isVisible(),true,'reminder opens the full window');
+  eq(await f.question.isVisible(),true,'collapsed module shows independent reminder');
+  eq(await f.panel.isVisible(),false,'reminder leaves main panel hidden');
   await option(f,'active',false);
-  eq(await f.panel.locator('.question').isVisible(),false,'disable cancels pending confirmation');
+  eq(await f.question.isVisible(),false,'disable cancels pending confirmation');
   const settings=await p.evaluate(()=>store['blogo-plus:global:v1']);
   await p.evaluate(()=>window.dispatchEvent(new Event('pagehide')));
   eq(await f.panel.count(),0,'pagehide removes panel');
@@ -274,6 +281,7 @@ async function testLoader(browser) {
   eq(await f.panel.locator('input[data-key=renewCrimsonBuff]').isChecked(),false,'stored option restored');
   const restored=await p.evaluate(()=>store['blogo-plus:global:v1']);
   eq([restored.right,restored.top],[settings.right,settings.top],'position retained');
+  await f.panel.locator('.gear').evaluate(el=>el.click());
   await p.setViewportSize({width:300,height:250});
   await p.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
   const resized=await f.panel.boundingBox();
@@ -289,6 +297,22 @@ async function testLoader(browser) {
   await install(f.page);
   eq(await f.panel.locator('[data-key=active]').isChecked(),false,'GM active state takes priority');
   eq(await f.panel.locator('[data-key=blessKey]').inputValue(),'z','GM shortcut takes priority');
+  await f.close();
+ }
+ for(const mode of ['NI','SI']) {
+  const f=await fixture(browser,name,mode),p=f.page;
+  const trigger=async id=>p.evaluate(id=>test.packet({item:{[id]:{id,name:'Buff',loc:'g',st:10,stat:'ttl=1'}}}),id);
+  await trigger(101);
+  await f.question.getByRole('button',{name:'Zamknij przypomnienie'}).click();
+  eq(await f.question.count(),0,mode+' close removes popup');
+  eq(await p.evaluate(()=>test.requests.length),0,mode+' close never renews blessing');
+  await trigger(102);
+  await f.question.getByRole('button',{name:'Pomiń',exact:true}).focus();await p.keyboard.press('Escape');
+  eq(await f.question.count(),0,mode+' Escape dismisses popup');
+  await trigger(103);
+  await p.evaluate(()=>window.dispatchEvent(new Event('pagehide')));
+  eq(await f.question.count(),0,mode+' pagehide removes pending popup');
+  eq(await p.evaluate(()=>test.requests.length),0,mode+' cleanup never renews blessing');
   await f.close();
  }
  await testLoader(browser);

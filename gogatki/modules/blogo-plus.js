@@ -1,4 +1,4 @@
-// Błogo+ 1.0.1 — Buff Yourself (Maddonz, Barlag).
+// Błogo+ 1.0.2 — Buff Yourself (Maddonz, Barlag).
 GogatkiRuntime.register({
   id: 'blogo-plus',
   name: 'Błogo+',
@@ -98,18 +98,43 @@ function createAddon(config, feature) {
   function ask(text, choices) {
     if (!root || stopped || !state.active) return Promise.resolve(null);
     cancelQuestion?.();
-    // Przypomnienie musi być widoczne również po zwinięciu do docka.
-    if (state.collapsed) { state.collapsed = false; render(); save(); }
     return new Promise(resolve => {
-      const area = root.querySelector('.question');area.replaceChildren();area.hidden = false;
-      let settled=false;
-      const finish=value=>{if(settled)return;settled=true;area.hidden=true;cancelQuestion=null;resolve(value);};
-      cancelQuestion=()=>finish(null);
-      const label = document.createElement('p');label.textContent = text;area.append(label);
+      // Osobne okienko jak w Gift; nie zmienia widoczności ani pozycji panelu.
+      const notice = document.createElement('div');
+      notice.id = 'gogatki-blogo-renewal';
+      notice.style.cssText = 'all:initial;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:240px;max-width:calc(100vw - 24px);z-index:2147483600;display:block';
+      const popup = notice.attachShadow({mode:'open'});
+      popup.innerHTML = `<style>
+        :host{color-scheme:dark}*{box-sizing:border-box;text-shadow:none;-webkit-text-stroke:0}
+        section{width:100%;max-height:calc(100vh - 24px);overflow:auto;background:#171b20;color:#c7d0d9;border:1px solid #668298;border-radius:4px;font:12px/1.4 Arial,sans-serif;box-shadow:0 4px 16px #0006}
+        header{display:flex;align-items:center;height:30px;background:#252b31;color:#12c9bd}
+        h2{flex:1;margin:0;padding-left:28px;text-align:center;font:600 12px Arial,sans-serif}
+        button{min-height:28px;padding:5px 10px;border:1px solid #6d879a;border-radius:3px;background:#38566c;color:#c7d0d9;font:12px Arial,sans-serif;cursor:pointer}
+        button:hover{border-color:#12c9bd}button:focus-visible{outline:2px solid #12c9bd;outline-offset:-2px}
+        .close{display:flex;align-items:center;justify-content:center;width:28px;height:28px;padding:5px;border:0;background:transparent;color:#12c9bd}
+        .close svg{display:block;pointer-events:none}main{padding:10px;display:grid;gap:10px}p{margin:0;text-align:center;overflow-wrap:anywhere}
+        .choices{display:flex;gap:6px}.choices button{flex:1;min-width:0}
+      </style><section role="dialog" aria-modal="false" aria-labelledby="blogo-renewal-title" aria-describedby="blogo-renewal-text">
+        <header><h2 id="blogo-renewal-title">${escape(config.name)}</h2><button type="button" class="close" aria-label="Zamknij przypomnienie" title="Pomiń odnowienie"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></header>
+        <main><p id="blogo-renewal-text" aria-live="polite"></p><div class="choices"></div></main>
+      </section>`;
+      let settled = false;
+      const finish = value => {
+        if (settled) return;
+        settled = true; notice.remove(); cancelQuestion = null; resolve(value);
+      };
+      cancelQuestion = () => finish(null);
+      popup.querySelector('p').textContent = text;
+      popup.querySelector('.close').addEventListener('click', () => finish(null));
+      popup.addEventListener('keydown', event => {
+        if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); finish(null); }
+      });
       for (const [caption,value] of choices) {
-        const button = document.createElement('button');button.textContent = caption;
-        button.addEventListener('click', () => finish(state.active ? value : null), {once:true});area.append(button);
+        const button = document.createElement('button');button.type = 'button';button.textContent = caption;
+        button.addEventListener('click', () => finish(state.active && !stopped ? value : null), {once:true});
+        popup.querySelector('.choices').append(button);
       }
+      document.body.append(notice);
     });
   }
   function shortcut(event, value) {
@@ -157,10 +182,10 @@ function createAddon(config, feature) {
       input{font:12px Arial,sans-serif;color:#c7d0d9;background:#252b31;border:1px solid #668298;border-radius:3px;padding:5px;min-width:0;width:100%}
       input[type=checkbox]{appearance:none;display:grid;place-content:center;flex:none;width:14px;height:14px;margin:0;padding:0;background:#171b20}
       input[type=checkbox]:checked:after{content:'';width:7px;height:4px;border:solid #12c9bd;border-width:0 0 2px 2px;transform:rotate(-45deg)}
-      :focus-visible{outline:2px solid #12c9bd;outline-offset:1px}.actions{display:flex;gap:5px;flex-wrap:wrap}.question{display:grid;gap:6px;border-top:1px solid #668298;padding-top:8px}
+      :focus-visible{outline:2px solid #12c9bd;outline-offset:1px}.actions{display:flex;gap:5px;flex-wrap:wrap}
       :host([data-compact="true"]){display:none!important}
     </style><section class="panel" aria-label="${escape(config.name)}"><header><strong>${escape(config.name)}</strong><button class="gear" aria-label="Zwiń ${escape(config.name)} do docka" title="LPM / PPM: zwiń do docka">${svg}</button></header><main>
-      <label><input type="checkbox" data-key="active">Włączony</label><p class="description">${escape(config.description)}</p><div class="actions"></div><div class="question" hidden></div><div class="options">${fields}</div><p class="status" role="status"></p></main></section>`;
+      <label><input type="checkbox" data-key="active">Włączony</label><p class="description">${escape(config.description)}</p><div class="actions"></div><div class="options">${fields}</div><p class="status" role="status"></p></main></section>`;
     document.body.append(host);
     for (const input of root.querySelectorAll('input[data-key]')) {
       const name = input.dataset.key;input.type === 'checkbox' ? input.checked=state[name] : input.value=state[name];
