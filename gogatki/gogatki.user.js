@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Gogatki — panel dodatków
 // @namespace    gogatek.local
-// @version      0.9.9
+// @version      0.9.10
 // @description  Wspólny panel i przełączniki dodatków do Margonem.
 // @match        https://*.margonem.pl/*
 // @match        https://*.margonem.com/*
@@ -455,7 +455,7 @@ const fallbackCatalogue = {"schemaVersion":1,"modules":[{"id":"ulepa","name":"Ul
         let gameStyle = null, popupObserver = null, widgetObserver = null, lastRect = null, active = false;
         let lastWarning = '', restoringFloat = false, rejectedSavedPosition = null;
         let nativeReadySince = null, missingTileSince = null;
-        let nativeSession = false, layoutScope = null;
+        let nativeSession = false, layoutScope = null, pointerTile = null;
         function nativeLoading() {
             const engine = window.Engine;
             return (nativeSession && !engine) || !!engine && !!(nativeSession || engine.hero || engine.map) &&
@@ -513,16 +513,30 @@ const fallbackCatalogue = {"schemaVersion":1,"modules":[{"id":"ulepa","name":"Ul
             return validPosition(saved) ? saved : layout[widgetKey];
         }
         function tilePosition(tile) {
-            if (tile.closest('.ui-draggable-dragging,.ui-sortable-helper')) return null;
-            // NI stores its slot on the button itself, including moves within the same bar.
+            if (tile === pointerTile || tile.closest('.ui-draggable-dragging,.ui-sortable-helper,.pointer-draggable-dragging,.pointer-dragging')) return null;
+            const positions = new Set(['bottom-left','bottom-right','top-left','top-right','bottom-left-additional','bottom-right-additional']);
+            for (const definition of Object.values(registration?.set || {})) if (typeof definition?.pos === 'string') positions.add(definition.pos);
+            const bar = tile.closest('.main-buttons-container');
+            const pos = bar?.dataset.position || bar?.dataset.container || [...(bar?.classList || [])].find(value => positions.has(value));
+            // Current NI pointer dragging changes CSS coordinates while widget attributes may stay stale.
+            if (bar && tile.parentElement === bar && typeof pos === 'string') {
+                const css = window.getComputedStyle(tile), step = tile.offsetWidth;
+                const area = bar.getBoundingClientRect(), rect = tile.getBoundingClientRect();
+                const scaleX = area.width / bar.offsetWidth, scaleY = area.height / bar.offsetHeight;
+                const left = (rect.left - area.left) / scaleX - bar.clientLeft;
+                const top = (rect.top - area.top) / scaleY - bar.clientTop;
+                const index = Math.round(left / step);
+                if (css.position === 'absolute' && step > 0 && Number.isFinite(left) && Number.isFinite(top) &&
+                    Math.abs(rect.width / scaleX - step) <= 2 && Math.abs(top) <= 2 && index >= 0 && Math.abs(left - index * step) <= 2 &&
+                    left + step <= bar.clientWidth + 2) return [index,pos];
+                // A pointer move between grid slots is transient, not a valid saved position.
+                if (css.position === 'absolute' && Number.isFinite(left)) return null;
+            }
             const nativeIndex = tile.getAttribute('widget-index') ?? tile.dataset.widgetIndex;
             const nativePos = tile.getAttribute('widget-pos') ?? tile.dataset.widgetPos;
             if (nativeIndex != null && /^\d+$/.test(nativeIndex) && validPosition([Number(nativeIndex),nativePos])) return [Number(nativeIndex),nativePos];
-            const slot = tile.parentElement, bar = slot?.closest('.main-buttons-container');
+            const slot = tile.parentElement;
             if (!bar || slot.parentElement !== bar) return null;
-            const positions = new Set(['bottom-left','bottom-right','top-left','top-right','bottom-left-additional','bottom-right-additional']);
-            for (const definition of Object.values(registration.set)) if (typeof definition?.pos === 'string') positions.add(definition.pos);
-            const pos = bar.dataset.position || bar.dataset.container || [...bar.classList].find(value => positions.has(value));
             const value = slot.dataset.index ?? slot.dataset.slot;
             if (value == null || !/^\d+$/.test(value)) return null;
             const position = [Number(value),pos];
@@ -546,9 +560,19 @@ const fallbackCatalogue = {"schemaVersion":1,"modules":[{"id":"ulepa","name":"Ul
         }
         function occupied(position, layout, set) {
             const matches = value => validPosition(value) && value[0] === position[0] && value[1] === position[1];
-            // Saved moves override native defaults; disabled widgets do not occupy a slot.
+            const located = new Set();
+            for (const tile of document.querySelectorAll('.main-buttons-container .widget-button')) {
+                if (tile.matches(selector) || tile.querySelector('.icon.' + widgetKey)) continue;
+                const actual = tilePosition(tile);
+                if (!actual) continue;
+                if (matches(actual)) return true;
+                const id = tile.getAttribute('widget-name') || tile.dataset.name ||
+                    [...new Set([...Object.keys(set),...Object.keys(layout)])].find(key => tile.classList.contains('widget-' + key) || tile.querySelector('.icon')?.classList.contains(key));
+                if (id) located.add(id);
+            }
+            // Existing native buttons override stale defaults after interface configuration.
             for (const id of new Set([...Object.keys(set), ...Object.keys(layout)])) {
-                if (id === widgetKey || layout[id] === false) continue;
+                if (id === widgetKey || located.has(id) || layout[id] === false) continue;
                 const definition = set[id];
                 const other = validPosition(layout[id]) ? layout[id] : definition?.default ? [definition.index,definition.pos] : null;
                 if (matches(other)) return true;
@@ -588,13 +612,21 @@ const fallbackCatalogue = {"schemaVersion":1,"modules":[{"id":"ulepa","name":"Ul
         }
         function bindTile(tile) {
             if (tile === boundTile) return;
-            if (boundTile) { boundTile.removeEventListener('keydown', tileKey, true); boundTile.removeAttribute('data-gogatki-native-launcher'); }
+            if (boundTile) { boundTile.removeEventListener('keydown', tileKey, true); boundTile.removeEventListener('pointerdown', nativePointerStart, true); boundTile.removeAttribute('data-gogatki-native-launcher'); }
             boundTile = tile;
             if (tile) {
                 tile.setAttribute('aria-label', 'Gogatki'); tile.setAttribute('role', 'button');
                 tile.setAttribute('data-gogatki-native-launcher', 'true');
-                tile.tabIndex = 0; tile.addEventListener('keydown', tileKey, true);
+                tile.tabIndex = 0; tile.addEventListener('keydown', tileKey, true); tile.addEventListener('pointerdown', nativePointerStart, true);
             }
+        }
+        function nativePointerStart(event) {
+            if (event.button === 0) pointerTile = event.currentTarget;
+        }
+        function nativePointerEnd() {
+            if (!pointerTile) return;
+            pointerTile = null;
+            queueMicrotask(() => { if (!stopped) { anchor(); follow(); } });
         }
         function tileKey(event) {
             if (!['Enter',' '].includes(event.key)) return;
@@ -679,6 +711,7 @@ const fallbackCatalogue = {"schemaVersion":1,"modules":[{"id":"ulepa","name":"Ul
             if (stopped) return;
             stopped = true; if (timer) clearInterval(timer); if (frame) window.cancelAnimationFrame(frame);
             popupObserver?.disconnect(); widgetObserver?.disconnect(); window.removeEventListener('resize', anchor);
+            document.removeEventListener('pointerup', nativePointerEnd, true); document.removeEventListener('pointercancel', nativePointerEnd, true); pointerTile = null;
             mainRoot?.removeEventListener('pointerdown', blockHeaderDrag, true);
             mainRoot?.removeEventListener('click', closeFocus);
             mainRoot?.removeEventListener('keydown', escapeFocus);
@@ -699,6 +732,7 @@ const fallbackCatalogue = {"schemaVersion":1,"modules":[{"id":"ulepa","name":"Ul
             const tileTargets = [':root .main-buttons-container .widget-button[data-gogatki-native-launcher]', ':root [data-gogatki-native-launcher]'];
             gameStyle.textContent = tileTargets.join(',') + '{' + launcherTileStyle + ';cursor:pointer}' + tileTargets.flatMap(target => [target + '::before', target + '::after']).join(',') + '{content:none!important;display:none!important}' + tileTargets.map(target => target + ' .icon').join(',') + '{display:none!important}' + tileTargets.map(target => target + ':focus-visible').join(',') + '{outline:2px solid #12c9bd!important;outline-offset:2px!important}';
             document.head.append(gameStyle); window.addEventListener('resize', anchor);
+            document.addEventListener('pointerup', nativePointerEnd, true); document.addEventListener('pointercancel', nativePointerEnd, true);
             // Apply our artwork before the next paint when the game creates/rebuilds its tile.
             const own = selector + ',.icon.' + widgetKey;
             widgetObserver = new MutationObserver(records => {
@@ -706,7 +740,7 @@ const fallbackCatalogue = {"schemaVersion":1,"modules":[{"id":"ulepa","name":"Ul
                     record.target.matches(own) || !!record.target.querySelector(own) :
                     [...record.addedNodes,...record.removedNodes].some(node => node.nodeType === 1 && (node.matches(own) || node.querySelector(own))))) { anchor(); follow(); }
             });
-            widgetObserver.observe(document.body, {childList:true,subtree:true,attributes:true,attributeFilter:['widget-index','widget-pos','data-widget-index','data-widget-pos','data-index','data-slot','class']});
+            widgetObserver.observe(document.body, {childList:true,subtree:true,attributes:true,attributeFilter:['widget-index','widget-pos','data-widget-index','data-widget-pos','data-index','data-slot','class','style']});
             return true;
         }
         function poll() {
