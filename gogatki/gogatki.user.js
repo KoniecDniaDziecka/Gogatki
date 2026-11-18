@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Gogatki — panel dodatków
 // @namespace    gogatek.local
-// @version      0.9.8
+// @version      0.9.9
 // @description  Wspólny panel i przełączniki dodatków do Margonem.
 // @match        https://*.margonem.pl/*
 // @match        https://*.margonem.com/*
@@ -513,8 +513,13 @@ const fallbackCatalogue = {"schemaVersion":1,"modules":[{"id":"ulepa","name":"Ul
             return validPosition(saved) ? saved : layout[widgetKey];
         }
         function tilePosition(tile) {
+            if (tile.closest('.ui-draggable-dragging,.ui-sortable-helper')) return null;
+            // NI stores its slot on the button itself, including moves within the same bar.
+            const nativeIndex = tile.getAttribute('widget-index') ?? tile.dataset.widgetIndex;
+            const nativePos = tile.getAttribute('widget-pos') ?? tile.dataset.widgetPos;
+            if (nativeIndex != null && /^\d+$/.test(nativeIndex) && validPosition([Number(nativeIndex),nativePos])) return [Number(nativeIndex),nativePos];
             const slot = tile.parentElement, bar = slot?.closest('.main-buttons-container');
-            if (!bar || slot.parentElement !== bar || tile.closest('.ui-draggable-dragging,.ui-sortable-helper')) return null;
+            if (!bar || slot.parentElement !== bar) return null;
             const positions = new Set(['bottom-left','bottom-right','top-left','top-right','bottom-left-additional','bottom-right-additional']);
             for (const definition of Object.values(registration.set)) if (typeof definition?.pos === 'string') positions.add(definition.pos);
             const pos = bar.dataset.position || bar.dataset.container || [...bar.classList].find(value => positions.has(value));
@@ -525,7 +530,8 @@ const fallbackCatalogue = {"schemaVersion":1,"modules":[{"id":"ulepa","name":"Ul
         }
         function rememberPosition(tile) {
             if (!registration || nativeLoading() || nativePositionKey(registration.manager) !== registration.positionKey) return;
-            const position = tilePosition(tile) || [registration.definition.index,registration.definition.pos];
+            const position = tilePosition(tile);
+            // An unrecognized/transient node must never overwrite the user's saved slot.
             if (!validPosition(position)) return;
             const saved = [position[0],position[1]];
             const signature = JSON.stringify(saved);
@@ -696,9 +702,11 @@ const fallbackCatalogue = {"schemaVersion":1,"modules":[{"id":"ulepa","name":"Ul
             // Apply our artwork before the next paint when the game creates/rebuilds its tile.
             const own = selector + ',.icon.' + widgetKey;
             widgetObserver = new MutationObserver(records => {
-                if (records.some(record => [...record.addedNodes,...record.removedNodes].some(node => node.nodeType === 1 && (node.matches(own) || node.querySelector(own))))) { anchor(); follow(); }
+                if (records.some(record => record.type === 'attributes' ?
+                    record.target.matches(own) || !!record.target.querySelector(own) :
+                    [...record.addedNodes,...record.removedNodes].some(node => node.nodeType === 1 && (node.matches(own) || node.querySelector(own))))) { anchor(); follow(); }
             });
-            widgetObserver.observe(document.body, {childList:true,subtree:true});
+            widgetObserver.observe(document.body, {childList:true,subtree:true,attributes:true,attributeFilter:['widget-index','widget-pos','data-widget-index','data-widget-pos','data-index','data-slot','class']});
             return true;
         }
         function poll() {
