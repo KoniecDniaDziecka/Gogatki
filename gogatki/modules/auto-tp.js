@@ -1,4 +1,4 @@
-// Auto TP 1.0.6 — użycie po zakończeniu i odblokowaniu walki.
+// Auto TP 1.0.7 — aktywacja przez panel Gogatków.
 GogatkiRuntime.register({
   id: 'auto-tp',
   name: 'Auto TP',
@@ -7,7 +7,7 @@ GogatkiRuntime.register({
     const window = unsafeWindow;
 (function () {
   'use strict';
-  const defaults = { active: false, skipEnemyCheck: false, otherEnemy: false,
+  const defaults = { active: true, skipEnemyCheck: false, otherEnemy: false,
     removeItemAfterUse: true, closeEnemyLevelDiff: 13, fleeLevelDiff: 13,
     range: 5, build: 0, enemyClans: [], items: { afterBattle: 0, closeEnemy: 0, afterFlee: 0 },
     collapsed: false, settings: true, x: null, y: 100 };
@@ -264,9 +264,6 @@ GogatkiRuntime.register({
     const panel = node('section', { className: 'panel' });
     const header = node('header', {}, panel);
     node('strong', { textContent: 'Auto TP' }, header);
-    const active = node('input', { type: 'checkbox', checked: state.active, title: 'Włącz Auto TP' }, header);
-    active.setAttribute('aria-label', 'Włącz Auto TP');
-    active.onchange = () => { state.active = active.checked; controller.reset(); persist(); };
     const settings = node('button', { className: 'gear', innerHTML: scrollIcon, title: 'LPM: ustawienia · PPM: zwiń', type: 'button' }, header);
     settings.setAttribute('aria-label', 'Ustawienia Auto TP');
     settings.onclick = () => anchored(() => { if (state.collapsed) state.collapsed = false; else state.settings = !state.settings; layout(); });
@@ -294,7 +291,7 @@ GogatkiRuntime.register({
     clans.onchange = () => { state.enemyClans = clans.value.split('\n').map(s => s.trim()).filter(Boolean); persist(); };
     const rearm = node('button', { textContent: 'Uzbrój ponownie', type: 'button' }, content);
     rearm.onclick = () => { controller.reset(); report('Ponownie uzbrojono'); };
-    status = node('div', { className: 'status', textContent: 'Gotowy · włącz przełącznikiem w nagłówku' }, content);
+    status = node('div', { className: 'status', textContent: 'Gotowy' }, content);
     status.setAttribute('role', 'status');
     header.onpointerdown = e => {
       if (e.button || e.target.closest('button,input')) return;
@@ -324,7 +321,8 @@ GogatkiRuntime.register({
       try { saved = JSON.parse(window.localStorage.getItem(legacyKey) || '{}'); } catch { saved = {}; }
     }
     if (!saved || typeof saved !== 'object' || Array.isArray(saved)) saved = {};
-    state = { ...structuredClone(defaults), ...saved, items: { ...defaults.items, ...saved?.items } };
+    // Starting the module means it is enabled in Gogatki; ignore the old extra switch.
+    state = { ...structuredClone(defaults), ...saved, active: true, items: { ...defaults.items, ...saved?.items } };
     if (!Array.isArray(state.enemyClans)) state.enemyClans = [];
     controller = createController(api, state, () => { persist(); if (root) refreshItems(); }, report);
     lastMap = map()?.id;
@@ -362,6 +360,7 @@ GogatkiRuntime.register({
 
   }
 });
+
 
 
 
