@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Gogatki — panel dodatków
 // @namespace    gogatek.local
-// @version      0.9.7
+// @version      0.9.8
 // @description  Wspólny panel i przełączniki dodatków do Margonem.
 // @match        https://*.margonem.pl/*
 // @match        https://*.margonem.com/*
@@ -455,7 +455,7 @@ const fallbackCatalogue = {"schemaVersion":1,"modules":[{"id":"ulepa","name":"Ul
         let gameStyle = null, popupObserver = null, widgetObserver = null, lastRect = null, active = false;
         let lastWarning = '', restoringFloat = false, rejectedSavedPosition = null;
         let nativeReadySince = null, missingTileSince = null;
-        let nativeSession = false;
+        let nativeSession = false, layoutScope = null;
         function nativeLoading() {
             const engine = window.Engine;
             return (nativeSession && !engine) || !!engine && !!(nativeSession || engine.hero || engine.map) &&
@@ -501,6 +501,43 @@ const fallbackCatalogue = {"schemaVersion":1,"modules":[{"id":"ulepa","name":"Ul
             const layout = storage.get(manager.getPathToHotWidgetVersion());
             return layout && typeof layout === 'object' && !Array.isArray(layout) ? layout : {};
         }
+        function nativePositionKey(manager) {
+            const character = window.Engine?.hero?.d?.id;
+            const path = typeof manager.getPathToHotWidgetVersion === 'function' ? manager.getPathToHotWidgetVersion() : null;
+            return 'gogatki:native-launcher:position:v1:' + location.hostname + ':' + character + ':' + JSON.stringify(path ?? 'default');
+        }
+        function preferredPosition(manager, layout) {
+            let saved;
+            try { saved = GM_getValue(nativePositionKey(manager), null); } catch {}
+            // The game's server layout may omit custom widgets or retain their old slot.
+            return validPosition(saved) ? saved : layout[widgetKey];
+        }
+        function tilePosition(tile) {
+            const slot = tile.parentElement, bar = slot?.closest('.main-buttons-container');
+            if (!bar || slot.parentElement !== bar || tile.closest('.ui-draggable-dragging,.ui-sortable-helper')) return null;
+            const positions = new Set(['bottom-left','bottom-right','top-left','top-right','bottom-left-additional','bottom-right-additional']);
+            for (const definition of Object.values(registration.set)) if (typeof definition?.pos === 'string') positions.add(definition.pos);
+            const pos = bar.dataset.position || bar.dataset.container || [...bar.classList].find(value => positions.has(value));
+            const value = slot.dataset.index ?? slot.dataset.slot;
+            if (value == null || !/^\d+$/.test(value)) return null;
+            const position = [Number(value),pos];
+            return validPosition(position) ? position : null;
+        }
+        function rememberPosition(tile) {
+            if (!registration || nativeLoading() || nativePositionKey(registration.manager) !== registration.positionKey) return;
+            const position = tilePosition(tile) || [registration.definition.index,registration.definition.pos];
+            if (!validPosition(position)) return;
+            const saved = [position[0],position[1]];
+            const signature = JSON.stringify(saved);
+            if (signature === registration.rememberedSignature) return;
+            try {
+                GM_setValue(registration.positionKey, saved);
+                registration.rememberedSignature = signature;
+            } catch (error) {
+                status('Nie udało się zapisać pozycji kafelka Gogatki.');
+                console.warn('[Gogatki] Zapis miejsca kafelka:', error);
+            }
+        }
         function occupied(position, layout, set) {
             const matches = value => validPosition(value) && value[0] === position[0] && value[1] === position[1];
             // Saved moves override native defaults; disabled widgets do not occupy a slot.
@@ -514,7 +551,7 @@ const fallbackCatalogue = {"schemaVersion":1,"modules":[{"id":"ulepa","name":"Ul
         }
         function createWidget(manager, set, position, savedSignature = null) {
             const definition = {keyName:widgetKey,txt:'Gogatki',default:true,index:position[0],pos:position[1],alwaysExist:true,type:'blue',clb:toggle};
-            set[widgetKey] = definition; registration = {manager,set,definition,missingSince:Date.now(),savedSignature};
+            set[widgetKey] = definition; registration = {manager,set,definition,missingSince:Date.now(),savedSignature,positionKey:nativePositionKey(manager),rememberedSignature:null};
             const withoutSlot = [];
             manager.createOneWidget(widgetKey, {[widgetKey]:[...position]}, true, withoutSlot);
             if (withoutSlot.includes(widgetKey)) { unregister(); return false; }
@@ -594,6 +631,7 @@ const fallbackCatalogue = {"schemaVersion":1,"modules":[{"id":"ulepa","name":"Ul
             }
             missingTileSince = null;
             registration.missingSince = null;
+            rememberPosition(usable.tile);
             const {rect} = usable;
             if (!lastRect || ['left','top','width','height'].some(k => Math.abs(lastRect[k] - rect[k]) > .1)) {
                 for (const k of ['left','top','width','height']) main.style.setProperty('--native-' + k, rect[k] + 'px');
@@ -682,12 +720,14 @@ const fallbackCatalogue = {"schemaVersion":1,"modules":[{"id":"ulepa","name":"Ul
                     status(); return;
                 }
                 nativeSession = true;
+                const scope = nativePositionKey(manager);
+                if (layoutScope !== scope) { layoutScope = scope; rejectedSavedPosition = null; }
                 const set = manager.getDefaultWidgetSet();
                 if (!set || typeof set !== 'object' || Array.isArray(set)) {
                     if (active) { holdNative(); if (awaitingNativeStartup()) return; }
                     unregister(); if (!awaitingNativeStartup()) float(); return;
                 }
-                if (!registration || registration.manager !== manager || registration.set !== set || set[widgetKey] !== registration.definition) {
+                if (!registration || registration.manager !== manager || registration.set !== set || registration.positionKey !== scope || set[widgetKey] !== registration.definition) {
                     unregister();
                 }
                 if (registration) {
@@ -698,7 +738,7 @@ const fallbackCatalogue = {"schemaVersion":1,"modules":[{"id":"ulepa","name":"Ul
                     // A stale saved slot can also fail without the native rejection list.
                     if (registration?.savedSignature && !tiles().length) rejectedSavedPosition = registration.savedSignature;
                     unregister();
-                    const layout = savedLayout(manager), saved = layout[widgetKey];
+                    const layout = savedLayout(manager), saved = preferredPosition(manager, layout);
                     const signature = validPosition(saved) ? JSON.stringify([saved[0],saved[1]]) : null;
                     if (signature && signature !== rejectedSavedPosition && !occupied(saved, layout, set)) {
                         if (!createWidget(manager, set, [saved[0],saved[1]], signature)) rejectedSavedPosition = signature;
@@ -745,3 +785,4 @@ const fallbackCatalogue = {"schemaVersion":1,"modules":[{"id":"ulepa","name":"Ul
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount, {once:true});
     else mount();
 })();
+
