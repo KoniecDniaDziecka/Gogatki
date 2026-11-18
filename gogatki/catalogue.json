@@ -2,6 +2,12 @@
   "schemaVersion": 1,
   "modules": [
     {
+      "id": "kupiec-plus",
+      "name": "Kupiec+",
+      "description": "Sprzedaż i uzupełnianie (NI) oraz dzielenie stosów (NI/SI).",
+      "url": "https://raw.githubusercontent.com/KoniecDniaDziecka/Gogatki/main/gogatki/modules/kupiec-plus.js?v=1.0.0"
+    },
+    {
       "id": "alerts",
       "name": "Alerts",
       "description": "Poziom, statusy w walce, zwykłe alerty i przypomnienie o wyczerpaniu.",
