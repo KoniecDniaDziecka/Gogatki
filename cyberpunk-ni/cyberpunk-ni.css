@@ -1,4 +1,4 @@
-/* Cyberpunk NI 0.2.83 — motyw dla nowego interfejsu Margonem.
+/* Cyberpunk NI 0.2.84 — motyw dla nowego interfejsu Margonem.
  * Skrypt .user.js włącza go atrybutem data-cyberpunk-ni="on" na <html>.
  * Zmienne poniżej sterują paletą. Nie wymaga zewnętrznych grafik ani fontów.
  * Najlepiej używać z wyłączonym DarknessNI i innymi motywami całego NI.
@@ -3284,23 +3284,25 @@ html[data-cyberpunk-ni="on"] .mails-window .mail-column .scroll-wrapper > .scrol
 }
 /* CP-MAIL-READABILITY-END */
 
-/* CP-CRAFT-EXTRACTION-BEGIN: wspólna ramka ekstrakcji i zmiany wzmocnienia.
- * Grafika .item, ilości, padding slotu i obsługa przeciągania pozostają natywne. */
+/* CP-CRAFT-EXTRACTION-BEGIN: ramka może być pod zwykłym c-window,
+ * mieć sam modyfikator frame-1/frame-2 oraz klasę item pustego pola.
+ * Własny URL ikony zostaje; podmieniamy tylko klasową oprawę lub znany GIF ramki. */
 @layer cyberpunk-ni-window-finishes {
-html[data-cyberpunk-ni="on"] :is(.crafting, .crafting-window, .crafting__contents, .left-grouped-list-and-right-description-window) .ie-item-slot-anim-frame:not(.item) {
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .crafting, .crafting-window, .crafting__contents, .left-grouped-list-and-right-description-window) :is(.ie-item-slot-anim-frame, .ie-item-slot-anim-frame--frame-1, .ie-item-slot-anim-frame--frame-2):not([style*="url(" i]),
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .crafting, .crafting-window, .crafting__contents, .left-grouped-list-and-right-description-window) :is(.ie-item-slot-anim-frame, .ie-item-slot-anim-frame--frame-1, .ie-item-slot-anim-frame--frame-2)[style*="item-slot-anim-frame" i] {
   background: var(--cp-art-slot) center / 100% 100% no-repeat !important;
   border-image: none !important;
 }
-html[data-cyberpunk-ni="on"] :is(.crafting, .crafting-window, .crafting__contents, .left-grouped-list-and-right-description-window) .ie-item-slot-anim-frame :is(.interface-element-one-item-slot, .interface-element-one-item-slot-2):not(.item) {
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .crafting, .crafting-window, .crafting__contents, .left-grouped-list-and-right-description-window) :is(.ie-item-slot-anim-frame, .ie-item-slot-anim-frame--frame-1, .ie-item-slot-anim-frame--frame-2) :is(.interface-element-one-item-slot, .interface-element-one-item-slot-2):not(.item) {
   background: var(--cp-bg) !important;
   border-image: none !important;
   border-color: #425b6b !important;
   outline-color: #20303c !important;
 }
-html[data-cyberpunk-ni="on"] :is(.crafting, .crafting-window, .crafting__contents, .left-grouped-list-and-right-description-window) .ie-item-slot-anim-frame .interface-element-one-item-slot-decor:not(.item) {
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .crafting, .crafting-window, .crafting__contents, .left-grouped-list-and-right-description-window) :is(.ie-item-slot-anim-frame, .ie-item-slot-anim-frame--frame-1, .ie-item-slot-anim-frame--frame-2) .interface-element-one-item-slot-decor:not(.item) {
   background: none !important;
 }
-html[data-cyberpunk-ni="on"] :is(.crafting, .crafting-window, .crafting__contents, .left-grouped-list-and-right-description-window) .interface-element-one-gray-tile {
+html[data-cyberpunk-ni="on"] :is(.c-window, .border-window, .crafting, .crafting-window, .crafting__contents, .left-grouped-list-and-right-description-window) .interface-element-one-gray-tile {
   background: var(--cp-art-card) right bottom / 96px 24px no-repeat, var(--cp-raised) !important;
   border-image: none !important;
   border-color: #425b6b !important;
