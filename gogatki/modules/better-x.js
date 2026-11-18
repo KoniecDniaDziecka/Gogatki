@@ -1,4 +1,4 @@
-// Better X 1.0.4 — samodzielna adaptacja Wild Hunt (Maddonz, Barlag) dla Gogatków.
+// Better X 1.0.5 — samodzielna adaptacja Wild Hunt (Maddonz, Barlag) dla Gogatków.
 GogatkiRuntime.register({
   id: 'better-x', name: 'Better X',
   description: 'Atakowanie i dobijanie graczy; domyślny skrót X, próby co 200–350 ms.',
@@ -203,7 +203,7 @@ GogatkiRuntime.register({
   const gear = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/><path d="M12 2v6m0 8v6M2 12h6m8 0h6"/></svg>';
   root.innerHTML = `<style>
     :host{font:12px Arial,sans-serif;color:#c7d0d9}*{box-sizing:border-box}section{width:242px;background:#171b20;border:1px solid #668298;border-radius:4px;overflow:hidden}header{height:28px;display:flex;align-items:center;background:#252b31;cursor:move;touch-action:none}strong{color:#12c9bd;flex:1;padding:0 8px}button{font:inherit;color:#c7d0d9;background:#38566c;border:1px solid #6d879a;border-radius:3px;padding:5px;cursor:pointer}button:focus-visible,input:focus-visible{outline:2px solid #12c9bd}#gear{width:26px;height:26px;padding:3px;display:flex;align-items:center;justify-content:center;color:#12c9bd;background:#252b31;border:0}main{padding:7px}.actions{display:flex;gap:4px}.actions button{flex:1}#status{margin-top:7px;overflow-wrap:anywhere;color:#b1c0cb}#settings{border-top:1px solid #668298;margin-top:7px;padding-top:5px}label{display:flex;align-items:center;gap:6px;margin:5px 0}input{font:inherit;background:#252b31;border:1px solid #668298;color:#c7d0d9;border-radius:3px;min-width:0}input[type=number]{width:70px;margin-left:auto}input[type=checkbox]{appearance:none;width:14px;height:14px;margin:0;display:grid;place-content:center}input:checked:after{content:'✓';color:#12c9bd;font-weight:bold}select{margin-left:auto;max-width:100px;background:#252b31;color:#c7d0d9}small{font-size:11px;color:#b1c0cb}[hidden]{display:none!important}section.collapsed{width:var(--tile);height:var(--tile)}.collapsed header,.collapsed #gear{width:100%;height:100%}.collapsed strong,.collapsed main{display:none}
-  </style><section class="panel"><header><strong>Better X</strong><button id="gear" title="LPM: opcje · PPM: zwiń" aria-label="Opcje Better X">${gear}</button></header><main><div class="actions"><button id="nearest">Dobij</button><button id="stop">Stop</button></div><div id="status" role="status">Oczekiwanie na grę…</div><div id="settings" hidden></div></main></section>`;
+  </style><section class="panel"><header><strong>Better X</strong><button id="gear" title="Zwiń Better X do docku" aria-label="Zwiń Better X do docku">${gear}</button></header><main><div class="actions"><button id="nearest">Dobij</button><button id="stop">Stop</button></div><div id="status" role="status">Oczekiwanie na grę…</div><div id="settings"></div></main></section>`;
   document.body.append(host);
   const panel = root.querySelector('section'), status = root.querySelector('#status'), options = root.querySelector('#settings');
   for (const [name, text, type] of [['minLevel','Minimalny poziom','number'], ['maxLevel','Maksymalny poziom','number'], ['enemy','Atakuj wrogów','checkbox'], ['clanEnemy','Atakuj wrogów klanu','checkbox'], ['otherEnemy','Atakuj nieznajomych','checkbox']]) {
@@ -227,15 +227,17 @@ GogatkiRuntime.register({
   }
   function renderStatus() { status.textContent = target ? 'Polowanie: ' + (find(target)?.nick || target) : 'Zatrzymano'; }
   function place() {
-    if (window.__gogatkiTileDock?.isDocked(host)) return;
-    const launcher = document.querySelector('#gogatek-panel')?.shadowRoot?.querySelector('.launcher');
-    panel.style.setProperty('--tile', (launcher?.getBoundingClientRect().height || 28) + 'px');
+    panel.style.setProperty('--tile', '28px');
     panel.classList.toggle('collapsed', !!settings.collapsed);
+    const label = settings.collapsed ? 'Rozwiń Better X' : 'Zwiń Better X do docku';
+    root.querySelector('#gear').title = label;
+    root.querySelector('#gear').setAttribute('aria-label', label);
+    if (window.__gogatkiTileDock?.isDocked(host)) return;
     settings.right = Math.max(0, Math.min(Number(settings.right) || 0, Math.max(0, innerWidth - host.offsetWidth)));
     settings.top = Math.max(0, Math.min(Number(settings.top) || 0, Math.max(0, innerHeight - host.offsetHeight)));
     host.style.right = settings.right + 'px'; host.style.top = settings.top + 'px';
   }
-  root.querySelector('#gear').onclick = () => { if (settings.collapsed) settings.collapsed = false; else options.hidden = !options.hidden; place(); save(); };
+  root.querySelector('#gear').onclick = () => { settings.collapsed = !settings.collapsed; place(); save(); };
   root.querySelector('#gear').oncontextmenu = event => { event.preventDefault(); settings.collapsed = !settings.collapsed; place(); save(); };
   root.querySelector('#nearest').onclick = nearest; root.querySelector('#stop').onclick = stop;
   const header = root.querySelector('header');
@@ -281,6 +283,7 @@ GogatkiRuntime.register({
 
   }
 });
+
 
 
 
