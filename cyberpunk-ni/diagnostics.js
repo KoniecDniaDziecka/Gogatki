@@ -157,6 +157,75 @@ function installCyberpunkNiDiagnostics(window, theme, readValue, runtime) {
     })) };
   }
 
+  function craftingSnapshot() {
+    // Tylko ręczny raport. Szukamy też po instrukcji, gdy gra zmieni klasy
+    // panelu; nie zapisujemy tekstów okna, nazw przedmiotów ani ich statystyk.
+    const containers = '.crafting,.crafting-window,.crafting__contents,.c-window,.border-window';
+    const roots = new Set();
+    function add(element) {
+      let root = element.closest(containers);
+      if (!root) {
+        root = element;
+        for (let depth = 0; depth < 4 && root.parentElement; depth++) {
+          const parent = root.parentElement;
+          if (parent === document.body || parent === document.documentElement || parent.matches('.layer,.game-window-positioner')) break;
+          const bounds = parent.getBoundingClientRect();
+          if (bounds.width > 950 || bounds.height > 950) break;
+          root = parent;
+        }
+      }
+      if (root && root !== document.body && root !== document.documentElement && visible(root)) roots.add(root);
+    }
+    for (const element of document.querySelectorAll('.crafting,.crafting-window,.crafting__contents,.ie-item-slot-anim-frame,.ie-item-slot-anim-frame--frame-1,.ie-item-slot-anim-frame--frame-2')) {
+      if (visible(element)) add(element);
+    }
+    const walker = document.createTreeWalker(document.body, window.NodeFilter.SHOW_ELEMENT);
+    const hint = /Wycofuje ulepszenie|Wprowadź przedmiot.{0,80}zmiany wzmocnienia|Wskaż przedmioty w torbie.{0,80}rozbić/iu;
+    let element, visited = 0;
+    while ((element = walker.nextNode()) && visited++ < 12000) {
+      if (element.childElementCount > 2) continue;
+      const text = element.textContent.replace(/\s+/g, ' ').trim();
+      if (text.length <= 250 && hint.test(text) && visible(element)) add(element);
+    }
+    const layoutProperties = ['width', 'height', 'padding', 'box-sizing', 'border-width',
+      'border-style', 'border-image-slice', 'border-image-width', 'background-repeat',
+      'background-origin', 'background-clip', 'z-index', 'content'];
+    const paint = style => ({ ...styleData(style), ...Object.fromEntries(layoutProperties.map(name => [name, clean(style.getPropertyValue(name))])) });
+    return [...roots].filter(root => ![...roots].some(other => other !== root && other.contains(root))).slice(0, 3).map(root => {
+      const elements = [root];
+      const children = document.createTreeWalker(root, window.NodeFilter.SHOW_ELEMENT);
+      let child, count = 0;
+      while ((child = children.nextNode()) && count++ < 600 && elements.length < 180) {
+        if (visible(child)) elements.push(child);
+      }
+      const nodes = elements.map((node, index) => ({ ...describe(node), index,
+        parentIndex: elements.indexOf(node.parentElement), guard: node.getAttribute('data-cp-inline-style'),
+        computed: paint(window.getComputedStyle(node)),
+        before: paint(window.getComputedStyle(node, '::before')),
+        after: paint(window.getComputedStyle(node, '::after')) }));
+      const ancestors = [];
+      for (let parent = root.parentElement; parent && ancestors.length < 6; parent = parent.parentElement) ancestors.push(describe(parent));
+      const matchedRules = [], blockedSheets = [];
+      let rulesVisited = 0;
+      function readRules(list, context) {
+        for (const rule of list) {
+          if (++rulesVisited > 18000 || matchedRules.length >= 240) return;
+          if (rule.selectorText && /slot|frame|gray-tile|extraction|enhance|info-box|crafting/i.test(rule.selectorText)) {
+            const matches = [];
+            try { elements.forEach((node, index) => { if (node.matches(rule.selectorText.replace(/::(?:before|after)\b/g, ''))) matches.push(index); }); } catch {}
+            if (matches.length) matchedRules.push({ selector: rule.selectorText, context, matches,
+              declarations: Object.fromEntries([...rule.style].map(name => [name, { value: clean(rule.style.getPropertyValue(name)), priority: rule.style.getPropertyPriority(name) }])) });
+          } else if (rule.cssRules) readRules(rule.cssRules, [...context, rule.name || rule.conditionText || rule.constructor.name]);
+        }
+      }
+      for (const sheet of document.styleSheets) {
+        try { readRules(sheet.cssRules, [sheet.ownerNode?.id || (sheet.href ? url(sheet.href) : 'inline')]); }
+        catch { blockedSheets.push(sheet.href ? url(sheet.href) : 'inline'); }
+      }
+      return { schema: 1, ancestors, nodes, matchedRules, blockedSheets, truncated: count >= 600 || elements.length >= 180 };
+    });
+  }
+
   function capture({ duration = 10000, message = null } = {}) {
     return new Promise(resolve => {
       const started = window.performance.now();
@@ -167,6 +236,7 @@ function installCyberpunkNiDiagnostics(window, theme, readValue, runtime) {
       report.diagnosticWork = { setupDuration: 0, menuSnapshots: [] };
       report.battleAtStart = battleSnapshot();
       report.toolbarAtStart = toolbarSnapshot();
+      report.craftingAtStart = craftingSnapshot();
       const surfaces = visibleSurfaces();
       report.mapSurfacesAtStart = surfaces.map(describe);
       report.surfaceSelection = 'up to 12 visible surfaces, largest first';
@@ -291,6 +361,7 @@ function installCyberpunkNiDiagnostics(window, theme, readValue, runtime) {
         report.mapSurfaces = visibleSurfaces().map(describe);
         report.battleAtEnd = battleSnapshot();
         report.toolbarAtEnd = toolbarSnapshot();
+        report.craftingAtEnd = craftingSnapshot();
         resolve(report);
       }
       const timer = window.setTimeout(() => finish(false), duration);
