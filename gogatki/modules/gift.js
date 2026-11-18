@@ -1,3 +1,4 @@
+// Gift 1.0.19 — okienko odbioru nagród na środku ekranu.
 GogatkiRuntime.register({id:"gift",name:"Gift",description:"Odbieranie darmowych nagr\u00f3d z aktualno\u015bci i kalendarza.",start() {
     // Keep checkbox styling consistent in already installed Gogatki panels.
     const gogatkiRoot = document.querySelector('#gogatek-panel')?.shadowRoot;
@@ -181,6 +182,7 @@ GogatkiRuntime.register({id:"gift",name:"Gift",description:"Odbieranie darmowych
     if (window.top !== window.self || window.__standaloneFreeGift) return;
     window.__standaloneFreeGift = true;
     let pending = null, panel, checked = false, readySince = null, api;
+    let refreshClaimView = () => {};
 
     const heroId = () => String(window.Engine?.hero?.d?.id || window.hero?.id || '');
     let character;
@@ -270,7 +272,37 @@ GogatkiRuntime.register({id:"gift",name:"Gift",description:"Odbieranie darmowych
         document.head.append(style); document.body.append(panel);
         const button = panel.querySelector('[data-check]');
         const rewards = new Set();
-        let busy = false;
+        let busy = false, claiming = false, displayState = '';
+        const claimHost = document.createElement('div');
+        claimHost.id = 'gogatki-gift-claim'; claimHost.hidden = true;
+        claimHost.style.cssText = 'all:initial;position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);width:212px;max-width:calc(100vw - 24px);z-index:2147483600;display:block';
+        const claimRoot = claimHost.attachShadow({mode:'open'});
+        claimRoot.innerHTML = `<style>
+            :host([hidden]){display:none!important}*{box-sizing:border-box;text-shadow:none;-webkit-text-stroke:0}
+            section{width:100%;background:#171b20;color:#c7d0d9;border:1px solid #668298;border-radius:4px;overflow:hidden;font:12px/1.4 Arial,sans-serif;box-shadow:0 4px 16px #0006}
+            header{display:flex;align-items:center;justify-content:center;gap:7px;height:30px;background:#252b31;color:#12c9bd}
+            h2{margin:0;font:600 12px Arial,sans-serif}.icon svg{display:block;width:18px;height:18px}
+            main{padding:10px;display:grid;gap:9px}p{margin:0;text-align:center}button{width:100%;min-height:28px;padding:5px 10px;border:1px solid #6d879a;border-radius:3px;background:#38566c;color:#c7d0d9;font:12px Arial,sans-serif;cursor:pointer}
+            button:hover:not(:disabled){border-color:#12c9bd}button:focus-visible{outline:2px solid #12c9bd;outline-offset:2px}button:disabled{opacity:.55;cursor:default}
+            .error{color:#e8b7a9;font-size:11px;overflow-wrap:anywhere}[hidden]{display:none!important}
+        </style><section role="dialog" aria-modal="false" aria-labelledby="gift-claim-title"><header><span class="icon">${button.querySelector('svg').outerHTML}</span><h2 id="gift-claim-title">Gift</h2></header><main><p data-hint aria-live="polite">Darmowa nagroda czeka na odbiór.</p><button type="button" data-claim>Odbierz</button><p class="error" data-error role="alert" hidden></p></main></section>`;
+        const claimButton = claimRoot.querySelector('[data-claim]'), claimHint = claimRoot.querySelector('[data-hint]'), claimError = claimRoot.querySelector('[data-error]');
+        document.body.append(claimHost);
+        function claimBlocked() {
+            if (heroId() !== character) return 'character';
+            const lock = window.Engine?.lock || window.g?.lock;
+            if (lock?.check?.('logoff')) return 'logoff';
+            if (lock?.check?.('battle')) return 'battle';
+            return '';
+        }
+        async function claimRewards() {
+            if (busy || claiming || !rewards.size || claimBlocked()) { updateButton(); return; }
+            claiming = true; claimError.hidden = true; claimError.textContent = ''; updateButton();
+            try { await api.acceptAll(); }
+            finally { claiming = false; updateButton(); }
+        }
+        claimButton.onclick = () => { void claimRewards(); };
+        window.addEventListener('pagehide', () => { refreshClaimView = () => {}; claimHost.remove(); }, {once:true});
         const pendingNotices = new Set();
         let noticeTimer = null;
         function notifyAvailable() {
@@ -302,14 +334,24 @@ GogatkiRuntime.register({id:"gift",name:"Gift",description:"Odbieranie darmowych
         }
         window.addEventListener('pagehide', () => { clearTimeout(noticeTimer); document.getElementById('gogatki-gift-notice')?.remove(); }, {once:true});
         function updateButton() {
-            panel.dataset.reward = String(rewards.size > 0);
-            button.title = rewards.size > 0 ? 'Gift — odbierz nagrody' : 'Gift';
+            const blocked = claimBlocked(), next = [rewards.size,busy,claiming,blocked].join(':');
+            if (next === displayState) return;
+            displayState = next;
+            const available = rewards.size > 0 && blocked !== 'character' && blocked !== 'logoff';
+            if (panel.dataset.reward !== String(available)) panel.dataset.reward = String(available);
+            button.title = available ? 'Gift — odbierz nagrody' : 'Gift';
             button.setAttribute('aria-label', button.title);
-            button.disabled = busy || rewards.size === 0;
-            button.setAttribute('aria-busy', String(busy));
+            button.disabled = busy || claiming || !available || !!blocked;
+            button.setAttribute('aria-busy', String(busy || claiming));
+            claimHost.hidden = !available;
+            claimButton.disabled = button.disabled;
+            claimButton.textContent = claiming ? 'Odbieranie…' : 'Odbierz';
+            claimButton.setAttribute('aria-busy', String(busy || claiming));
+            claimHint.textContent = blocked === 'battle' ? 'Odbiór będzie możliwy po walce.' : 'Darmowa nagroda czeka na odbiór.';
         }
+        refreshClaimView = updateButton;
         const view = {
-            status: text => console.warn('[Gift]', text),
+            status(text) { console.warn('[Gift]', text); claimError.textContent = text; claimError.hidden = false; },
             busy(value) { busy = value; updateButton(); notifyAvailable(); },
             remove(kind) { rewards.delete(kind); pendingNotices.delete(kind); updateButton(); },
             offer(kind) {
@@ -318,12 +360,14 @@ GogatkiRuntime.register({id:"gift",name:"Gift",description:"Odbieranie darmowych
             }
         };
         api = controller(game, view);
-        button.onclick = () => { if (!button.disabled) void api.acceptAll(); };
+        button.onclick = () => { void claimRewards(); };
+        updateButton();
     }
     // Install before the initial notices response, then wait for the game and DOM.
     const timer = setInterval(() => {
         installHook(window.Engine?.communication, 'parseJSON');
         installHook(window, 'parseInput');
+        refreshClaimView();
         if (!document.body || !heroId() || typeof window._g !== 'function') return;
         if (!panel) { character = heroId(); mount(); }
         // allInit and g.init distinguish a loaded character from the game still starting.
@@ -344,6 +388,7 @@ GogatkiRuntime.register({id:"gift",name:"Gift",description:"Odbieranie darmowych
 })();
 
 }});
+
 
 
 
