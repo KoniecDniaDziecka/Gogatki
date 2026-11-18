@@ -5,6 +5,7 @@
     const window = unsafeWindow;
     function createTileDock({onCleanup = () => {}} = {}) {
         const specs = [
+            {id:'gogatki-blogo-plus', name:'Błogo+', control:'.gear', shadow:true, clickToOpen:true, icon:'blessing'},
             {id:'gogatki-kupiec-plus', name:'Kupiec+', control:'.gear', shadow:true, clickToOpen:true, icon:'coins'},
             {id:'gogatki-item-tips', name:'Koszty ulepszeń', control:'.gear', shadow:true, clickToOpen:true},
             {id:'gogatki-alerts', name:'Alerts', control:'.gear', shadow:true, clickToOpen:true, icon:'bell'},
@@ -196,6 +197,7 @@
             button.dataset.gogatkiDockItem = entry.spec.id;
             button.setAttribute('aria-controls', entry.spec.id);
             const icons = {
+                blessing:'<ellipse cx="12" cy="5" rx="8" ry="3"/><path d="m12 11 2 4 4 2-4 2-2 4-2-4-4-2 4-2 2-4Z"/>',
                 coins:'<circle cx="8" cy="8" r="6"/><path d="M18.1 10.4A6 6 0 1 1 10.4 18.1M7 6h1v4m-1 0h2m7 4h1v4m-1 0h2"/>',
                 bell:'<path d="M6 8a6 6 0 0 1 12 0c0 7 3 7 3 9H3c0-2 3-2 3-9Zm4 12h4"/>',
                 q:'<g stroke-width="2.1"><ellipse cx="11" cy="11" rx="7" ry="7.5"/><path d="m12 13 7.5 7"/></g>',
