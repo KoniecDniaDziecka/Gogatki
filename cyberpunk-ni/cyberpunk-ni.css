@@ -3322,6 +3322,24 @@ html[data-cyberpunk-ni="on"] :is(.extraction__arrows, .salvage__arrows)::after {
 }
 /* CP-CRAFT-EXTRACTION-END */
 
+/* CP-CRAFT-NATIVE-DECOR-BEGIN: raport NI pokazuje samodzielne pole decor
+ * (46 px, padding 9px 6px), bez anim-frame, oraz instrukcję .info-box.
+ * Rozmiary i wnętrze pola pozostają natywne. */
+@layer cyberpunk-ni-window-finishes {
+html[data-cyberpunk-ni="on"] :is(.crafting, .crafting-window, .crafting__contents, .left-grouped-list-and-right-description-window) .interface-element-one-item-slot-decor:not(.item):not([style*="url(" i]):where(:not(.enhance__reagents *, .ie-item-slot-anim-frame *, .ie-item-slot-anim-frame--frame-1 *, .ie-item-slot-anim-frame--frame-2 *)) {
+  background: var(--cp-art-slot) center / 100% 100% no-repeat !important;
+  border-image: none !important;
+}
+html[data-cyberpunk-ni="on"] :is(.crafting, .crafting-window, .crafting__contents, .left-grouped-list-and-right-description-window) .info-box {
+  background: var(--cp-art-card) right bottom / 96px 24px no-repeat, var(--cp-raised) !important;
+  border-image: none !important;
+  border-color: #425b6b !important;
+  color: var(--cp-text) !important;
+  text-shadow: none !important;
+}
+}
+/* CP-CRAFT-NATIVE-DECOR-END */
+
 /* CP-CRAFT-GRID-PITCH-BEGIN: ikona 32 px + odstęp 1 px daje pole 33 px.
  * Rozmiary siatki, pozycje ikon i obszary upuszczania nadal ustala gra. */
 @layer cyberpunk-ni-window-finishes {
