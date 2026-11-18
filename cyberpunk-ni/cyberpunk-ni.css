@@ -1,4 +1,4 @@
-/* Cyberpunk NI 0.2.82 — motyw dla nowego interfejsu Margonem.
+/* Cyberpunk NI 0.2.83 — motyw dla nowego interfejsu Margonem.
  * Skrypt .user.js włącza go atrybutem data-cyberpunk-ni="on" na <html>.
  * Zmienne poniżej sterują paletą. Nie wymaga zewnętrznych grafik ani fontów.
  * Najlepiej używać z wyłączonym DarknessNI i innymi motywami całego NI.
@@ -3307,15 +3307,24 @@ html[data-cyberpunk-ni="on"] :is(.crafting, .crafting-window, .crafting__content
   color: var(--cp-text) !important;
   text-shadow: none !important;
 }
-html[data-cyberpunk-ni="on"] .extraction__label {
+html[data-cyberpunk-ni="on"] :is(.extraction__label, .salvage__label) {
   background: var(--cp-panel) !important;
   border-color: #425b6b !important;
   box-shadow: 0 2px 0 -1px var(--cp-panel) !important;
   color: var(--cp-muted) !important;
 }
-html[data-cyberpunk-ni="on"] .extraction__arrows::before,
-html[data-cyberpunk-ni="on"] .extraction__arrows::after {
+html[data-cyberpunk-ni="on"] :is(.extraction__arrows, .salvage__arrows)::before,
+html[data-cyberpunk-ni="on"] :is(.extraction__arrows, .salvage__arrows)::after {
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='m2 2 4 4 4-4' fill='none' stroke='%237f9da8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 100% 100% no-repeat !important;
 }
 }
 /* CP-CRAFT-EXTRACTION-END */
+
+/* CP-CRAFT-GRID-PITCH-BEGIN: ikona 32 px + odstęp 2 px daje pole 34 px.
+ * Rozmiary siatki, pozycje ikon i obszary upuszczania nadal ustala gra. */
+@layer cyberpunk-ni-window-finishes {
+html[data-cyberpunk-ni="on"] :is(.crafting, .crafting-window, .crafting__contents, .left-grouped-list-and-right-description-window) :is(.interface-element-one-item-slot-background-to-repeat, .interface-element-item-slot-grid-stretch) {
+  background-size: 34px 34px !important;
+}
+}
+/* CP-CRAFT-GRID-PITCH-END */
