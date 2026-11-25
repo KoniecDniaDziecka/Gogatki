@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Gogatki — panel dodatków
 // @namespace    gogatek.local
-// @version      0.9.10
+// @version      0.9.11
 // @description  Wspólny panel i przełączniki dodatków do Margonem.
 // @match        https://*.margonem.pl/*
 // @match        https://*.margonem.com/*
@@ -574,7 +574,10 @@ const fallbackCatalogue = {"schemaVersion":1,"modules":[{"id":"ulepa","name":"Ul
             for (const id of new Set([...Object.keys(set), ...Object.keys(layout)])) {
                 if (id === widgetKey || located.has(id) || layout[id] === false) continue;
                 const definition = set[id];
-                const other = validPosition(layout[id]) ? layout[id] : definition?.default ? [definition.index,definition.pos] : null;
+                // Saved positions of uninstalled addons (e.g. Maddonz) are not active widgets.
+                // Real buttons were checked above; native definitions cover widgets still loading.
+                if (!definition) continue;
+                const other = validPosition(layout[id]) ? layout[id] : definition.default ? [definition.index,definition.pos] : null;
                 if (matches(other)) return true;
             }
             return false;
