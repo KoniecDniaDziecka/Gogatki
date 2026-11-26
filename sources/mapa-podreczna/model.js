@@ -213,31 +213,26 @@ function bootstrapFromEngine() {
                     }
                 }
             } catch (_) {}
-            try {
-                if (!Object.keys(others).length && typeof E.others?.check === 'function') {
-                    const list = E.others.check() || {};
-                    for (const id in list) {
-                        const d = list[id]?.d || list[id];
-                        if (d && d.x !== undefined) others[String(d.id ?? id)] = Object.assign({ id: String(d.id ?? id) }, d);
-                    }
-                }
-            } catch (_) {}
+
         }
 
-let lastOthersPull = 0;
-
 function refreshOthersFromEngine() {
-            const now = Date.now();
-            if (now - lastOthersPull < 1000) return;
-            lastOthersPull = now;
             try {
                 const E = PAGE.Engine;
                 if (typeof E?.others?.check !== 'function') return;
-                const list = E.others.check() || {};
-                for (const id in list) {
-                    const d = list[id]?.d || list[id];
-                    if (d && d.x !== undefined) others[String(d.id ?? id)] = Object.assign({ id: String(d.id ?? id) }, d);
+                const list = E.others.check();
+                if (!list || typeof list !== 'object') return;
+                // Gracze pochodzą wyłącznie z aktualnej listy gry. Pamięć Fog Light
+                // dotyczy potworów, więc nie zachowuj znikających graczy w modelu.
+                const current = Object.create(null);
+                for (const key of Object.keys(list)) {
+                    const d = list[key]?.d || list[key];
+                    if (!d || d.del || d.x === undefined || d.y === undefined) continue;
+                    const id = String(d.id ?? key);
+                    current[id] = Object.assign({}, d, { id });
                 }
+                for (const id in others) delete others[id];
+                Object.assign(others, current);
             } catch (_) {}
         }
 
@@ -346,7 +341,6 @@ function collectObjects() {
                 list.push({ id: `g${id}`, x: g.x, y: g.y, nick: g.nick, lvl: g.lvl, kind: 'grave' });
             }
             if (state.mmShowOthers) {
-                if (!Object.keys(others).length) refreshOthersFromEngine();
                 for (const id in others) {
                     const o = others[id];
                     if (o.x === undefined || o.y === undefined) continue;
@@ -380,7 +374,6 @@ function heroPos() {
         }
 
 function getPlayers() {
-            if (!Object.keys(others).length) refreshOthersFromEngine();
             const h = heroPos();
             const out = [];
             for (const id in others) {

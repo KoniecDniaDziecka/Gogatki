@@ -7,8 +7,8 @@ const createMapModel = new Function(fs.readFileSync(path.join(__dirname, '../sou
 let checks = 0;
 const eq = (actual, expected, label) => {assert.deepEqual(actual, expected, label);checks++;};
 function fixture() {
-    const npcs = {};
-    const page = {Engine:{hero:{d:{id:1,x:0,y:0}},map:{d:{id:1,x:32,y:32,pvp:2,visibility:4}},npcs:{check:()=>npcs,getById:id=>npcs[id]}}};
+    const npcs = {}, players = {};
+    const page = {Engine:{hero:{d:{id:1,x:0,y:0}},map:{d:{id:1,x:32,y:32,pvp:2,visibility:4}},npcs:{check:()=>npcs,getById:id=>npcs[id]},others:{check:()=>players}}};
     const state = {enabled:true,mmShowMobs:true,mmShowNpcs:true};
     const model = createMapModel(page,state,{text:''},()=>{});
     const purges = [];
@@ -20,12 +20,16 @@ function fixture() {
         const updates=Array.isArray(processed.npcs)?processed.npcs:Object.entries(processed.npcs||{}).map(([id,n])=>({...n,id:n.id??id}));
         for(const n of updates){if(n.del)delete npcs[n.id];else npcs[n.id]={d:{...npcs[n.id]?.d,...n}};}
         for(const entry of processed.npcs_del||[])delete npcs[typeof entry==='object'?entry.id:entry];
+        for(const [id,patch] of Object.entries(processed.other || {})) {
+            if(patch.del) delete players[id];
+            else players[id]={d:{id,...players[id]?.d,...patch}};
+        }
         model.feed(processed);fog.after(processed);return processed;
     }
     const ids = () => model.snapshot().objects.filter(object=>object.id.startsWith('n')).map(object=>object.id).sort();
     const add = (...entries) => parse({npcs:entries});
     const mob = (id,x=12,y=12,type=2) => ({id,x,y,type,nick:'Monster',lvl:10});
-    return {page,state,fog,parse,purges,ids,add,mob,npcs};
+    return {page,state,fog,parse,purges,ids,add,mob,npcs,players,playerIds:()=>model.snapshot().players.map(p=>p.id).sort()};
 }
 {
     const f=fixture();f.add(f.mob(1),f.mob(2,1,1),f.mob(3,15,15,0),f.mob('echo-4'));
@@ -69,5 +73,30 @@ function fixture() {
     const f=fixture();f.add(f.mob(1));f.parse({npcs_del:[{id:1}]});
     f.page.Engine.map.d.id=2;f.fog.syncMap();f.fog.clear();
     eq(f.purges,[],'tick map changes clear memory without deleting new map NPCs');
+}
+{
+    const f=fixture();
+    f.add(f.mob(10));
+    f.parse({other:{20:{nick:'Player',x:12,y:12,relation:3},21:{nick:'Still visible',x:1,y:1,relation:2}}});
+    eq(f.playerIds(),['20','21'],'current players appear on the map');
+    f.parse({npcs_del:[{id:10}]});
+    delete f.players[20];
+    eq(f.playerIds(),['21'],'player missing from live game state disappears immediately');
+    eq(f.ids(),['n10'],'Fog Light still remembers the distant monster');
+    delete f.players[21];
+    eq(f.playerIds(),[],'empty live player list clears all old player markers');
+    eq(f.ids(),['n10'],'clearing players does not clear remembered monsters');
+    f.parse({other:{20:{nick:'Returned',x:2,y:2,relation:3}}});
+    eq(f.playerIds(),['20'],'player returning to view appears again');
+    f.players[20].d.del=1;
+    eq(f.playerIds(),[],'player marked for removal is not restored from native cache');
+}
+{
+    const f=fixture();
+    f.parse({other:{20:{nick:'Player',x:12,y:12,relation:3}}});
+    const original=Object.freeze({other:Object.freeze({20:Object.freeze({del:1})}),npcs_del:Object.freeze([])});
+    eq(f.parse(original),original,'Fog Light does not alter player deletion packets');
+    eq(f.playerIds(),[],'server deletion removes player from map model');
+    eq(f.purges,[],'player removal never produces synthetic NPC deletions');
 }
 console.log('PASS: '+checks+' Fog Light assertions for packet filtering, map cache, refresh, PvP, disable and map changes');
