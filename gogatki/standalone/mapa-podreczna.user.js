@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Mapa podręczna+ — samodzielna (NI)
 // @namespace    gogatki.local.mapa-podreczna.standalone
-// @version      1.1.1
+// @version      1.1.2
 // @description  Oznaczenia, filtry, wyszukiwarka i Fog Light w mapie podręcznej NI, bez panelu Gogatków.
 // @author       Gogatki; model danych: Dark-Sad 6.1.5; Fog Light: Maddonz (Barlag)
 // @match        https://*.margonem.pl/*
@@ -36,7 +36,7 @@
     let definition;
     // A private registry keeps the identical module independent of Gogatki's loader.
     const GogatkiRuntime = Object.freeze({ register(value) { definition = value; } });
-// Mapa podręczna+ 1.1.1 — enhancement of the native NI window with Fog Light.
+// Mapa podręczna+ 1.1.2 — enhancement of the native NI window with Fog Light.
 GogatkiRuntime.register({
     id: 'mapa-podreczna',
     name: 'Mapa+',
@@ -776,7 +776,7 @@ function createFogLight(PAGE, enabled, deleteNpcs) {
         const launcherButton = document.createElement('button');
         launcherButton.type = 'button'; launcherButton.className = 'open-map';
         launcherButton.textContent = 'Mapa+';
-        launcherButton.addEventListener('click', toggleNativeMap);
+        launcherButton.addEventListener('click', toggleSettings);
         launcher.append(launcherButton); document.body.append(launcher);
         function save() { try { GM_setValue(KEY, { ...state }); } catch { showStatus('Nie udało się zapisać ustawień.'); } }
         function showStatus(text) { hint = text; if (binding) setText(binding.status, text); }
@@ -796,13 +796,24 @@ function createFogLight(PAGE, enabled, deleteNpcs) {
             }
             return windows.find(isVisible) || null;
         }
-        function syncLauncher() { launcher.dataset.compact = String(!findWindow()); }
-        function toggleNativeMap() {
-            const native = findWindow();
-            if (native) {
-                const close = native.querySelector('.close-button-corner-decor .close-button, .close-button');
-                if (close) { close.click(); syncLauncher(); return; }
+        function syncLauncher() { launcher.dataset.compact = String(!findWindow() || !state.drawer); }
+        function setDrawer(open) {
+            state.drawer = open;
+            if (binding) {
+                binding.drawer.hidden = !open;
+                binding.toggle.setAttribute('aria-expanded', String(open));
             }
+            syncLauncher(); save();
+        }
+        function toggleSettings() {
+            const native = findWindow();
+            setDrawer(!native || !state.drawer);
+            if (!native) openNativeMap();
+        }
+        let nextNativeOpen = 0;
+        function openNativeMap() {
+            if (findWindow() || Date.now() < nextNativeOpen) return;
+            nextNativeOpen = Date.now() + 2000;
             const isMap = text => /handheld|(?:mapa\s+podr[eę]czna|podr[eę]czna\s+mapa)/i.test(String(text || '').replace(/<[^>]*>/g, ' '));
             const manager = window.Engine?.widgetManager;
             const set = typeof manager?.getDefaultWidgetSet === 'function' ? manager.getDefaultWidgetSet() : {};
@@ -870,7 +881,7 @@ function createFogLight(PAGE, enabled, deleteNpcs) {
                 return { tag: node.tagName, class: String(node.className || '').slice(0, 120), visible: isVisible(node), width: Math.round(r.width * 100) / 100, height: Math.round(r.height * 100) / 100,
                     image: shortURL(node.currentSrc || node.src || css.backgroundImage), selected: node === binding.surface };
             }).filter(Boolean).slice(0, 40) : [];
-            return JSON.stringify({ version: '1.1.1', status: binding?.status.textContent, active: binding?.overlay.style.display !== 'none', fogLight: state.fogLight,
+            return JSON.stringify({ version: '1.1.2', status: binding?.status.textContent, active: binding?.overlay.style.display !== 'none', fogLight: state.fogLight,
                 dimensions: { model: { w: snapshot?.town?.w, h: snapshot?.town?.h }, engine: { x: d.x, y: d.y }, size: { x: map?.size?.x, y: map?.size?.y } },
                 file: shortURL(snapshot?.town?.file), image: shortURL(map?.img?.currentSrc || map?.img?.src), background: binding?.background ? { ready: !!binding.background.ready, failed: binding.background.failed, source: shortURL(binding.background.source) } : null, nodes }, null, 2);
         }
@@ -1034,7 +1045,7 @@ function createFogLight(PAGE, enabled, deleteNpcs) {
                 input[type=checkbox]::before,input[type=checkbox]::after{content:none}input:checked::after{content:'✓';color:#12c9bd;font:12px/12px Arial}
                 .status{font-size:11px;color:#b1c0cb;margin:6px 0;overflow-wrap:anywhere}.entry{border-top:1px solid #384651;padding:5px 0}.name{font-size:11px;overflow-wrap:anywhere}.actions{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px}.actions button{font-size:11px;background:#38566c}.coords{color:#b1c0cb;font-size:11px;margin-top:2px}
             </style><button type="button" class="toggle" aria-label="Ustawienia mapy+" aria-expanded="false" title="Ustawienia mapy+"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2.5"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3M5 5l2 2m10 10 2 2M5 19l2-2M17 7l2-2"/></svg></button>
-            <section class="drawer" aria-label="Rozszerzenia mapy podręcznej" hidden><input type="search" placeholder="Nazwa lub x,y" aria-label="Szukaj na mapie"><div class="options"></div><p class="status" role="status"></p><button type="button" class="stop" hidden>Zatrzymaj podążanie</button><details><summary>Pomoc · 1.1.1</summary><button type="button" class="diagnose">Kopiuj diagnostykę</button><textarea aria-label="Diagnostyka mapy" readonly hidden style="width:100%;height:100px;color:#c7d0d9;background:#252b31"></textarea></details><div class="list"></div></section>`;
+            <section class="drawer" aria-label="Rozszerzenia mapy podręcznej" hidden><input type="search" placeholder="Nazwa lub x,y" aria-label="Szukaj na mapie"><div class="options"></div><p class="status" role="status"></p><button type="button" class="stop" hidden>Zatrzymaj podążanie</button><details><summary>Pomoc · 1.1.2</summary><button type="button" class="diagnose">Kopiuj diagnostykę</button><textarea aria-label="Diagnostyka mapy" readonly hidden style="width:100%;height:100px;color:#c7d0d9;background:#252b31"></textarea></details><div class="list"></div></section>`;
             const drawer = root.querySelector('.drawer'), toggle = root.querySelector('.toggle');
             drawer.hidden = !state.drawer; toggle.setAttribute('aria-expanded', String(state.drawer));
             const options = [['mmShowMobs', 'Moby'], ['mmShowNpcs', 'NPC'], ['mmShowOthers', 'Gracze'], ['mmShowSpawns', 'Respy'], ['fog', 'Zasięg widzenia'], ['fogLight', 'Fog Light'], ['mmGwAvail', 'Dostępne przejścia'], ['attack', 'Atakuj w pościgu']];
@@ -1045,7 +1056,7 @@ function createFogLight(PAGE, enabled, deleteNpcs) {
                 input.addEventListener('change', () => { state[key] = input.checked; if (key === 'fogLight' && !state.fogLight) fogLight.clear(); save(); });
                 label.append(input, document.createTextNode(title)); root.querySelector('.options').append(label);
             }
-            toggle.addEventListener('click', event => { event.stopPropagation(); state.drawer = !state.drawer; drawer.hidden = !state.drawer; toggle.setAttribute('aria-expanded', String(state.drawer)); save(); });
+            toggle.addEventListener('click', event => { event.stopPropagation(); setDrawer(!state.drawer); });
             root.querySelector('.diagnose').addEventListener('click', () => {
                 const report = diagnosticReport(), output = root.querySelector('textarea');
                 output.value = report; output.hidden = false; output.focus(); output.select();
@@ -1091,7 +1102,7 @@ function createFogLight(PAGE, enabled, deleteNpcs) {
             const markerStyle = document.createElement('style'); markerStyle.textContent = MAP_MARKER_CSS;
             const markerLayer = document.createElement('div'); markerLayer.className = 'pa-mm-objects';
             markerRoot.append(markerStyle, markerLayer); native.append(markerHost);
-            return { native, host, root, drawer, input, status: root.querySelector('.status'), list: root.querySelector('.list'), overlay, terrain, markerHost, markerLayer, markerGeometry: '', background: null, isolation, surface: null, marks: new Map(), rows: new Map(), rect: null, map: String(snapshot?.town?.id) };
+            return { native, host, root, drawer, toggle, input, status: root.querySelector('.status'), list: root.querySelector('.list'), overlay, terrain, markerHost, markerLayer, markerGeometry: '', background: null, isolation, surface: null, marks: new Map(), rows: new Map(), rect: null, map: String(snapshot?.town?.id) };
         }
         function placeControls() {
             const { native, host } = binding, frame = native.getBoundingClientRect();
@@ -1276,7 +1287,8 @@ function createFogLight(PAGE, enabled, deleteNpcs) {
             if (disposed) return;
             hook(); fogLight.syncMap(); snapshot = model.snapshot();
             const native = findWindow();
-            launcher.dataset.compact = String(!native);
+            launcher.dataset.compact = String(!native || !state.drawer);
+            if (native) nextNativeOpen = 0;
             if (native !== binding?.native) { unmount(); if (native) binding = mount(native); }
             if (!binding) return;
             placeControls();
